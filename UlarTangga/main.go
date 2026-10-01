@@ -43,6 +43,25 @@ type ActiveCardPayload struct {
 	TargetP  int    `json:"targetP"`
 }
 
+type HistoryEntry struct {
+	ID         int    `json:"id"`
+	TurnNumber int    `json:"turnNumber"`
+	PlayerNum  int    `json:"playerNum"`
+	PlayerName string `json:"playerName"`
+	Avatar     string `json:"avatar"`
+	Dice       int    `json:"dice"`
+	FromPos    int    `json:"fromPos"`
+	ToPos      int    `json:"toPos"`
+	FinalPos   int    `json:"finalPos"`
+	JumpType   string `json:"jumpType"` // "LADDER", "SNAKE", or ""
+	JumpDest   int    `json:"jumpDest"`
+	Choice     string `json:"choice"`   // "TRUTH", "DARE", "RANDOM"
+	CardType   string `json:"cardType"` // "TRUTH", "DARE", "FINISH"
+	Category   string `json:"category"`
+	Prompt     string `json:"prompt"`
+	TimeStr    string `json:"timeStr"`
+}
+
 type GameState struct {
 	P1Pos      int                `json:"p1Pos"`
 	P2Pos      int                `json:"p2Pos"`
@@ -53,6 +72,7 @@ type GameState struct {
 	ActiveCard *ActiveCardPayload `json:"activeCard,omitempty"`
 	RpsResult  string             `json:"rpsResult"`
 	CustomDeck []QuestionCard     `json:"customDeck"`
+	History    []HistoryEntry     `json:"history"`
 }
 
 var (
@@ -190,6 +210,7 @@ var (
 		LastDice:   1,
 		ActiveCard: nil,
 		CustomDeck: []QuestionCard{},
+		History:    []HistoryEntry{},
 	}
 )
 
@@ -467,12 +488,30 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 				"sender": sender,
 			})
 
+		case "RECORD_HISTORY":
+			var entry HistoryEntry
+			data, _ := json.Marshal(action["entry"])
+			if err := json.Unmarshal(data, &entry); err == nil {
+				entry.ID = len(state.History) + 1
+				entry.TurnNumber = len(state.History) + 1
+				if entry.TimeStr == "" {
+					entry.TimeStr = time.Now().Format("15:04")
+				}
+				state.History = append(state.History, entry)
+				broadcastMessage(map[string]interface{}{
+					"type":    "HISTORY_UPDATED",
+					"entry":   entry,
+					"history": state.History,
+				})
+			}
+
 		case "RESET":
 			state.P1Pos = 1
 			state.P2Pos = 1
 			state.Turn = 1
 			state.LastDice = 1
 			state.ActiveCard = nil
+			state.History = []HistoryEntry{}
 			broadcastMessage(map[string]interface{}{
 				"type":  "STATE_UPDATE",
 				"state": state,

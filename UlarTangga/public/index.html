@@ -303,6 +303,12 @@
                 <span class="hidden sm:inline">Pemain</span>
             </button>
 
+            <!-- Riwayat Permainan Button -->
+            <button onclick="openHistoryModal()" class="wood-btn bg-purple-200 hover:bg-purple-300 text-purple-900 px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5" title="Lihat Riwayat Perjalanan">
+                <span>📜</span>
+                <span>Riwayat (<span id="historyHeaderCount">0</span>)</span>
+            </button>
+
             <!-- Reset Game -->
             <button onclick="promptResetGame()" class="wood-btn bg-red-100 hover:bg-red-200 text-red-700 px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1" title="Reset Ulang">
                 <span>🔄</span>
@@ -402,6 +408,21 @@
                     <div class="bg-teal-50 border border-teal-300 text-teal-800 p-1.5 rounded-lg">💬 TRUTH (50)</div>
                     <div class="bg-rose-50 border border-rose-300 text-rose-800 p-1.5 rounded-lg">⚡ DARE (50)</div>
                     <div class="bg-purple-50 border border-purple-300 text-purple-800 p-1.5 rounded-lg">🎲 RANDOM</div>
+                </div>
+            </div>
+
+            <!-- Mini Riwayat Permainan -->
+            <div class="bg-[#FFFDF8] rounded-2xl p-3 wood-border text-xs text-slate-700">
+                <div class="flex items-center justify-between border-b border-stone-200 pb-2 mb-2">
+                    <span class="font-bold text-[#3D2216] flex items-center gap-1.5">
+                        <span>📜</span> Riwayat Permainan
+                    </span>
+                    <button onclick="openHistoryModal()" class="text-[10px] font-extrabold text-purple-700 bg-purple-100 hover:bg-purple-200 px-2.5 py-0.5 rounded-full transition">
+                        Buka Detail (<span id="historyMiniCount">0</span>) ➔
+                    </button>
+                </div>
+                <div id="historyMiniList" class="space-y-1.5 max-h-36 overflow-y-auto pr-1">
+                    <p class="text-[11px] text-stone-400 italic text-center py-2">Belum ada langkah. Kocok dadu untuk mulai mencatat riwayat!</p>
                 </div>
             </div>
 
@@ -748,6 +769,37 @@
         </div>
     </div>
 
+    <!-- ================= MODAL 5: RIWAYAT LENGKAP PERJALANAN ================= -->
+    <div id="historyModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center p-4 z-50 backdrop-blur-md">
+        <div class="bg-[#FFFDF8] wood-border w-full max-w-xl rounded-3xl p-6 relative flex flex-col max-h-[88vh] shadow-2xl animate-in fade-in zoom-in duration-200">
+            <div class="flex items-center justify-between border-b border-stone-200 pb-3 mb-3">
+                <div class="flex items-center gap-2">
+                    <span class="text-2xl">📜</span>
+                    <div>
+                        <h2 class="text-xl font-bold text-[#3D2216]">Riwayat Langkah & Pilihan</h2>
+                        <p class="text-xs text-stone-500">Catatan setiap langkah dadu, ular, tangga & kartu yang dijawab pasangan.</p>
+                    </div>
+                </div>
+                <button onclick="closeHistoryModal()" class="w-8 h-8 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-600 font-bold">✕</button>
+            </div>
+
+            <!-- Action bar inside modal -->
+            <div class="flex items-center justify-between gap-2 mb-3 pb-2 border-b border-stone-100">
+                <span class="text-xs font-bold text-stone-600">Total Langkah: <span id="historyModalTotalCount" class="text-purple-700 font-extrabold">0</span></span>
+                <div class="flex items-center gap-2">
+                    <button onclick="copyHistorySummary()" class="wood-btn bg-sky-100 hover:bg-sky-200 text-sky-800 text-[11px] font-bold px-3 py-1 rounded-xl flex items-center gap-1">
+                        <span>📋</span> Salin Catatan
+                    </button>
+                </div>
+            </div>
+
+            <!-- Scrollable History List -->
+            <div id="historyModalList" class="flex-1 overflow-y-auto space-y-2.5 pr-1">
+                <p class="text-xs text-stone-400 italic text-center py-6">Belum ada langkah yang tercatat.</p>
+            </div>
+        </div>
+    </div>
+
     <!-- ================= JAVASCRIPT LOGIC ================= -->
     <script>
         // 1. DATA 50 TRUTHS & 50 DARES (LENGKAP)
@@ -867,6 +919,8 @@
 
         // State Utama
         let customCards = JSON.parse(localStorage.getItem('couple_ut_custom_cards') || '[]');
+        let gameHistory = JSON.parse(localStorage.getItem('couple_ut_history') || '[]');
+        let currentMoveContext = { player: 1, dice: 1, fromPos: 1, nextPos: 1, finalPos: 1, jumpDest: 0 };
         let boardTiles = [];
         let gameState = {
             p1Pos: 1,
@@ -1026,6 +1080,7 @@
             drawSnakesAndLaddersSVG();
             updatePawnsUI();
             updateDeckCountBadge();
+            renderHistoryUI();
 
             // Connect WebSocket
             connectWebSocket();
@@ -1339,6 +1394,16 @@
             isRolling = false;
             document.getElementById('rollDiceBtn').disabled = false;
 
+            // Simpan konteks langkah untuk riwayat
+            currentMoveContext = {
+                player: pNum,
+                dice: data.dice,
+                fromPos: data.fromPos,
+                nextPos: data.nextPos,
+                jumpDest: data.jumpDest || 0,
+                finalPos: data.finalPos
+            };
+
             // Buka Modal Pilihan Tantangan
             pendingTileNumber = data.finalPos;
             openChoiceModal(data.finalPos, pNum);
@@ -1381,10 +1446,10 @@
             }
 
             // Ambil kartu acak dari deck sesuai pilihan
-            drawAndRevealCard(selectedType, pendingTileNumber);
+            drawAndRevealCard(selectedType, pendingTileNumber, choice);
         }
 
-        function drawAndRevealCard(type, tileNum) {
+        function drawAndRevealCard(type, tileNum, userChoice = 'TRUTH') {
             let card = null;
 
             // Special Landmark Check
@@ -1408,6 +1473,36 @@
             currentModalCard = card;
             displayCardModal(card, tileNum);
 
+            // Catat Riwayat Langkah & Pilihan ke History
+            const pNum = currentMoveContext.player || (gameState.turn === 2 ? 1 : 2);
+            const pInfo = pNum === 1 ? gameState.p1Info : gameState.p2Info;
+            
+            let jumpType = "";
+            if (currentMoveContext.jumpDest > 0) {
+                jumpType = currentMoveContext.jumpDest > currentMoveContext.nextPos ? "LADDER" : "SNAKE";
+            }
+
+            const historyEntry = {
+                id: Date.now(),
+                turnNumber: gameHistory.length + 1,
+                playerNum: pNum,
+                playerName: pInfo.name,
+                avatar: pInfo.avatar,
+                dice: currentMoveContext.dice || gameState.lastDice,
+                fromPos: currentMoveContext.fromPos || 1,
+                toPos: currentMoveContext.nextPos || tileNum,
+                finalPos: currentMoveContext.finalPos || tileNum,
+                jumpType: jumpType,
+                jumpDest: currentMoveContext.jumpDest || 0,
+                choice: userChoice,
+                cardType: card.type,
+                category: card.category || "Spesial",
+                prompt: card.prompt,
+                timeStr: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
+            };
+
+            addHistoryEntry(historyEntry);
+
             // Broadcast ke partner jika terhubung
             if (ws && ws.readyState === WebSocket.OPEN) {
                 ws.send(JSON.stringify({
@@ -1417,6 +1512,11 @@
                     category: card.category,
                     prompt: card.prompt,
                     targetP: gameState.turn === 2 ? 1 : 2
+                }));
+
+                ws.send(JSON.stringify({
+                    type: "RECORD_HISTORY",
+                    entry: historyEntry
                 }));
             }
         }
@@ -1849,19 +1949,167 @@
         }
 
         function promptResetGame() {
-            gameState.p1Pos = 1;
-            gameState.p2Pos = 1;
-            gameState.turn = 1;
-            updatePawnsUI();
-            document.getElementById('statusMessage').innerText = "🔄 Permainan di-reset ke garis START (Kotak 1).";
-            showToast("Posisi pemain di-reset ke Kotak 1", "🔄");
+            if (confirm("Reset ulang permainan ke Kotak 1 dan bersihkan seluruh riwayat langkah?")) {
+                gameState.p1Pos = 1;
+                gameState.p2Pos = 1;
+                gameState.turn = 1;
+                gameHistory = [];
+                localStorage.removeItem('couple_ut_history');
+                updatePawnsUI();
+                renderHistoryUI();
+                document.getElementById('statusMessage').innerText = "🔄 Permainan di-reset ke garis START (Kotak 1). Riwayat langkah dibersihkan.";
+                showToast("Posisi pemain & riwayat berhasil di-reset!", "🔄");
 
-            if (ws && ws.readyState === WebSocket.OPEN) {
-                ws.send(JSON.stringify({ type: "RESET" }));
+                if (ws && ws.readyState === WebSocket.OPEN) {
+                    ws.send(JSON.stringify({ type: "RESET" }));
+                }
             }
         }
 
-        // 16. WEBSOCKET SYNC
+        // 16. RIWAYAT PERMAINAN (HISTORY LOG)
+        function addHistoryEntry(entry) {
+            gameHistory.push(entry);
+            localStorage.setItem('couple_ut_history', JSON.stringify(gameHistory));
+            renderHistoryUI();
+        }
+
+        function renderHistoryUI() {
+            const count = gameHistory.length;
+            const headerCount = document.getElementById('historyHeaderCount');
+            const miniCount = document.getElementById('historyMiniCount');
+            const modalTotalCount = document.getElementById('historyModalTotalCount');
+
+            if (headerCount) headerCount.innerText = count;
+            if (miniCount) miniCount.innerText = count;
+            if (modalTotalCount) modalTotalCount.innerText = count;
+
+            // Render mini-list in sidebar (last 3 items)
+            const miniList = document.getElementById('historyMiniList');
+            if (miniList) {
+                if (count === 0) {
+                    miniList.innerHTML = `<p class="text-[11px] text-stone-400 italic text-center py-2">Belum ada langkah. Kocok dadu untuk mulai mencatat riwayat!</p>`;
+                } else {
+                    miniList.innerHTML = '';
+                    const recentMoves = gameHistory.slice(-3).reverse();
+                    recentMoves.forEach(h => {
+                        const isTruth = h.cardType === 'TRUTH';
+                        let jumpBadge = '';
+                        if (h.jumpType === 'LADDER') {
+                            jumpBadge = `<span class="bg-amber-100 text-amber-800 text-[9px] px-1.5 py-0.5 rounded font-extrabold border border-amber-300">🪜 Naik ke ${h.finalPos}</span>`;
+                        } else if (h.jumpType === 'SNAKE') {
+                            jumpBadge = `<span class="bg-emerald-100 text-emerald-800 text-[9px] px-1.5 py-0.5 rounded font-extrabold border border-emerald-300">🐍 Turun ke ${h.finalPos}</span>`;
+                        }
+
+                        miniList.innerHTML += `
+                            <div class="p-2 rounded-xl bg-stone-50 border border-stone-200 text-[11px]">
+                                <div class="flex items-center justify-between font-bold mb-0.5">
+                                    <span class="flex items-center gap-1">${h.avatar} ${h.playerName}</span>
+                                    <span class="text-[10px] text-stone-400 font-mono">${h.timeStr}</span>
+                                </div>
+                                <div class="flex items-center gap-1 text-[10px] text-slate-600 mb-1 flex-wrap">
+                                    <span>🎲 Dadu ${h.dice} (${h.fromPos} ➔ ${h.toPos})</span>
+                                    ${jumpBadge}
+                                </div>
+                                <div class="bg-white p-1.5 rounded-lg border border-stone-100 text-slate-700">
+                                    <span class="font-extrabold ${isTruth ? 'text-teal-700' : 'text-rose-700'}">[${h.choice}: ${h.category}]</span>
+                                    <span class="italic line-clamp-1">"${h.prompt}"</span>
+                                </div>
+                            </div>
+                        `;
+                    });
+                }
+            }
+
+            // Render full modal list
+            const modalList = document.getElementById('historyModalList');
+            if (modalList) {
+                if (count === 0) {
+                    modalList.innerHTML = `<p class="text-xs text-stone-400 italic text-center py-8">Belum ada riwayat langkah. Kocok dadu dan selesaikan tantangan untuk mulai mencatat riwayat!</p>`;
+                } else {
+                    modalList.innerHTML = '';
+                    const allMovesReversed = [...gameHistory].reverse();
+                    allMovesReversed.forEach((h, idx) => {
+                        const stepNum = count - idx;
+                        const isTruth = h.cardType === 'TRUTH';
+                        let jumpBadge = '';
+                        if (h.jumpType === 'LADDER') {
+                            jumpBadge = `<span class="bg-amber-100 text-amber-900 text-[10px] px-2 py-0.5 rounded-md font-extrabold border border-amber-300">🪜 Naik Tangga ke Kotak ${h.finalPos}</span>`;
+                        } else if (h.jumpType === 'SNAKE') {
+                            jumpBadge = `<span class="bg-emerald-100 text-emerald-900 text-[10px] px-2 py-0.5 rounded-md font-extrabold border border-emerald-300">🐍 Digigit Ular turun ke Kotak ${h.finalPos}</span>`;
+                        }
+
+                        modalList.innerHTML += `
+                            <div class="p-3.5 rounded-2xl bg-stone-50 border-2 border-stone-200 text-xs shadow-xs space-y-1.5">
+                                <div class="flex items-center justify-between border-b border-stone-200/60 pb-1.5">
+                                    <div class="flex items-center gap-2">
+                                        <span class="bg-[#3D2216] text-amber-200 text-[10px] font-black px-2 py-0.5 rounded-full">#${stepNum}</span>
+                                        <span class="font-bold text-slate-800 text-sm flex items-center gap-1">${h.avatar} ${h.playerName}</span>
+                                    </div>
+                                    <span class="text-[10px] text-stone-400 font-mono font-bold">${h.timeStr}</span>
+                                </div>
+
+                                <div class="flex items-center gap-2 text-[11px] text-slate-600 font-semibold flex-wrap">
+                                    <span class="bg-white px-2 py-0.5 rounded border border-stone-200">🎲 Dadu: <b>${h.dice}</b> (Kotak ${h.fromPos} ➔ ${h.toPos})</span>
+                                    ${jumpBadge}
+                                </div>
+
+                                <div class="p-2.5 rounded-xl bg-white border border-stone-200/80">
+                                    <div class="flex items-center gap-1.5 mb-1">
+                                        <span class="text-[10px] font-black px-2 py-0.5 rounded-md ${isTruth ? 'bg-teal-100 text-teal-800' : 'bg-rose-100 text-rose-800'}">
+                                            PILIHAN: ${h.choice}
+                                        </span>
+                                        <span class="text-[10px] font-bold text-amber-800 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
+                                            ${h.category}
+                                        </span>
+                                    </div>
+                                    <p class="text-xs text-slate-800 font-medium leading-relaxed italic">
+                                        "${h.prompt}"
+                                    </p>
+                                </div>
+                            </div>
+                        `;
+                    });
+                }
+            }
+        }
+
+        function openHistoryModal() {
+            renderHistoryUI();
+            const modal = document.getElementById('historyModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            playSynthSound('card');
+        }
+
+        function closeHistoryModal() {
+            const modal = document.getElementById('historyModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        function copyHistorySummary() {
+            if (gameHistory.length === 0) {
+                showToast("Belum ada riwayat untuk disalin!", "⚠️");
+                return;
+            }
+            let text = "📜 RANGKUMAN RIWAYAT ULAR TANGGA CINTA 💕\n";
+            text += "========================================\n\n";
+            gameHistory.forEach((h, i) => {
+                text += `Langkah #${i + 1} • ${h.playerName} ${h.avatar}\n`;
+                text += `🎲 Dadu: ${h.dice} (Kotak ${h.fromPos} ➔ ${h.toPos})`;
+                if (h.jumpType === 'LADDER') text += ` ➔ 🪜 Naik ke ${h.finalPos}!`;
+                if (h.jumpType === 'SNAKE') text += ` ➔ 🐍 Turun ke ${h.finalPos}!`;
+                text += `\nPilihan: ${h.choice} [${h.category}]\n`;
+                text += `"${h.prompt}"\n\n`;
+            });
+            text += "========================================\nMain seru bareng di Ular Tangga Cinta!";
+
+            navigator.clipboard.writeText(text).then(() => {
+                showToast("Rangkuman riwayat berhasil disalin ke clipboard! ❤️", "📋");
+            });
+        }
+
+        // 17. WEBSOCKET SYNC
         function connectWebSocket() {
             try {
                 const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
@@ -1876,12 +2124,25 @@
                         gameState.lastDice = data.state.lastDice;
                         if (data.state.p1Info) gameState.p1Info = data.state.p1Info;
                         if (data.state.p2Info) gameState.p2Info = data.state.p2Info;
+                        if (data.state.history !== undefined) {
+                            gameHistory = data.state.history || [];
+                            localStorage.setItem('couple_ut_history', JSON.stringify(gameHistory));
+                            renderHistoryUI();
+                        }
                         updatePlayerDisplays();
                         updatePawnsUI();
                     } else if (data.type === "DICE_ROLLED") {
                         handleDiceRollSequence(data);
                     } else if (data.type === "CARD_REVEALED" && data.card) {
                         displayCardModal(data.card, data.card.tile);
+                    } else if (data.type === "HISTORY_UPDATED") {
+                        if (data.history) {
+                            gameHistory = data.history;
+                        } else if (data.entry) {
+                            gameHistory.push(data.entry);
+                        }
+                        localStorage.setItem('couple_ut_history', JSON.stringify(gameHistory));
+                        renderHistoryUI();
                     } else if (data.type === "MODAL_CLOSED") {
                         const modal = document.getElementById('cardModal');
                         modal.classList.add('hidden');
