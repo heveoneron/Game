@@ -1,0 +1,262 @@
+:root {
+    --tile-red: #8B1E1E;
+    --tile-cream: #FFFDF7;
+    --border-wood: #3D2216;
+    --gold-accent: #F59E0B;
+    --teal-truth: #0D9488;
+    --rose-dare: #E11D48;
+}
+
+body {
+    font-family: 'Fredoka', 'Quicksand', sans-serif;
+    background: radial-gradient(circle at 50% 15%, #6B1B1B 0%, #3D0D0D 50%, #200505 100%);
+    background-attachment: fixed;
+    user-select: none;
+    overflow-x: hidden;
+}
+
+.bg-pattern {
+    background-image: radial-gradient(rgba(255, 255, 255, 0.07) 1.5px, transparent 1.5px);
+    background-size: 24px 24px;
+}
+
+.wood-border {
+    border: 4px solid var(--border-wood);
+    box-shadow: 0 6px 0px rgba(61, 34, 22, 0.9), 0 12px 25px rgba(0, 0, 0, 0.5);
+}
+
+.wood-border-sm {
+    border: 3px solid var(--border-wood);
+    box-shadow: 0 4px 0px rgba(61, 34, 22, 0.9);
+}
+
+.wood-btn {
+    border: 3px solid var(--border-wood);
+    box-shadow: 0 4px 0px var(--border-wood);
+    transition: all 0.12s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.wood-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 0px var(--border-wood);
+}
+.wood-btn:active {
+    transform: translateY(3px);
+    box-shadow: 0 1px 0px var(--border-wood);
+}
+.wood-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: 0 2px 0px var(--border-wood);
+}
+
+/* Responsive Large Board Container */
+.board-wrapper {
+    position: relative;
+    width: 100%;
+    max-width: 780px;
+    aspect-ratio: 1 / 1;
+    margin: 0 auto;
+}
+
+.board-grid {
+    display: grid;
+    grid-template-columns: repeat(10, 1fr);
+    grid-template-rows: repeat(10, 1fr);
+    width: 100%;
+    height: 100%;
+    background-color: var(--tile-cream);
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.6), inset 0 0 0 4px var(--border-wood);
+}
+
+.tile {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(61, 34, 22, 0.22);
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+.tile:hover {
+    filter: brightness(1.08);
+}
+
+.tile-red {
+    background: linear-gradient(135deg, #A82828 0%, #801C1C 100%);
+    color: #FFFDF7;
+}
+.tile-cream {
+    background: linear-gradient(135deg, #FFFDF8 0%, #F5ECCF 100%);
+    color: #3D2216;
+}
+
+.tile-active-highlight {
+    animation: pulseTile 1s infinite alternate;
+    z-index: 25;
+    box-shadow: inset 0 0 0 3px #FBBF24, 0 0 20px #F59E0B;
+}
+
+@keyframes pulseTile {
+    from { transform: scale(1); }
+    to { transform: scale(1.04); }
+}
+
+/* Mystery Badge inside Tiles */
+.tile-mystery-badge {
+    width: 65%;
+    height: 65%;
+    border-radius: 9999px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85rem;
+    transition: all 0.15s ease;
+    z-index: 12;
+    opacity: 0.88;
+}
+.tile:hover .tile-mystery-badge {
+    transform: scale(1.15) rotate(8deg);
+    opacity: 1;
+}
+
+/* Pawns */
+.pawn {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border: 2.5px solid #FFFFFF;
+    box-shadow: 0 5px 10px rgba(0,0,0,0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    z-index: 30;
+    transition: all 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
+}
+
+.pawn-hop {
+    animation: pawnHopAnim 0.22s ease-in-out;
+}
+@keyframes pawnHopAnim {
+    0% { transform: translateY(0) scale(1); }
+    50% { transform: translateY(-22px) scale(1.3); }
+    100% { transform: translateY(0) scale(1); }
+}
+
+/* SVG Overlay for Ladders and Snakes */
+.board-svg-overlay {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 10;
+}
+
+/* Dice 3D Shake Animation */
+@keyframes diceRollingAnim {
+    0% { transform: rotate(0deg) scale(1); }
+    20% { transform: rotate(60deg) scale(1.25) translateY(-8px); }
+    40% { transform: rotate(-50deg) scale(0.9) translateY(4px); }
+    60% { transform: rotate(40deg) scale(1.2) translateY(-4px); }
+    80% { transform: rotate(-20deg) scale(0.95); }
+    100% { transform: rotate(0deg) scale(1); }
+}
+.dice-rolling {
+    animation: diceRollingAnim 0.5s cubic-bezier(0.2, 0.8, 0.4, 1);
+}
+
+/* Floating Reactions */
+.floating-emoji {
+    position: fixed;
+    pointer-events: none;
+    z-index: 9999;
+    font-size: 2.6rem;
+    animation: floatUpward 2.4s ease-out forwards;
+}
+
+@keyframes floatUpward {
+    0% {
+        opacity: 0;
+        transform: translateY(0) scale(0.4) rotate(0deg);
+    }
+    15% {
+        opacity: 1;
+        transform: translateY(-40px) scale(1.3) rotate(-12deg);
+    }
+    80% {
+        opacity: 0.9;
+        transform: translateY(-220px) scale(1) rotate(15deg);
+    }
+    100% {
+        opacity: 0;
+        transform: translateY(-300px) scale(0.8) rotate(30deg);
+    }
+}
+
+/* Toast Notification */
+.toast-notif {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%) translateY(-100px);
+    background: #FFFDF8;
+    color: #3D2216;
+    border: 3px solid #3D2216;
+    box-shadow: 0 8px 0px rgba(61, 34, 22, 0.9), 0 10px 25px rgba(0,0,0,0.4);
+    border-radius: 16px;
+    padding: 10px 20px;
+    font-weight: 700;
+    font-size: 0.85rem;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.toast-notif.show {
+    transform: translateX(-50%) translateY(0);
+}
+
+/* Floating Skill Tooltip on Hover */
+.skill-tooltip-box {
+    position: fixed;
+    pointer-events: none;
+    z-index: 10001;
+    background: #FFFDF8;
+    border: 3px solid #3D2216;
+    border-radius: 16px;
+    padding: 10px 14px;
+    box-shadow: 0 6px 0px rgba(61, 34, 22, 0.9), 0 12px 30px rgba(0,0,0,0.45);
+    max-width: 270px;
+    font-size: 11px;
+    line-height: 1.35;
+    color: #1E293B;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(6px);
+    transition: opacity 0.15s ease, transform 0.15s ease, visibility 0.15s;
+}
+.skill-tooltip-box.show {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+    width: 7px;
+    height: 7px;
+}
+::-webkit-scrollbar-track {
+    background: rgba(61, 34, 22, 0.08);
+    border-radius: 4px;
+}
+::-webkit-scrollbar-thumb {
+    background: #A82828;
+    border-radius: 4px;
+}
