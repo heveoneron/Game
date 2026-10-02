@@ -710,16 +710,44 @@ function reRollCardPrompt() {
     savePlayerSkillsLocally();
 
     const isTruth = currentModalCard.type === 'TRUTH';
-    const pool = isTruth 
-        ? defaultTruthsList.concat(customCards.filter(c => c.type === 'TRUTH'))
-        : defaultDaresList.concat(customCards.filter(c => c.type === 'DARE'));
+    const activeSelectedDecks = (typeof gameState !== 'undefined' && gameState.selectedDecks) 
+        ? gameState.selectedDecks 
+        : ['WORDS_OF_AFFIRMATION', 'QUALITY_TIME', 'RECEIVING_GIFTS', 'ACTS_OF_SERVICE', 'PHYSICAL_TOUCH'];
+    const currentPlayMode = (typeof gameState !== 'undefined' && gameState.playMode) ? gameState.playMode : (localStorage.getItem('couple_ut_play_mode') || 'ONLINE');
+    
+    const pool = (typeof getGameActivePool === 'function')
+        ? getGameActivePool(isTruth ? 'TRUTH' : 'DARE', activeSelectedDecks, customCards, currentPlayMode)
+        : (isTruth ? defaultTruthsList.concat(customCards.filter(c => c.type === 'TRUTH')) : defaultDaresList.concat(customCards.filter(c => c.type === 'DARE')));
 
     const pick = pool[Math.floor(Math.random() * pool.length)];
     currentModalCard.prompt = pick.prompt;
     currentModalCard.category = pick.category;
+    currentModalCard.loveLanguage = pick.loveLanguage || 'GENERAL';
+    currentModalCard.mode = pick.mode || 'BOTH';
 
     document.getElementById('modalPromptText').innerText = `"${pick.prompt}"`;
     document.getElementById('modalCategoryBadge').innerText = pick.category;
+
+    const loveLangBadge = document.getElementById('modalLoveLanguageBadge');
+    if (loveLangBadge && typeof getLoveLanguageMeta === 'function') {
+        const meta = getLoveLanguageMeta(pick.loveLanguage || 'GENERAL');
+        loveLangBadge.innerHTML = `<span>${meta.icon}</span> ${meta.name}`;
+    }
+
+    const modeBadge = document.getElementById('modalModeBadge');
+    if (modeBadge) {
+        const cMode = pick.mode || 'BOTH';
+        if (cMode === 'ONLINE') {
+            modeBadge.className = "bg-purple-100 text-purple-800 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border border-purple-300 flex items-center gap-1";
+            modeBadge.innerHTML = "<span>📹</span> Video Call";
+        } else if (cMode === 'OFFLINE') {
+            modeBadge.className = "bg-rose-100 text-rose-800 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border border-rose-300 flex items-center gap-1";
+            modeBadge.innerHTML = "<span>💑</span> Ketemu Langsung";
+        } else {
+            modeBadge.className = "bg-emerald-100 text-emerald-800 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border border-emerald-300 flex items-center gap-1";
+            modeBadge.innerHTML = "<span>✨</span> Online & Offline";
+        }
+    }
 
     const rerollBtnLabel = document.getElementById('reRollBtnLabel');
     if (rerollBtnLabel) {

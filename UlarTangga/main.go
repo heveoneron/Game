@@ -7,46 +7,22 @@ import (
 	"net"
 	"net/http"
 	"os"
-	"sync"
+	"strings"
 	"time"
 
 	"github.com/gorilla/websocket"
 	"ulartangga/deck"
 	"ulartangga/models"
+	"ulartangga/rooms"
 	"ulartangga/skills"
 )
 
 var (
 	upgrader = websocket.Upgrader{CheckOrigin: func(r *http.Request) bool { return true }}
-	clients  = make(map[*websocket.Conn]bool)
-	mutex    = &sync.Mutex{}
 
 	snakesAndLadders = map[int]int{
 		4: 25, 13: 46, 33: 49, 42: 63, 50: 69, 62: 81, 74: 92, // Tangga 🪜 (Naik)
 		27: 5, 40: 3, 43: 18, 54: 31, 66: 45, 76: 58, 89: 53, 99: 41, // Ular 🐍 (Turun)
-	}
-
-	state = models.GameState{
-		P1Pos: 1,
-		P2Pos: 1,
-		P1Info: models.PlayerInfo{
-			Name:   "Pemain 1 (Cowok)",
-			Avatar: "👦",
-			Color:  "#38BDF8",
-		},
-		P2Info: models.PlayerInfo{
-			Name:   "Pemain 2 (Cewek)",
-			Avatar: "🧕",
-			Color:  "#FB923C",
-		},
-		P1Skills:   skills.InitSkills(nil, 3),
-		P2Skills:   skills.InitSkills(nil, 3),
-		Turn:       1,
-		LastDice:   1,
-		ActiveCard: nil,
-		RpsResult:  "",
-		CustomDeck: []models.QuestionCard{},
-		History:    []models.HistoryEntry{},
 	}
 )
 
@@ -72,39 +48,6 @@ func getLocalIP() string {
 	return "localhost"
 }
 
-func broadcastState() {
-	msg, err := json.Marshal(map[string]interface{}{
-		"type":  "STATE_UPDATE",
-		"state": state,
-	})
-	if err != nil {
-		log.Println("Gagal marshal state:", err)
-		return
-	}
-	for client := range clients {
-		err := client.WriteMessage(websocket.TextMessage, msg)
-		if err != nil {
-			client.Close()
-			delete(clients, client)
-		}
-	}
-}
-
-func broadcastMessage(payload interface{}) {
-	msg, err := json.Marshal(payload)
-	if err != nil {
-		log.Println("Gagal marshal payload:", err)
-		return
-	}
-	for client := range clients {
-		err := client.WriteMessage(websocket.TextMessage, msg)
-		if err != nil {
-			client.Close()
-			delete(clients, client)
-		}
-	}
-}
-
 func wsHandler(w http.ResponseWriter, r *http.Request) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
@@ -113,21 +56,22 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	defer conn.Close()
 
-	mutex.Lock()
-	clients[conn] = true
-	// Kirim state saat ini ke klien yang baru terhubung
+	// Dapatkan atau buat room berdasarkan query param '?room=CODE'
+	roomCode := r.URL.Query().Get("room")
+	room := rooms.Manager.GetOrCreateRoom(roomCode)
+	room.AddClient(conn)
+	defer room.RemoveClient(conn)
+
+	// Kirim state awal room kepada pemain yang baru bergabung
 	conn.WriteJSON(map[string]interface{}{
-		"type":  "STATE_UPDATE",
-		"state": state,
+		"type":     "STATE_UPDATE",
+		"roomCode": room.Code,
+		"state":    room.State,
 	})
-	mutex.Unlock()
 
 	for {
 		_, message, err := conn.ReadMessage()
 		if err != nil {
-			mutex.Lock()
-			delete(clients, conn)
-			mutex.Unlock()
 			break
 		}
 
@@ -138,7 +82,9 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 
 		aType, _ := action["type"].(string)
 
-		mutex.Lock()
+		room.Mutex.Lock()
+		state := room.State
+
 		switch aType {
 		case "ROLL_DICE":
 			pNum := state.Turn
@@ -198,7 +144,7 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 			}
 			state.ActiveCard = nil // Tutup kartu sebelumnya
 
-			broadcastMessage(map[string]interface{}{
+			room.BroadcastMessage(map[string]interface{}{
 				"type":         "DICE_ROLLED",
 				"player":       pNum,
 				"dice":         dice,
@@ -234,7 +180,7 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 				}
 				state.P2Skills = skills.InitSkills(list, rerolls)
 			}
-			broadcastState()
+			room.BroadcastState()
 
 		case "USE_SKILL":
 			player := int(action["player"].(float64))
@@ -253,7 +199,7 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 				pSkills.SkillUses[skillName]--
 			}
 
-			broadcastMessage(map[string]interface{}{
+			room.BroadcastMessage(map[string]interface{}{
 				"type":   "SKILL_ACTIVATED",
 				"player": player,
 				"skill":  skillName,
@@ -267,22 +213,33 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 			prompt, _ := action["prompt"].(string)
 			targetP := int(action["targetP"].(float64))
 
-			state.ActiveCard = &models.ActiveCardPayload{
-				Tile:     tile,
-				Type:     cType,
-				Category: cat,
-				Prompt:   prompt,
-				TargetP:  targetP,
+			loveLang, _ := action["loveLanguage"].(string)
+			if loveLang == "" {
+				loveLang = deck.LoveLanguageGeneral
+			}
+			cardMode, _ := action["mode"].(string)
+			if cardMode == "" {
+				cardMode = deck.ModeBoth
 			}
 
-			broadcastMessage(map[string]interface{}{
+			state.ActiveCard = &models.ActiveCardPayload{
+				Tile:         tile,
+				Type:         cType,
+				LoveLanguage: loveLang,
+				Mode:         cardMode,
+				Category:     cat,
+				Prompt:       prompt,
+				TargetP:      targetP,
+			}
+
+			room.BroadcastMessage(map[string]interface{}{
 				"type": "CARD_REVEALED",
 				"card": state.ActiveCard,
 			})
 
 		case "CLOSE_MODAL":
 			state.ActiveCard = nil
-			broadcastMessage(map[string]interface{}{
+			room.BroadcastMessage(map[string]interface{}{
 				"type": "MODAL_CLOSED",
 			})
 
@@ -294,7 +251,7 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 			} else {
 				state.P2Pos = pos
 			}
-			broadcastState()
+			room.BroadcastState()
 
 		case "SUIT":
 			opts := []string{
@@ -308,7 +265,7 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 			}
 			res := opts[rand.Intn(len(opts))]
 			state.RpsResult = res
-			broadcastMessage(map[string]interface{}{
+			room.BroadcastMessage(map[string]interface{}{
 				"type":   "SUIT_RESULT",
 				"result": res,
 			})
@@ -330,22 +287,55 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 					state.P2Info.Avatar = a
 				}
 			}
-			broadcastState()
+			room.BroadcastState()
 
 		case "ADD_CUSTOM_CARD":
 			cType, _ := action["cardType"].(string)
 			cat, _ := action["category"].(string)
 			prompt, _ := action["prompt"].(string)
+			loveLang, _ := action["loveLanguage"].(string)
+			if loveLang == "" {
+				loveLang = deck.LoveLanguageGeneral
+			}
+			cMode, _ := action["mode"].(string)
+			if cMode == "" {
+				cMode = deck.ModeBoth
+			}
 			if prompt != "" {
 				newCard := models.QuestionCard{
-					ID:       len(deck.DefaultTruths) + len(deck.DefaultDares) + len(state.CustomDeck) + 1,
-					Type:     cType,
-					Category: cat,
-					Prompt:   prompt,
-					IsCustom: true,
+					ID:           len(deck.GetAllCards()) + len(state.CustomDeck) + 1,
+					Type:         cType,
+					LoveLanguage: loveLang,
+					Mode:         cMode,
+					Category:     cat,
+					Prompt:       prompt,
+					IsCustom:     true,
 				}
 				state.CustomDeck = append(state.CustomDeck, newCard)
-				broadcastState()
+				room.BroadcastState()
+			}
+
+		case "UPDATE_DECK_SELECTION":
+			if mode, ok := action["playMode"].(string); ok && mode != "" {
+				state.PlayMode = mode
+			}
+			if list, ok := action["selectedDecks"].([]interface{}); ok {
+				var langs []string
+				for _, item := range list {
+					if s, ok := item.(string); ok && s != "" {
+						langs = append(langs, s)
+					}
+				}
+				if len(langs) > 0 {
+					state.SelectedDecks = langs
+				}
+			}
+			room.BroadcastState()
+
+		case "UPDATE_PLAY_MODE":
+			if mode, ok := action["playMode"].(string); ok && mode != "" {
+				state.PlayMode = mode
+				room.BroadcastState()
 			}
 
 		case "RECORD_HISTORY":
@@ -376,33 +366,26 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 					newEntry.SkillUsed = sk
 				}
 				state.History = append(state.History, newEntry)
-				broadcastMessage(map[string]interface{}{
+				room.BroadcastMessage(map[string]interface{}{
 					"type":  "HISTORY_UPDATED",
 					"entry": newEntry,
 				})
 			}
 
 		case "RESET":
-			state.P1Pos = 1
-			state.P2Pos = 1
-			state.Turn = 1
-			state.ActiveCard = nil
-			state.History = []models.HistoryEntry{}
-			// Reset kuota skill kedua pemain kembali penuh
-			state.P1Skills = skills.InitSkills(state.P1Skills.SelectedSkills, 3)
-			state.P2Skills = skills.InitSkills(state.P2Skills.SelectedSkills, 3)
-			broadcastState()
+			room.Reset()
+			room.BroadcastState()
 
 		case "REACTION":
 			emoji, _ := action["emoji"].(string)
 			sender, _ := action["sender"].(string)
-			broadcastMessage(map[string]interface{}{
+			room.BroadcastMessage(map[string]interface{}{
 				"type":   "FLOATING_REACTION",
 				"emoji":  emoji,
 				"sender": sender,
 			})
 		}
-		mutex.Unlock()
+		room.Mutex.Unlock()
 	}
 }
 
@@ -413,8 +396,66 @@ func main() {
 	fs := http.FileServer(http.Dir("./public"))
 	http.Handle("/", fs)
 
-	// WebSocket Sync Endpoint
+	// WebSocket Sync Endpoint (multi-room via ?room=CODE)
 	http.HandleFunc("/ws", wsHandler)
+
+	// REST API: Buat Room Baru
+	http.HandleFunc("/api/create-room", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		newRoom := rooms.Manager.CreateUniqueRoom()
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"success":  true,
+			"roomCode": newRoom.Code,
+		})
+	})
+
+	// REST API: Cek Info Room
+	http.HandleFunc("/api/room-info", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		code := strings.ToUpper(strings.TrimSpace(r.URL.Query().Get("room")))
+		rooms.Manager.RLock()
+		room, exists := rooms.Manager.Rooms[code]
+		rooms.Manager.RUnlock()
+
+		if !exists {
+			json.NewEncoder(w).Encode(map[string]interface{}{
+				"exists": false,
+			})
+			return
+		}
+
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"exists":   true,
+			"roomCode": room.Code,
+			"players":  room.ClientCount(),
+			"turn":     room.State.Turn,
+			"p1Name":   room.State.P1Info.Name,
+			"p2Name":   room.State.P2Info.Name,
+			"selectedDecks": room.State.SelectedDecks,
+		})
+	})
+
+	// REST API: Daftar Metadata Bahasa Cinta
+	http.HandleFunc("/api/love-languages", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"success":       true,
+			"loveLanguages": deck.AvailableLoveLanguages,
+			"totalCards":    len(deck.GetAllCards()),
+			"maxPerGame":    150,
+		})
+	})
+
+	// REST API: Ambil Seluruh Kartu Sesuai Filter
+	http.HandleFunc("/api/deck-cards", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		all := deck.GetAllCards()
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"success": true,
+			"count":   len(all),
+			"cards":   all,
+		})
+	})
 
 	port := os.Getenv("PORT")
 	if port == "" {
@@ -423,9 +464,10 @@ func main() {
 
 	localIP := getLocalIP()
 	log.Println("================================================================")
-	log.Println("🎲 SERVER ULAR TANGGA TRUTH OR DARE PASANGAN AKTIF! 🎲")
+	log.Println("🎲 SERVER ULAR TANGGA TRUTH OR DARE PASANGAN (MULTI-ROOM) 🎲")
 	log.Printf("👉 Buka di Browser Laptop:  http://localhost:%s\n", port)
 	log.Printf("👉 Buka dari HP Pasangan:   http://%s:%s\n", localIP, port)
+	log.Printf("👉 Format Link Room:        http://%s:%s/?room=KODE\n", localIP, port)
 	log.Println("================================================================")
 
 	err := http.ListenAndServe(":"+port, nil)

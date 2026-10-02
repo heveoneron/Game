@@ -65,6 +65,24 @@
                 <span id="soundText" class="hidden sm:inline">Sound ON</span>
             </button>
 
+            <!-- Room Session Indicator -->
+            <button onclick="openRoomModal()" class="wood-btn bg-gradient-to-r from-rose-500 to-pink-600 hover:from-rose-400 hover:to-pink-500 text-white px-3 py-1.5 rounded-xl text-xs font-black flex items-center gap-1.5 shadow-xs" title="Kelola Room & Sesi Pasangan">
+                <span>🏠</span>
+                <span>Room: <b id="currentRoomDisplay" class="font-mono tracking-wider text-amber-200">PUBLIC</b></span>
+            </button>
+
+            <!-- Mode Permainan Quick Selector -->
+            <button id="playModeHeaderBtn" onclick="togglePlayModeQuick()" class="wood-btn bg-purple-100 hover:bg-purple-200 text-purple-900 px-3 py-1.5 rounded-xl text-xs font-black flex items-center gap-1.5 shadow-xs" title="Ganti Mode Permainan: Video Call / LDR vs Ketemu Langsung">
+                <span id="playModeHeaderIcon">📹</span>
+                <span id="playModeHeaderText">Mode: Video Call</span>
+            </button>
+
+            <!-- Quick Share Link Button -->
+            <button onclick="copyRoomShareLink()" class="wood-btn bg-indigo-100 hover:bg-indigo-200 text-indigo-900 px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5" title="Salin Link Room untuk Pasangan">
+                <span>🔗</span>
+                <span class="hidden sm:inline">Bagikan Link</span>
+            </button>
+
             <!-- Custom Deck Button -->
             <button onclick="openDeckModal()" class="wood-btn bg-amber-400 hover:bg-amber-300 text-[#3D2216] px-3.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-xs">
                 <span>🎴</span>
@@ -388,8 +406,10 @@
                         57
                     </div>
                     <div>
-                        <div class="flex items-center gap-2">
+                        <div class="flex items-center gap-2 flex-wrap">
                             <span id="modalTypeTitle" class="text-2xl font-black tracking-wider text-teal-600">TRUTH</span>
+                            <span id="modalLoveLanguageBadge" class="bg-rose-100 text-rose-800 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border border-rose-300 flex items-center gap-1">💬 Words of Affirmation</span>
+                            <span id="modalModeBadge" class="bg-purple-100 text-purple-800 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border border-purple-300 flex items-center gap-1">📹 Video Call</span>
                             <span id="modalCategoryBadge" class="bg-amber-100 text-amber-800 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full uppercase border border-amber-300">Romantis</span>
                         </div>
                         <p id="modalPlayerTarget" class="text-xs text-slate-500 font-bold">Untuk: Mas Ganteng 👦</p>
@@ -399,6 +419,12 @@
                 <button onclick="closeCardModal()" class="w-9 h-9 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-600 font-extrabold flex items-center justify-center transition border border-stone-300">
                     ✕
                 </button>
+            </div>
+
+            <!-- Forced Random Tile Surprise Badge -->
+            <div id="modalForcedBadge" class="hidden items-center justify-center gap-1.5 bg-gradient-to-r from-purple-700 via-indigo-700 to-pink-700 text-white text-[11px] font-black py-1.5 px-4 rounded-full shadow-md animate-pulse mx-auto my-2 text-center">
+                <span>🔮</span>
+                <span>PETAK TAKDIR RAHASIA (TIDAK BISA PILIH — TAKDIR MUTLAK!)</span>
             </div>
 
             <!-- Isi Pertanyaan / Tantangan -->
@@ -467,14 +493,170 @@
 
             <!-- Tab Nav -->
             <div class="flex gap-2 border-b border-stone-200 pb-3 mb-4 text-xs font-bold flex-wrap">
-                <button id="tabBtnAdd" onclick="switchDeckTab('add')" class="px-4 py-2 rounded-xl bg-[#3D2216] text-white">➕ Tambah Kartu Baru</button>
-                <button id="tabBtnList" onclick="switchDeckTab('list')" class="px-4 py-2 rounded-xl bg-stone-100 text-stone-700 hover:bg-stone-200">🗂️ Daftar Kartu (<span id="tabCountSpan">150</span>)</button>
+                <button id="tabBtnLoveLang" onclick="switchDeckTab('lovelang')" class="px-4 py-2 rounded-xl bg-[#3D2216] text-white">💘 Bahasa Cinta (5 Type)</button>
+                <button id="tabBtnAdd" onclick="switchDeckTab('add')" class="px-4 py-2 rounded-xl bg-stone-100 text-stone-700 hover:bg-stone-200">➕ Tambah Kartu Baru</button>
+                <button id="tabBtnList" onclick="switchDeckTab('list')" class="px-4 py-2 rounded-xl bg-stone-100 text-stone-700 hover:bg-stone-200">🗂️ Daftar Kartu (<span id="tabCountSpan">425</span>)</button>
                 <button id="tabBtnExport" onclick="switchDeckTab('export')" class="px-4 py-2 rounded-xl bg-stone-100 text-stone-700 hover:bg-stone-200">💾 Import / Export JSON</button>
             </div>
 
+            <!-- TAB 0: Bahasa Cinta (Love Languages) & Mode Permainan -->
+            <div id="deckTabLoveLang" class="space-y-4 overflow-y-auto pr-1 flex-1">
+                <!-- Selector Mode Permainan (Online Video Call vs Offline Ketemu Langsung) -->
+                <div class="p-3.5 bg-gradient-to-r from-purple-50 via-indigo-50 to-pink-50 rounded-2xl border-2 border-purple-200">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-xs font-black text-purple-950 flex items-center gap-1.5">
+                            <span>🕹️</span> Mode Permainan Pasangan:
+                        </span>
+                        <span id="playModeStatusBadge" class="text-[10px] bg-purple-200 text-purple-900 px-2 py-0.5 rounded-full font-bold">📹 Video Call (Aktif)</span>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                        <!-- Mode ONLINE -->
+                        <label id="modeCard_ONLINE" class="p-2.5 rounded-xl border-2 border-purple-500 bg-purple-100/90 cursor-pointer flex flex-col justify-between transition shadow-xs">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-black text-purple-950 flex items-center gap-1">📹 Video Call / LDR</span>
+                                <input type="radio" name="playModeRadio" value="ONLINE" onchange="onPlayModeChange('ONLINE')" checked class="text-purple-600 focus:ring-purple-500">
+                            </div>
+                            <p class="text-[10px] text-purple-900 mt-1 leading-tight font-medium">Khusus jarak jauh. Bebas kontak fisik langsung — diganti gestur manis kamera, deeptalk, & aksi remote.</p>
+                        </label>
+                        <!-- Mode OFFLINE -->
+                        <label id="modeCard_OFFLINE" class="p-2.5 rounded-xl border-2 border-stone-200 bg-white hover:bg-stone-50 cursor-pointer flex flex-col justify-between transition shadow-xs">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-black text-stone-900 flex items-center gap-1">💑 Ketemu Langsung</span>
+                                <input type="radio" name="playModeRadio" value="OFFLINE" onchange="onPlayModeChange('OFFLINE')" class="text-purple-600 focus:ring-purple-500">
+                            </div>
+                            <p class="text-[10px] text-stone-600 mt-1 leading-tight font-medium">Tatap muka berdua. Termasuk tantangan sentuhan fisik, pegangan tangan, usap rambut & pelukan.</p>
+                        </label>
+                        <!-- Mode ALL -->
+                        <label id="modeCard_ALL" class="p-2.5 rounded-xl border-2 border-stone-200 bg-white hover:bg-stone-50 cursor-pointer flex flex-col justify-between transition shadow-xs">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-black text-stone-900 flex items-center gap-1">🔄 Semua Mode</span>
+                                <input type="radio" name="playModeRadio" value="ALL" onchange="onPlayModeChange('ALL')" class="text-purple-600 focus:ring-purple-500">
+                            </div>
+                            <p class="text-[10px] text-stone-600 mt-1 leading-tight font-medium">Campuran seluruh 550 kartu online & offline tanpa batasan.</p>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Info Banner -->
+                <div class="p-3.5 bg-gradient-to-r from-rose-50 via-pink-50 to-amber-50 rounded-2xl border-2 border-rose-200">
+                    <div class="flex items-start gap-2.5">
+                        <span class="text-2xl">💝</span>
+                        <div class="flex-1">
+                            <h4 class="text-xs font-black text-rose-950 uppercase tracking-wider">Aturan Deck Bahasa Cinta (5 Love Languages)</h4>
+                            <p class="text-[11px] text-stone-600 mt-0.5 leading-relaxed">
+                                Setiap tipe bahasa cinta memiliki <b>100 kartu</b> (50 Truth & 50 Dare) yang terbagi rapi antara interaksi online & offline. Kartu <b>General</b> (50 kartu) selalu otomatis aktif. Maksimal deck bawaan yang aktif per game dibatasi <b>150 kartu pilihan</b> + seluruh <b>kartu custom</b> buatan kalian!
+                            </p>
+                            <div class="mt-2 flex items-center gap-3 text-[11px] font-bold text-rose-800 bg-white/70 py-1 px-2.5 rounded-lg border border-rose-200 flex-wrap">
+                                <span>🎯 Aktif di Game: <span id="activeDeckLimitSpan" class="text-rose-600 font-extrabold">150</span> Kartu Bawaan</span>
+                                <span>➕ <span id="customCardCountSpan" class="text-indigo-600 font-extrabold">0</span> Custom</span>
+                                <span>✨ Total Master Catalog: <span class="text-stone-700 font-extrabold">550 Kartu</span></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 5 Love Language Cards Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+                    <!-- 1. Words of Affirmation -->
+                    <label class="relative flex items-start gap-3 p-3 bg-amber-50/70 hover:bg-amber-100/60 rounded-2xl border-2 border-amber-300 cursor-pointer transition">
+                        <input type="checkbox" id="loveLang_WORDS_OF_AFFIRMATION" checked onchange="updateLoveLangPreview()" class="mt-1 w-4 h-4 text-amber-600 rounded focus:ring-amber-500 border-amber-300">
+                        <div class="flex-1 text-xs">
+                            <div class="flex items-center justify-between">
+                                <span class="font-black text-amber-950 flex items-center gap-1.5">
+                                    <span>💬</span> Words of Affirmation
+                                </span>
+                                <span class="text-[10px] font-extrabold bg-amber-200 text-amber-900 px-2 py-0.5 rounded-full">100 Kartu</span>
+                            </div>
+                            <p class="text-[11px] font-semibold text-amber-800 mt-0.5">Pujian lewat Kata-kata</p>
+                            <p class="text-[10px] text-stone-500 mt-1 leading-normal">Pujian paras & karakter, kalimat penguat jiwa, pengakuan cinta, pesan suara romantis, dan apresiasi tulus.</p>
+                        </div>
+                    </label>
+
+                    <!-- 2. Quality Time -->
+                    <label class="relative flex items-start gap-3 p-3 bg-emerald-50/70 hover:bg-emerald-100/60 rounded-2xl border-2 border-emerald-300 cursor-pointer transition">
+                        <input type="checkbox" id="loveLang_QUALITY_TIME" checked onchange="updateLoveLangPreview()" class="mt-1 w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500 border-emerald-300">
+                        <div class="flex-1 text-xs">
+                            <div class="flex items-center justify-between">
+                                <span class="font-black text-emerald-950 flex items-center gap-1.5">
+                                    <span>⏳</span> Quality Time
+                                </span>
+                                <span class="text-[10px] font-extrabold bg-emerald-200 text-emerald-900 px-2 py-0.5 rounded-full">100 Kartu</span>
+                            </div>
+                            <p class="text-[11px] font-semibold text-emerald-800 mt-0.5">Waktu Berkualitas</p>
+                            <p class="text-[10px] text-stone-500 mt-1 leading-normal">Obrolan mendalam (late night talk), kenangan kencan terindah, tatap mata di kamera/nyata, detoks gadget bersama.</p>
+                        </div>
+                    </label>
+
+                    <!-- 3. Receiving Gifts -->
+                    <label class="relative flex items-start gap-3 p-3 bg-pink-50/70 hover:bg-pink-100/60 rounded-2xl border-2 border-pink-300 cursor-pointer transition">
+                        <input type="checkbox" id="loveLang_RECEIVING_GIFTS" checked onchange="updateLoveLangPreview()" class="mt-1 w-4 h-4 text-pink-600 rounded focus:ring-pink-500 border-pink-300">
+                        <div class="flex-1 text-xs">
+                            <div class="flex items-center justify-between">
+                                <span class="font-black text-pink-950 flex items-center gap-1.5">
+                                    <span>🎁</span> Receiving Gifts
+                                </span>
+                                <span class="text-[10px] font-extrabold bg-pink-200 text-pink-900 px-2 py-0.5 rounded-full">100 Kartu</span>
+                            </div>
+                            <p class="text-[11px] font-semibold text-pink-800 mt-0.5">Penerimaan Hadiah</p>
+                            <p class="text-[10px] text-stone-500 mt-1 leading-normal">Kado berkesan, voucher romantis virtual, kiriman makanan online (GoFood/GrabFood), hadiah kejutan, & cinderamata.</p>
+                        </div>
+                    </label>
+
+                    <!-- 4. Acts of Service -->
+                    <label class="relative flex items-start gap-3 p-3 bg-sky-50/70 hover:bg-sky-100/60 rounded-2xl border-2 border-sky-300 cursor-pointer transition">
+                        <input type="checkbox" id="loveLang_ACTS_OF_SERVICE" checked onchange="updateLoveLangPreview()" class="mt-1 w-4 h-4 text-sky-600 rounded focus:ring-sky-500 border-sky-300">
+                        <div class="flex-1 text-xs">
+                            <div class="flex items-center justify-between">
+                                <span class="font-black text-sky-950 flex items-center gap-1.5">
+                                    <span>🤝</span> Acts of Service
+                                </span>
+                                <span class="text-[10px] font-extrabold bg-sky-200 text-sky-900 px-2 py-0.5 rounded-full">100 Kartu</span>
+                            </div>
+                            <p class="text-[11px] font-semibold text-sky-800 mt-0.5">Tindakan Pelayanan</p>
+                            <p class="text-[10px] text-stone-500 mt-1 leading-normal">Pijat otot lelah, bikinkan playlist lagu, pesankan sarapan, suapan makanan, & inisiatif bantuan tanpa diminta.</p>
+                        </div>
+                    </label>
+
+                    <!-- 5. Physical Touch -->
+                    <label class="relative flex items-start gap-3 p-3 bg-violet-50/70 hover:bg-violet-100/60 rounded-2xl border-2 border-violet-300 cursor-pointer transition">
+                        <input type="checkbox" id="loveLang_PHYSICAL_TOUCH" checked onchange="updateLoveLangPreview()" class="mt-1 w-4 h-4 text-violet-600 rounded focus:ring-violet-500 border-violet-300">
+                        <div class="flex-1 text-xs">
+                            <div class="flex items-center justify-between">
+                                <span class="font-black text-violet-950 flex items-center gap-1.5">
+                                    <span>🫂</span> Physical Touch
+                                </span>
+                                <span class="text-[10px] font-extrabold bg-violet-200 text-violet-900 px-2 py-0.5 rounded-full">100 Kartu</span>
+                            </div>
+                            <p class="text-[11px] font-semibold text-violet-800 mt-0.5">Sentuhan Fisik & Gestur Intim</p>
+                            <p class="text-[10px] text-stone-500 mt-1 leading-normal">Offline: Genggaman jemari mengunci, pelukan hangat, cium kening. Online: Telapak tangan di kamera, flying kiss, peluk guling hangat.</p>
+                        </div>
+                    </label>
+
+                    <!-- 6. General Deck (Selalu Aktif) -->
+                    <div class="relative flex items-start gap-3 p-3 bg-stone-100 rounded-2xl border-2 border-stone-300 opacity-90">
+                        <input type="checkbox" checked disabled class="mt-1 w-4 h-4 text-stone-600 rounded bg-stone-200 cursor-not-allowed">
+                        <div class="flex-1 text-xs">
+                            <div class="flex items-center justify-between">
+                                <span class="font-black text-stone-800 flex items-center gap-1.5">
+                                    <span>🎲</span> General Deck
+                                </span>
+                                <span class="text-[10px] font-extrabold bg-stone-200 text-stone-700 px-2 py-0.5 rounded-full">50 Kartu (Wajib)</span>
+                            </div>
+                            <p class="text-[11px] font-semibold text-stone-600 mt-0.5">Selalu Aktif (Pondasi Game)</p>
+                            <p class="text-[10px] text-stone-500 mt-1 leading-normal">Kartu dasar, icebreaker seru, dan pertanyaan khusus kotak landmark 21 & 57.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Apply Button -->
+                <button onclick="applyLoveLanguageSelection()" class="wood-btn w-full bg-gradient-to-r from-rose-500 to-pink-600 hover:from-rose-400 hover:to-pink-500 text-white font-extrabold py-3 rounded-2xl text-xs md:text-sm shadow-md flex items-center justify-center gap-2">
+                    <span>💖</span> Terapkan Pilihan Bahasa Cinta & Mode ke Room Ini
+                </button>
+            </div>
+
             <!-- TAB 1: Tambah Kartu -->
-            <div id="deckTabAdd" class="space-y-4 overflow-y-auto pr-1 flex-1">
-                <div class="grid grid-cols-2 gap-3">
+            <div id="deckTabAdd" class="hidden space-y-4 overflow-y-auto pr-1 flex-1">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
                     <div>
                         <label class="block text-xs font-bold text-slate-700 mb-1">Tipe Kartu:</label>
                         <select id="newCardType" class="w-full bg-white border-2 border-stone-300 rounded-xl px-3 py-2 text-xs font-bold text-slate-800">
@@ -483,10 +665,30 @@
                         </select>
                     </div>
                     <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Mode Berlaku:</label>
+                        <select id="newCardMode" class="w-full bg-white border-2 border-stone-300 rounded-xl px-3 py-2 text-xs font-bold text-slate-800">
+                            <option value="BOTH">✨ Keduanya (Online & Offline)</option>
+                            <option value="ONLINE">📹 Khusus Video Call / LDR</option>
+                            <option value="OFFLINE">💑 Khusus Ketemu Langsung</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Bahasa Cinta:</label>
+                        <select id="newCardLoveLang" class="w-full bg-white border-2 border-stone-300 rounded-xl px-3 py-2 text-xs font-bold text-slate-800">
+                            <option value="WORDS_OF_AFFIRMATION">💬 Words of Affirmation</option>
+                            <option value="QUALITY_TIME">⏳ Quality Time</option>
+                            <option value="RECEIVING_GIFTS">🎁 Receiving Gifts</option>
+                            <option value="ACTS_OF_SERVICE">🤝 Acts of Service</option>
+                            <option value="PHYSICAL_TOUCH">🫂 Physical Touch</option>
+                            <option value="GENERAL">🎲 General (Umum)</option>
+                        </select>
+                    </div>
+                    <div>
                         <label class="block text-xs font-bold text-slate-700 mb-1">Kategori / Mood:</label>
                         <select id="newCardCat" class="w-full bg-white border-2 border-stone-300 rounded-xl px-3 py-2 text-xs font-bold text-slate-800">
                             <option value="Romantis">💕 Romantis</option>
                             <option value="Intim">🔥 Intim & Sentuhan Hati</option>
+                            <option value="Pujian">✨ Pujian & Gombalan</option>
                             <option value="Deep Talk">🧠 Deep Talk</option>
                             <option value="Konyol">🎭 Konyol / Lucu</option>
                             <option value="Spicy">🌶️ Spicy / Menggoda</option>
@@ -508,10 +710,25 @@
             <!-- TAB 2: Daftar Kartu -->
             <div id="deckTabList" class="hidden flex-col gap-3 overflow-hidden flex-1">
                 <!-- Search & Filters -->
-                <div class="flex gap-2">
-                    <input type="text" id="deckSearchInput" oninput="filterCardList()" placeholder="🔍 Cari pertanyaan..." class="flex-1 bg-white border border-stone-300 rounded-xl px-3 py-1.5 text-xs text-slate-800">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-2">
+                    <input type="text" id="deckSearchInput" oninput="filterCardList()" placeholder="🔍 Cari pertanyaan..." class="bg-white border border-stone-300 rounded-xl px-3 py-1.5 text-xs text-slate-800">
+                    <select id="deckFilterMode" onchange="filterCardList()" class="bg-white border border-stone-300 rounded-xl px-3 py-1.5 text-xs font-bold text-slate-700">
+                        <option value="ALL">Semua Mode</option>
+                        <option value="ONLINE">📹 Khusus Video Call</option>
+                        <option value="OFFLINE">💑 Khusus Ketemu Langsung</option>
+                        <option value="BOTH">✨ Keduanya</option>
+                    </select>
+                    <select id="deckFilterLoveLang" onchange="filterCardList()" class="bg-white border border-stone-300 rounded-xl px-3 py-1.5 text-xs font-bold text-slate-700">
+                        <option value="ALL">Semua Bahasa Cinta</option>
+                        <option value="WORDS_OF_AFFIRMATION">💬 Words of Affirmation</option>
+                        <option value="QUALITY_TIME">⏳ Quality Time</option>
+                        <option value="RECEIVING_GIFTS">🎁 Receiving Gifts</option>
+                        <option value="ACTS_OF_SERVICE">🤝 Acts of Service</option>
+                        <option value="PHYSICAL_TOUCH">🫂 Physical Touch</option>
+                        <option value="GENERAL">🎲 General Deck</option>
+                    </select>
                     <select id="deckFilterType" onchange="filterCardList()" class="bg-white border border-stone-300 rounded-xl px-3 py-1.5 text-xs font-bold text-slate-700">
-                        <option value="ALL">Semua Tipe</option>
+                        <option value="ALL">Semua Tipe (Truth & Dare)</option>
                         <option value="TRUTH">Truth Saja</option>
                         <option value="DARE">Dare Saja</option>
                         <option value="CUSTOM">Custom Saja</option>
@@ -802,12 +1019,22 @@
                     </p>
                 </div>
 
+                <div class="p-3.5 bg-gradient-to-r from-purple-50 to-indigo-50 border-2 border-purple-300 rounded-2xl shadow-xs space-y-1.5">
+                    <div class="flex items-center gap-2 text-purple-900 font-extrabold text-sm">
+                        <span>🔮</span> 5. 20 Petak Takdir Rahasia (Forced Random)
+                    </div>
+                    <p class="text-xs leading-relaxed text-slate-700">
+                        Di setiap permainan baru, sistem secara rahasia memilih <b>20 petak acak</b> yang tampilannya <b>sama persis dengan petak biasa</b> di papan (tidak dibedakan agar menjadi kejutan).
+                        <br>Jika pion mendarat di salah satu dari 20 petak takdir ini, pemain <b>TIDAK BISA MEMILIH</b> Truth atau Dare — sistem akan langsung mengundi takdir tantangan secara otomatis!
+                    </p>
+                </div>
+
                 <div class="p-3.5 bg-white border-2 border-stone-200 rounded-2xl shadow-xs space-y-1.5">
                     <div class="flex items-center gap-2 text-stone-800 font-extrabold text-sm">
-                        <span>🔄</span> 5. Reset Permainan & Catatan Riwayat
+                        <span>🔄</span> 6. Reset Permainan & Catatan Riwayat
                     </div>
                     <p class="text-xs leading-relaxed text-slate-600">
-                        Setiap langkah dan tantangan yang dijalankan otomatis tercatat di menu <b>Riwayat</b>. Jika permainan selesai atau ingin mulai dari awal, tombol <b>Reset</b> akan mengembalikan posisi ke Kotak 1, menghapus riwayat, dan mengisi ulang semua kuota skill ke kondisi penuh!
+                        Setiap langkah dan tantangan yang dijalankan otomatis tercatat di menu <b>Riwayat</b>. Jika permainan selesai atau ingin mulai dari awal, tombol <b>Reset</b> akan mengembalikan posisi ke Kotak 1, menghapus riwayat, mengundi ulang 20 petak takdir baru, dan mengisi ulang semua kuota skill ke kondisi penuh!
                     </p>
                 </div>
             </div>
@@ -817,6 +1044,70 @@
                 <button onclick="closeRulesSkillsModal()" class="wood-btn bg-stone-200 hover:bg-stone-300 text-stone-800 text-xs font-bold py-2 px-4 rounded-xl">Tutup</button>
                 <button onclick="saveSkillsAndRules()" class="wood-btn bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold py-2 px-5 rounded-xl shadow">Terapkan & Mulai Main ✅</button>
             </div>
+        </div>
+    </div>
+
+    <!-- ================= MODAL 7: KELOLA MULTI-ROOM & UNDANGAN PASANGAN ================= -->
+    <div id="roomModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center p-4 z-50 backdrop-blur-md">
+        <div class="bg-[#FFFDF8] wood-border w-full max-w-md rounded-3xl p-6 relative flex flex-col shadow-2xl animate-in fade-in zoom-in duration-200">
+            
+            <div class="flex items-center justify-between border-b border-stone-200 pb-3 mb-4">
+                <div class="flex items-center gap-2">
+                    <span class="text-2xl">🏠</span>
+                    <div>
+                        <h2 class="text-xl font-black text-[#3D2216]">Multi-Room Pasangan</h2>
+                        <p class="text-xs text-stone-500">Main di room khusus berdua tanpa bentrok dengan pemain lain!</p>
+                    </div>
+                </div>
+                <button onclick="closeRoomModal()" class="w-8 h-8 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-600 font-bold">✕</button>
+            </div>
+
+            <div class="space-y-4">
+                <!-- Info Room Aktif -->
+                <div class="p-3.5 rounded-2xl bg-amber-50 border-2 border-amber-300 flex flex-col gap-2">
+                    <span class="text-[11px] font-bold text-amber-900 uppercase tracking-wide">Room Aktif Saat Ini:</span>
+                    <div class="flex items-center justify-between gap-2 bg-white px-3 py-2 rounded-xl border border-amber-200">
+                        <span id="modalCurrentRoomCode" class="text-lg font-black font-mono text-purple-900 tracking-widest">PUBLIC</span>
+                        <button onclick="copyRoomShareLink()" class="wood-btn bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold px-3 py-1 rounded-lg flex items-center gap-1 shadow-xs">
+                            <span>📋</span> Salin Link
+                        </button>
+                    </div>
+                    <p class="text-[10px] text-stone-500">Pasangan yang membuka link room yang sama akan otomatis terhubung ke papan ini secara live real-time.</p>
+                </div>
+
+                <!-- Buat Room Baru -->
+                <div class="p-3.5 rounded-2xl bg-emerald-50 border-2 border-emerald-300 flex flex-col gap-2">
+                    <div class="flex items-center gap-2">
+                        <span class="text-base">✨</span>
+                        <span class="text-xs font-extrabold text-emerald-950">Mulai Room Eksklusif Berdua</span>
+                    </div>
+                    <p class="text-[11px] text-slate-600">Buat sesi baru dengan kode unik acak dan papan baru yang bersih.</p>
+                    <button onclick="createNewRoomAction()" class="wood-btn w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 rounded-xl text-xs flex items-center justify-center gap-2 shadow">
+                        <span>➕</span> Buat Room Baru Otomatis
+                    </button>
+                </div>
+
+                <!-- Gabung Room Tertentu -->
+                <div class="p-3.5 rounded-2xl bg-sky-50 border-2 border-sky-300 flex flex-col gap-2">
+                    <div class="flex items-center gap-2">
+                        <span class="text-base">🔑</span>
+                        <span class="text-xs font-extrabold text-sky-950">Gabung Room Pasangan</span>
+                    </div>
+                    <div class="flex gap-2">
+                        <input type="text" id="joinRoomInput" placeholder="Masukkan 6 Digit Kode Room..." class="flex-1 uppercase font-mono tracking-widest bg-white border-2 border-sky-300 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 focus:outline-none focus:border-sky-500">
+                        <button onclick="joinRoomFromInput()" class="wood-btn bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold px-4 py-2 rounded-xl shadow-xs">
+                            Gabung ➔
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-4 pt-3 border-t border-stone-200 text-center">
+                <button onclick="closeRoomModal()" class="text-xs text-stone-500 hover:text-stone-800 font-bold underline">
+                    Tutup
+                </button>
+            </div>
+
         </div>
     </div>
 

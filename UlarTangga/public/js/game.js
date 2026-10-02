@@ -17,8 +17,137 @@ let gameState = {
     turn: 1,
     lastDice: 1,
     p1Info: { name: "Pemain 1 (Cowok)", avatar: "👦", color: "#38BDF8" },
-    p2Info: { name: "Pemain 2 (Cewek)", avatar: "🧕", color: "#FB923C" }
+    p2Info: { name: "Pemain 2 (Cewek)", avatar: "🧕", color: "#FB923C" },
+    selectedDecks: JSON.parse(localStorage.getItem('couple_ut_selected_decks') || 'null') || [
+        'WORDS_OF_AFFIRMATION', 'QUALITY_TIME', 'RECEIVING_GIFTS', 'ACTS_OF_SERVICE', 'PHYSICAL_TOUCH'
+    ],
+    playMode: localStorage.getItem('couple_ut_play_mode') || 'ONLINE', // 'ONLINE' (Video Call/LDR), 'OFFLINE' (Ketemu Langsung), 'ALL' (Campuran)
+    mysteryTiles: []
 };
+
+// ================= MODE PERMAINAN (ONLINE / LDR vs OFFLINE KETEMU LANGSUNG) =================
+function onPlayModeChange(mode) {
+    if (!mode) return;
+    gameState.playMode = mode;
+    localStorage.setItem('couple_ut_play_mode', mode);
+    updatePlayModeUI();
+    showToast(`Mode permainan diubah ke: ${getPlayModeLabel(mode)}!`, "🕹️");
+
+    if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({
+            type: "UPDATE_PLAY_MODE",
+            playMode: mode
+        }));
+    }
+}
+
+function togglePlayModeQuick() {
+    const current = gameState.playMode || 'ONLINE';
+    let next = 'ONLINE';
+    if (current === 'ONLINE') next = 'OFFLINE';
+    else if (current === 'OFFLINE') next = 'ALL';
+    else next = 'ONLINE';
+
+    onPlayModeChange(next);
+}
+
+function getPlayModeLabel(mode) {
+    if (mode === 'ONLINE') return '📹 Video Call / LDR';
+    if (mode === 'OFFLINE') return '💑 Ketemu Langsung';
+    return '🔄 Semua Mode (Campuran)';
+}
+
+function updatePlayModeUI() {
+    const mode = gameState.playMode || 'ONLINE';
+    const headerBtn = document.getElementById('playModeHeaderBtn');
+    const headerIcon = document.getElementById('playModeHeaderIcon');
+    const headerText = document.getElementById('playModeHeaderText');
+    const statusBadge = document.getElementById('playModeStatusBadge');
+
+    if (headerBtn) {
+        if (mode === 'ONLINE') {
+            headerBtn.className = "wood-btn bg-purple-100 hover:bg-purple-200 text-purple-900 px-3 py-1.5 rounded-xl text-xs font-black flex items-center gap-1.5 shadow-xs";
+            if (headerIcon) headerIcon.innerText = "📹";
+            if (headerText) headerText.innerText = "Mode: Video Call";
+        } else if (mode === 'OFFLINE') {
+            headerBtn.className = "wood-btn bg-rose-100 hover:bg-rose-200 text-rose-900 px-3 py-1.5 rounded-xl text-xs font-black flex items-center gap-1.5 shadow-xs";
+            if (headerIcon) headerIcon.innerText = "💑";
+            if (headerText) headerText.innerText = "Mode: Ketemu Langsung";
+        } else {
+            headerBtn.className = "wood-btn bg-emerald-100 hover:bg-emerald-200 text-emerald-900 px-3 py-1.5 rounded-xl text-xs font-black flex items-center gap-1.5 shadow-xs";
+            if (headerIcon) headerIcon.innerText = "🔄";
+            if (headerText) headerText.innerText = "Mode: Semua Mode";
+        }
+    }
+
+    if (statusBadge) {
+        if (mode === 'ONLINE') {
+            statusBadge.className = "text-[10px] bg-purple-200 text-purple-900 px-2 py-0.5 rounded-full font-bold";
+            statusBadge.innerText = "📹 Video Call (Aktif)";
+        } else if (mode === 'OFFLINE') {
+            statusBadge.className = "text-[10px] bg-rose-200 text-rose-900 px-2 py-0.5 rounded-full font-bold";
+            statusBadge.innerText = "💑 Ketemu Langsung (Aktif)";
+        } else {
+            statusBadge.className = "text-[10px] bg-emerald-200 text-emerald-900 px-2 py-0.5 rounded-full font-bold";
+            statusBadge.innerText = "🔄 Semua Mode (Aktif)";
+        }
+    }
+
+    // Update radio button dan visual card di dalam modal deck
+    ['ONLINE', 'OFFLINE', 'ALL'].forEach(m => {
+        const card = document.getElementById(`modeCard_${m}`);
+        const radio = document.querySelector(`input[name="playModeRadio"][value="${m}"]`);
+        if (radio) radio.checked = (m === mode);
+        if (card) {
+            if (m === mode) {
+                card.className = "p-2.5 rounded-xl border-2 border-purple-500 bg-purple-100/90 cursor-pointer flex flex-col justify-between transition shadow-xs";
+            } else {
+                card.className = "p-2.5 rounded-xl border-2 border-stone-200 bg-white hover:bg-stone-50 cursor-pointer flex flex-col justify-between transition shadow-xs";
+            }
+        }
+    });
+}
+
+// 20 Petak Takdir Rahasia (Forced Random) - Tampilannya sama persis seperti petak lain di papan
+function generateOfflineMysteryTiles() {
+    const candidates = [];
+    for (let i = 2; i <= 99; i++) {
+        if (i !== 21 && i !== 57) {
+            candidates.push(i);
+        }
+    }
+    for (let i = candidates.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [candidates[i], candidates[j]] = [candidates[j], candidates[i]];
+    }
+    const picked = candidates.slice(0, 20).sort((a, b) => a - b);
+    localStorage.setItem('couple_ut_mystery_tiles', JSON.stringify(picked));
+    return picked;
+}
+
+function getMysteryTiles() {
+    if (gameState.mysteryTiles && gameState.mysteryTiles.length > 0) {
+        return gameState.mysteryTiles;
+    }
+    const stored = localStorage.getItem('couple_ut_mystery_tiles');
+    if (stored) {
+        try {
+            const parsed = JSON.parse(stored);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+                gameState.mysteryTiles = parsed;
+                return gameState.mysteryTiles;
+            }
+        } catch (e) {}
+    }
+    gameState.mysteryTiles = generateOfflineMysteryTiles();
+    return gameState.mysteryTiles;
+}
+
+function isForcedRandomTile(tileNum) {
+    if (tileNum <= 1 || tileNum >= 100 || tileNum === 21 || tileNum === 57) return false;
+    const list = getMysteryTiles();
+    return list.includes(tileNum);
+}
 
 const savedP1 = localStorage.getItem('couple_ut_p1');
 const savedP2 = localStorage.getItem('couple_ut_p2');
@@ -32,6 +161,119 @@ let dareTimerInterval = null;
 let dareSecondsLeft = 30;
 let pendingTileNumber = 1;
 let currentModalCard = null;
+
+// ROOM MANAGEMENT & MULTI-SESSION
+let currentRoomCode = "PUBLIC";
+
+function getInitialRoomCode() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const roomQuery = urlParams.get('room');
+    if (roomQuery && roomQuery.trim()) {
+        return roomQuery.trim().toUpperCase();
+    }
+    const stored = localStorage.getItem('couple_ut_room_code');
+    if (stored && stored.trim()) {
+        return stored.trim().toUpperCase();
+    }
+    return "PUBLIC";
+}
+
+function updateRoomDisplayUI() {
+    const headerDisplay = document.getElementById('currentRoomDisplay');
+    const modalDisplay = document.getElementById('modalCurrentRoomCode');
+    if (headerDisplay) headerDisplay.innerText = currentRoomCode;
+    if (modalDisplay) modalDisplay.innerText = currentRoomCode;
+
+    // Update URL agar bisa langsung disalin dari address bar tanpa reload
+    if (currentRoomCode && currentRoomCode !== 'PUBLIC') {
+        const newUrl = `${window.location.pathname}?room=${currentRoomCode}`;
+        window.history.replaceState({ room: currentRoomCode }, '', newUrl);
+    } else if (currentRoomCode === 'PUBLIC') {
+        window.history.replaceState({}, '', window.location.pathname);
+    }
+}
+
+function copyRoomShareLink() {
+    let link = "";
+    if (currentRoomCode === 'PUBLIC') {
+        link = `${window.location.origin}${window.location.pathname}`;
+    } else {
+        link = `${window.location.origin}${window.location.pathname}?room=${currentRoomCode}`;
+    }
+    navigator.clipboard.writeText(link).then(() => {
+        showToast(`Link Room [${currentRoomCode}] berhasil disalin! Kirimkan ke pasanganmu ❤️`, "📋");
+    }).catch(() => {
+        prompt("Salin link room berikut untuk pasanganmu:", link);
+    });
+}
+
+function openRoomModal() {
+    updateRoomDisplayUI();
+    const modal = document.getElementById('roomModal');
+    if (modal) {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    }
+}
+
+function closeRoomModal() {
+    const modal = document.getElementById('roomModal');
+    if (modal) {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }
+}
+
+async function createNewRoomAction() {
+    try {
+        const res = await fetch('/api/create-room');
+        const data = await res.json();
+        if (data && data.roomCode) {
+            joinRoomAction(data.roomCode);
+            showToast(`Room baru [${data.roomCode}] siap dimainkan! Bagikan link ke pasanganmu 🚀`, "🎉");
+            copyRoomShareLink();
+        } else {
+            const offlineCode = "ROM" + Math.floor(1000 + Math.random() * 9000);
+            joinRoomAction(offlineCode);
+            showToast(`Room [${offlineCode}] dibuat secara lokal!`, "🎉");
+        }
+    } catch (e) {
+        const offlineCode = "ROM" + Math.floor(1000 + Math.random() * 9000);
+        joinRoomAction(offlineCode);
+        showToast(`Room [${offlineCode}] dibuat!`, "🎉");
+    }
+}
+
+function joinRoomFromInput() {
+    const input = document.getElementById('joinRoomInput');
+    if (!input) return;
+    const code = input.value.trim().toUpperCase();
+    if (!code) {
+        showToast("Masukkan kode room terlebih dahulu!", "⚠️");
+        return;
+    }
+    joinRoomAction(code);
+    input.value = '';
+}
+
+function joinRoomAction(code) {
+    code = code.trim().toUpperCase();
+    currentRoomCode = code;
+    localStorage.setItem('couple_ut_room_code', currentRoomCode);
+    updateRoomDisplayUI();
+    closeRoomModal();
+
+    // Reset local view sebelum sync room baru
+    gameState.p1Pos = 1;
+    gameState.p2Pos = 1;
+    gameHistory = [];
+    updatePawnsUI();
+    renderHistoryUI();
+
+    // Reconnect WebSocket ke room baru
+    connectWebSocket();
+    showToast(`Berhasil masuk ke Room [${code}]! Menyinkronkan... ✨`, "🏠");
+}
 
 // TOAST NOTIFIKASI
 let toastTimeout = null;
@@ -156,6 +398,8 @@ function updateAudioUI() {
 
 // INISIALISASI GAME & BOARD
 async function initGame() {
+    currentRoomCode = getInitialRoomCode();
+    updateRoomDisplayUI();
     updateAudioUI();
     updatePlayerDisplays();
 
@@ -171,7 +415,9 @@ async function initGame() {
     renderBoardUI();
     drawSnakesAndLaddersSVG();
     updatePawnsUI();
+    getMysteryTiles();
     updateDeckCountBadge();
+    updatePlayModeUI();
     renderHistoryUI();
     renderSkillsUI();
 
@@ -553,7 +799,25 @@ async function executePawnHopping(data) {
     };
 
     pendingTileNumber = data.finalPos;
-    openChoiceModal(data.finalPos, pNum);
+    if (data.finalPos > 1 && data.finalPos < 100 && isForcedRandomTile(data.finalPos)) {
+        triggerForcedRandomTile(data.finalPos, pNum);
+    } else {
+        openChoiceModal(data.finalPos, pNum);
+    }
+}
+
+// 20 PETAK TAKDIR RAHASIA TRIGGER (FORCED RANDOM)
+function triggerForcedRandomTile(tileNum, targetPNum) {
+    const targetPlayer = targetPNum === 1 ? gameState.p1Info : gameState.p2Info;
+    closeChoiceModal();
+    playSynthSound('reaction');
+    confetti({ particleCount: 45, spread: 75, origin: { y: 0.6 } });
+    showToast(`🔮 PETAK TAKDIR #${tileNum}! Tidak bisa pilih Truth/Dare — takdir yang menentukan!`, "🎲");
+
+    const forcedType = Math.random() > 0.5 ? 'TRUTH' : 'DARE';
+    setTimeout(() => {
+        drawAndRevealCard(forcedType, tileNum, 'TAKDIR RAHASIA (RANDOM)', true);
+    }, 450);
 }
 
 // MODAL PILIHAN TANTANGAN (TRUTH, DARE, ATAU RANDOM)
@@ -581,7 +845,11 @@ function closeChoiceModal() {
 function handleTileClick(tileNum) {
     if (isRolling) return;
     pendingTileNumber = tileNum;
-    openChoiceModal(tileNum, gameState.turn);
+    if (tileNum > 1 && tileNum < 100 && isForcedRandomTile(tileNum)) {
+        triggerForcedRandomTile(tileNum, gameState.turn);
+    } else {
+        openChoiceModal(tileNum, gameState.turn);
+    }
 }
 
 function handleUserChoice(choice) {
@@ -596,7 +864,7 @@ function handleUserChoice(choice) {
     drawAndRevealCard(selectedType, pendingTileNumber, choice);
 }
 
-function drawAndRevealCard(type, tileNum, userChoice = 'TRUTH') {
+function drawAndRevealCard(type, tileNum, userChoice = 'TRUTH', isForced = false) {
     let card = null;
 
     if (tileNum === 57 && type === 'TRUTH') {
@@ -610,14 +878,20 @@ function drawAndRevealCard(type, tileNum, userChoice = 'TRUTH') {
             prompt: "🎉 SELAMAT! Kamu mencapai garis FINISH! Pasanganmu wajib menuruti 1 permintaan spesial darimu hari ini! ❤️"
         };
     } else {
-        const pool = type === 'TRUTH' 
-            ? defaultTruthsList.concat(customCards.filter(c => c.type === 'TRUTH'))
-            : defaultDaresList.concat(customCards.filter(c => c.type === 'DARE'));
+        const activeDecks = (gameState.selectedDecks && gameState.selectedDecks.length > 0)
+            ? gameState.selectedDecks
+            : (JSON.parse(localStorage.getItem('couple_ut_selected_decks') || 'null') || ['WORDS_OF_AFFIRMATION', 'QUALITY_TIME', 'RECEIVING_GIFTS', 'ACTS_OF_SERVICE', 'PHYSICAL_TOUCH']);
+        const currentPlayMode = gameState.playMode || localStorage.getItem('couple_ut_play_mode') || 'ONLINE';
+        
+        const pool = (typeof getGameActivePool === 'function')
+            ? getGameActivePool(type, activeDecks, customCards, currentPlayMode)
+            : (type === 'TRUTH' ? defaultTruthsList.concat(customCards.filter(c => c.type === 'TRUTH')) : defaultDaresList.concat(customCards.filter(c => c.type === 'DARE')));
+        
         card = pool[Math.floor(Math.random() * pool.length)];
     }
 
     currentModalCard = card;
-    displayCardModal(card, tileNum);
+    displayCardModal(card, tileNum, isForced);
 
     const pNum = currentMoveContext.player || (gameState.turn === 2 ? 1 : 2);
     const pInfo = pNum === 1 ? gameState.p1Info : gameState.p2Info;
@@ -640,9 +914,9 @@ function drawAndRevealCard(type, tileNum, userChoice = 'TRUTH') {
         jumpType: jumpType,
         jumpDest: currentMoveContext.jumpDest || 0,
         skillUsed: currentMoveContext.skillUsed || "",
-        choice: userChoice,
+        choice: isForced ? "TAKDIR RAHASIA (RANDOM)" : userChoice,
         cardType: card.type,
-        category: card.category || "Spesial",
+        category: isForced ? `${card.category} (Takdir)` : (card.category || "Spesial"),
         prompt: card.prompt,
         timeStr: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
     };
@@ -655,6 +929,8 @@ function drawAndRevealCard(type, tileNum, userChoice = 'TRUTH') {
             tile: tileNum,
             cardType: card.type,
             category: card.category,
+            loveLanguage: card.loveLanguage || "GENERAL",
+            mode: card.mode || "BOTH",
             prompt: card.prompt,
             targetP: gameState.turn === 2 ? 1 : 2
         }));
@@ -666,7 +942,7 @@ function drawAndRevealCard(type, tileNum, userChoice = 'TRUTH') {
     }
 }
 
-function displayCardModal(card, tileNum) {
+function displayCardModal(card, tileNum, isForced = false) {
     const modal = document.getElementById('cardModal');
     const badgeNum = document.getElementById('modalBadgeNum');
     const typeTitle = document.getElementById('modalTypeTitle');
@@ -674,11 +950,49 @@ function displayCardModal(card, tileNum) {
     const promptText = document.getElementById('modalPromptText');
     const playerTarget = document.getElementById('modalPlayerTarget');
     const dareTimerContainer = document.getElementById('dareTimerContainer');
+    const forcedBadge = document.getElementById('modalForcedBadge');
+
+    if (forcedBadge) {
+        if (isForced) {
+            forcedBadge.classList.remove('hidden');
+            forcedBadge.classList.add('flex');
+        } else {
+            forcedBadge.classList.add('hidden');
+            forcedBadge.classList.remove('flex');
+        }
+    }
 
     badgeNum.innerText = tileNum;
     typeTitle.innerText = card.type;
     categoryBadge.innerText = card.category || 'Spesial';
     promptText.innerText = `"${card.prompt}"`;
+
+    const loveLangBadge = document.getElementById('modalLoveLanguageBadge');
+    if (loveLangBadge) {
+        const langCode = card.loveLanguage || 'GENERAL';
+        if (typeof getLoveLanguageMeta === 'function') {
+            const meta = getLoveLanguageMeta(langCode);
+            loveLangBadge.innerHTML = `<span>${meta.icon}</span> ${meta.name}`;
+            loveLangBadge.classList.remove('hidden');
+        } else {
+            loveLangBadge.classList.add('hidden');
+        }
+    }
+
+    const modeBadge = document.getElementById('modalModeBadge');
+    if (modeBadge) {
+        const cMode = card.mode || 'BOTH';
+        if (cMode === 'ONLINE') {
+            modeBadge.className = "bg-purple-100 text-purple-800 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border border-purple-300 flex items-center gap-1";
+            modeBadge.innerHTML = "<span>📹</span> Video Call";
+        } else if (cMode === 'OFFLINE') {
+            modeBadge.className = "bg-rose-100 text-rose-800 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border border-rose-300 flex items-center gap-1";
+            modeBadge.innerHTML = "<span>💑</span> Ketemu Langsung";
+        } else {
+            modeBadge.className = "bg-emerald-100 text-emerald-800 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border border-emerald-300 flex items-center gap-1";
+            modeBadge.innerHTML = "<span>✨</span> Online & Offline";
+        }
+    }
 
     const activePNum = currentMoveContext.player || (gameState.turn === 2 ? 1 : 2);
     const activeP = activePNum === 1 ? gameState.p1Info : gameState.p2Info;
@@ -881,8 +1195,10 @@ function spawnFloatingEmoji(emoji) {
 function openDeckModal() {
     document.getElementById('deckModal').classList.remove('hidden');
     document.getElementById('deckModal').classList.add('flex');
-    switchDeckTab('add');
-    renderCardList();
+    switchDeckTab('lovelang');
+    syncLoveLangCheckboxes();
+    updateLoveLangPreview();
+    updateDeckCountBadge();
 }
 
 function closeDeckModal() {
@@ -890,34 +1206,124 @@ function closeDeckModal() {
     document.getElementById('deckModal').classList.remove('flex');
 }
 
+function syncLoveLangCheckboxes() {
+    const active = (gameState.selectedDecks && gameState.selectedDecks.length > 0)
+        ? gameState.selectedDecks
+        : (JSON.parse(localStorage.getItem('couple_ut_selected_decks') || 'null') || ['WORDS_OF_AFFIRMATION', 'QUALITY_TIME', 'RECEIVING_GIFTS', 'ACTS_OF_SERVICE', 'PHYSICAL_TOUCH']);
+    
+    ['WORDS_OF_AFFIRMATION', 'QUALITY_TIME', 'RECEIVING_GIFTS', 'ACTS_OF_SERVICE', 'PHYSICAL_TOUCH'].forEach(code => {
+        const el = document.getElementById(`loveLang_${code}`);
+        if (el) {
+            el.checked = active.includes(code);
+        }
+    });
+}
+
+function updateLoveLangPreview() {
+    const list = [];
+    ['WORDS_OF_AFFIRMATION', 'QUALITY_TIME', 'RECEIVING_GIFTS', 'ACTS_OF_SERVICE', 'PHYSICAL_TOUCH'].forEach(code => {
+        const el = document.getElementById(`loveLang_${code}`);
+        if (el && el.checked) {
+            list.push(code);
+        }
+    });
+
+    if (list.length === 0) {
+        showToast("Minimal pilih 1 Bahasa Cinta untuk game kalian!", "⚠️");
+        const defaultEl = document.getElementById('loveLang_WORDS_OF_AFFIRMATION');
+        if (defaultEl) defaultEl.checked = true;
+        list.push('WORDS_OF_AFFIRMATION');
+    }
+
+    // 100 kartu per bahasa cinta + 50 kartu general = 550 kartu total katalog
+    const candidateDefault = (list.length * 100) + 50;
+    const activeLimit = Math.min(150, candidateDefault);
+
+    const limitSpan = document.getElementById('activeDeckLimitSpan');
+    if (limitSpan) limitSpan.innerText = activeLimit;
+
+    const customSpan = document.getElementById('customCardCountSpan');
+    if (customSpan) customSpan.innerText = customCards.length;
+}
+
+function applyLoveLanguageSelection() {
+    const list = [];
+    ['WORDS_OF_AFFIRMATION', 'QUALITY_TIME', 'RECEIVING_GIFTS', 'ACTS_OF_SERVICE', 'PHYSICAL_TOUCH'].forEach(code => {
+        const el = document.getElementById(`loveLang_${code}`);
+        if (el && el.checked) {
+            list.push(code);
+        }
+    });
+
+    if (list.length === 0) {
+        list.push('WORDS_OF_AFFIRMATION');
+    }
+
+    // Ambil mode yang dipilih di radio button modal jika ada
+    const selectedModeRadio = document.querySelector('input[name="playModeRadio"]:checked');
+    if (selectedModeRadio && selectedModeRadio.value) {
+        gameState.playMode = selectedModeRadio.value;
+        localStorage.setItem('couple_ut_play_mode', gameState.playMode);
+        updatePlayModeUI();
+    }
+
+    gameState.selectedDecks = list;
+    localStorage.setItem('couple_ut_selected_decks', JSON.stringify(list));
+
+    if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({
+            type: "UPDATE_DECK_SELECTION",
+            selectedDecks: list,
+            playMode: gameState.playMode || 'ONLINE'
+        }));
+    }
+
+    updateDeckCountBadge();
+    playSynthSound('reaction');
+    showToast(`💖 ${list.length} Bahasa Cinta & Mode ${getPlayModeLabel(gameState.playMode)} diterapkan!`, "🎉");
+}
+
 function switchDeckTab(tab) {
+    const btnLoveLang = document.getElementById('tabBtnLoveLang');
     const btnAdd = document.getElementById('tabBtnAdd');
     const btnList = document.getElementById('tabBtnList');
     const btnExport = document.getElementById('tabBtnExport');
+    const tabLoveLang = document.getElementById('deckTabLoveLang');
     const tabAdd = document.getElementById('deckTabAdd');
     const tabList = document.getElementById('deckTabList');
     const tabExport = document.getElementById('deckTabExport');
 
-    [btnAdd, btnList, btnExport].forEach(b => b.className = "px-4 py-2 rounded-xl bg-stone-100 text-stone-700 hover:bg-stone-200");
-    [tabAdd, tabList, tabExport].forEach(t => t.classList.add('hidden'));
+    const allBtns = [btnLoveLang, btnAdd, btnList, btnExport].filter(Boolean);
+    const allTabs = [tabLoveLang, tabAdd, tabList, tabExport].filter(Boolean);
 
-    if (tab === 'add') {
-        btnAdd.className = "px-4 py-2 rounded-xl bg-[#3D2216] text-white";
-        tabAdd.classList.remove('hidden');
+    allBtns.forEach(b => b.className = "px-4 py-2 rounded-xl bg-stone-100 text-stone-700 hover:bg-stone-200");
+    allTabs.forEach(t => t.classList.add('hidden'));
+
+    if (tab === 'lovelang') {
+        if (btnLoveLang) btnLoveLang.className = "px-4 py-2 rounded-xl bg-[#3D2216] text-white";
+        if (tabLoveLang) tabLoveLang.classList.remove('hidden');
+        syncLoveLangCheckboxes();
+        updateLoveLangPreview();
+    } else if (tab === 'add') {
+        if (btnAdd) btnAdd.className = "px-4 py-2 rounded-xl bg-[#3D2216] text-white";
+        if (tabAdd) tabAdd.classList.remove('hidden');
     } else if (tab === 'list') {
-        btnList.className = "px-4 py-2 rounded-xl bg-[#3D2216] text-white";
-        tabList.classList.remove('hidden');
-        tabList.classList.add('flex');
+        if (btnList) btnList.className = "px-4 py-2 rounded-xl bg-[#3D2216] text-white";
+        if (tabList) {
+            tabList.classList.remove('hidden');
+            tabList.classList.add('flex');
+        }
         renderCardList();
     } else if (tab === 'export') {
-        btnExport.className = "px-4 py-2 rounded-xl bg-[#3D2216] text-white";
-        tabExport.classList.remove('hidden');
+        if (btnExport) btnExport.className = "px-4 py-2 rounded-xl bg-[#3D2216] text-white";
+        if (tabExport) tabExport.classList.remove('hidden');
         populateExportJson();
     }
 }
 
 function updateDeckCountBadge() {
-    const total = defaultTruthsList.length + defaultDaresList.length + customCards.length;
+    const masterCount = typeof getAllMasterCards === 'function' ? getAllMasterCards().length : (defaultTruthsList.length + defaultDaresList.length);
+    const total = masterCount + customCards.length;
     const badge = document.getElementById('deckTotalCount');
     if (badge) badge.innerText = total;
     const tabCount = document.getElementById('tabCountSpan');
@@ -926,6 +1332,8 @@ function updateDeckCountBadge() {
 
 function saveCustomCard() {
     const type = document.getElementById('newCardType').value;
+    const mode = (document.getElementById('newCardMode') ? document.getElementById('newCardMode').value : 'BOTH') || 'BOTH';
+    const loveLang = (document.getElementById('newCardLoveLang') ? document.getElementById('newCardLoveLang').value : 'GENERAL') || 'GENERAL';
     const cat = document.getElementById('newCardCat').value;
     const prompt = document.getElementById('newCardPrompt').value.trim();
 
@@ -937,6 +1345,8 @@ function saveCustomCard() {
     const newCard = {
         id: Date.now(),
         type: type,
+        loveLanguage: loveLang,
+        mode: mode,
         category: cat,
         prompt: prompt,
         isCustom: true
@@ -954,6 +1364,8 @@ function saveCustomCard() {
         ws.send(JSON.stringify({
             type: "ADD_CUSTOM_CARD",
             cardType: type,
+            loveLanguage: loveLang,
+            mode: mode,
             category: cat,
             prompt: prompt
         }));
@@ -971,42 +1383,72 @@ function deleteCustomCard(id) {
 function renderCardList() {
     const container = document.getElementById('cardListContainer');
     if (!container) return;
-    const search = document.getElementById('deckSearchInput').value.toLowerCase();
-    const filterType = document.getElementById('deckFilterType').value;
+    const search = (document.getElementById('deckSearchInput') ? document.getElementById('deckSearchInput').value : '').toLowerCase();
+    const filterType = document.getElementById('deckFilterType') ? document.getElementById('deckFilterType').value : 'ALL';
+    const filterMode = document.getElementById('deckFilterMode') ? document.getElementById('deckFilterMode').value : 'ALL';
+    const filterLoveLang = document.getElementById('deckFilterLoveLang') ? document.getElementById('deckFilterLoveLang').value : 'ALL';
 
-    let all = [...defaultTruthsList, ...defaultDaresList, ...customCards];
+    const masterList = typeof getAllMasterCards === 'function' ? getAllMasterCards() : [...defaultTruthsList, ...defaultDaresList];
+    let all = [...masterList, ...customCards];
 
     if (filterType === 'TRUTH') all = all.filter(c => c.type === 'TRUTH');
     else if (filterType === 'DARE') all = all.filter(c => c.type === 'DARE');
     else if (filterType === 'CUSTOM') all = all.filter(c => c.isCustom);
 
+    if (filterMode !== 'ALL') {
+        all = all.filter(c => (c.mode || 'BOTH') === filterMode);
+    }
+
+    if (filterLoveLang !== 'ALL') {
+        all = all.filter(c => (c.loveLanguage || 'GENERAL') === filterLoveLang);
+    }
+
     if (search) {
-        all = all.filter(c => c.prompt.toLowerCase().includes(search) || c.category.toLowerCase().includes(search));
+        all = all.filter(c => 
+            c.prompt.toLowerCase().includes(search) || 
+            (c.category && c.category.toLowerCase().includes(search)) ||
+            (c.loveLanguage && c.loveLanguage.toLowerCase().includes(search))
+        );
     }
 
     container.innerHTML = '';
     if (all.length === 0) {
-        container.innerHTML = `<div class="p-6 text-center text-xs text-stone-500 font-bold">Tidak ada kartu yang cocok dengan pencarian.</div>`;
+        container.innerHTML = `<div class="p-6 text-center text-xs text-stone-500 font-bold">Tidak ada kartu yang cocok dengan filter pencarian.</div>`;
         return;
     }
 
     all.forEach((c) => {
         const isTruth = c.type === 'TRUTH';
+        const meta = typeof getLoveLanguageMeta === 'function' ? getLoveLanguageMeta(c.loveLanguage || 'GENERAL') : { icon: '💬', name: c.loveLanguage || 'General' };
+        
+        let modeBadgeHtml = '';
+        if (c.mode === 'ONLINE') {
+            modeBadgeHtml = `<span class="text-[9px] bg-purple-50 text-purple-800 border border-purple-200 px-1.5 py-0.5 rounded font-bold">📹 Online</span>`;
+        } else if (c.mode === 'OFFLINE') {
+            modeBadgeHtml = `<span class="text-[9px] bg-rose-50 text-rose-800 border border-rose-200 px-1.5 py-0.5 rounded font-bold">💑 Offline</span>`;
+        } else {
+            modeBadgeHtml = `<span class="text-[9px] bg-emerald-50 text-emerald-800 border border-emerald-200 px-1.5 py-0.5 rounded font-bold">✨ Fleksibel</span>`;
+        }
+
         container.innerHTML += `
             <div class="p-2.5 rounded-xl border border-stone-200 bg-white flex items-center justify-between gap-3 shadow-xs">
-                <div class="flex items-center gap-2 flex-1">
+                <div class="flex items-center gap-2 flex-1 flex-wrap">
                     <span class="text-[10px] font-black px-2 py-0.5 rounded-md ${isTruth ? 'bg-teal-100 text-teal-800' : 'bg-rose-100 text-rose-800'}">
                         ${c.type}
                     </span>
-                    <span class="text-[9px] bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded font-bold">${c.category}</span>
-                    <p class="text-xs text-slate-800 font-medium line-clamp-2">${c.prompt}</p>
+                    ${modeBadgeHtml}
+                    <span class="text-[9px] bg-rose-50 text-rose-800 border border-rose-200 px-1.5 py-0.5 rounded font-bold flex items-center gap-1">
+                        <span>${meta.icon}</span> ${meta.name}
+                    </span>
+                    <span class="text-[9px] bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded font-bold">${c.category || 'Spesial'}</span>
+                    <p class="text-xs text-slate-800 font-medium line-clamp-2 w-full mt-0.5">${c.prompt}</p>
                 </div>
                 ${c.isCustom ? `
-                    <button onclick="deleteCustomCard(${c.id})" class="text-rose-600 hover:text-rose-800 text-xs font-bold px-2 py-1 bg-rose-50 hover:bg-rose-100 rounded-md">
+                    <button onclick="deleteCustomCard(${c.id})" class="text-rose-600 hover:text-rose-800 text-xs font-bold px-2 py-1 bg-rose-50 hover:bg-rose-100 rounded-md shrink-0">
                         Hapus
                     </button>
                 ` : `
-                    <span class="text-[10px] text-stone-400 font-semibold italic">Default</span>
+                    <span class="text-[10px] text-stone-400 font-semibold italic shrink-0">Bawaan</span>
                 `}
             </div>
         `;
@@ -1121,7 +1563,11 @@ function manualMovePrompt(playerNum) {
         else gameState.p2Pos = num;
         updatePawnsUI();
         pendingTileNumber = num;
-        openChoiceModal(num, playerNum);
+        if (num > 1 && num < 100 && isForcedRandomTile(num)) {
+            triggerForcedRandomTile(num, playerNum);
+        } else {
+            openChoiceModal(num, playerNum);
+        }
 
         if (ws && ws.readyState === WebSocket.OPEN) {
             ws.send(JSON.stringify({ type: "MOVE_PAWN", player: playerNum, pos: num }));
@@ -1137,12 +1583,13 @@ function promptResetGame() {
         gameHistory = [];
         localStorage.removeItem('couple_ut_history');
         resetPlayerSkillsToFull();
+        gameState.mysteryTiles = generateOfflineMysteryTiles();
         updatePawnsUI();
         renderHistoryUI();
         renderSkillsUI();
         const statusEl = document.getElementById('statusMessage');
-        if (statusEl) statusEl.innerText = "🔄 Permainan di-reset ke garis START (Kotak 1). Riwayat langkah dibersihkan & kuota skill terisi penuh!";
-        showToast("Posisi pemain, riwayat & kuota skill berhasil di-reset!", "🔄");
+        if (statusEl) statusEl.innerText = "🔄 Permainan di-reset ke garis START (Kotak 1). 20 Petak Takdir diundi ulang & kuota skill terisi penuh!";
+        showToast("Posisi pemain, riwayat & petak takdir berhasil di-reset!", "🔄");
 
         if (ws && ws.readyState === WebSocket.OPEN) {
             ws.send(JSON.stringify({ type: "RESET" }));
@@ -1308,12 +1755,19 @@ function copyHistorySummary() {
 // WEBSOCKET SYNC
 function connectWebSocket() {
     try {
+        if (ws) {
+            try { ws.close(); } catch(e) {}
+        }
         const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-        ws = new WebSocket(`${protocol}//${window.location.host}/ws`);
+        ws = new WebSocket(`${protocol}//${window.location.host}/ws?room=${encodeURIComponent(currentRoomCode)}`);
 
         ws.onmessage = (event) => {
             const data = JSON.parse(event.data);
             if (data.type === "STATE_UPDATE" && data.state) {
+                if (data.roomCode) {
+                    currentRoomCode = data.roomCode;
+                    updateRoomDisplayUI();
+                }
                 gameState.p1Pos = data.state.p1Pos;
                 gameState.p2Pos = data.state.p2Pos;
                 gameState.turn = data.state.turn;
@@ -1322,6 +1776,21 @@ function connectWebSocket() {
                 if (data.state.p2Info) gameState.p2Info = data.state.p2Info;
                 if (data.state.p1Skills) p1Skills = data.state.p1Skills;
                 if (data.state.p2Skills) p2Skills = data.state.p2Skills;
+                if (data.state.mysteryTiles && data.state.mysteryTiles.length > 0) {
+                    gameState.mysteryTiles = data.state.mysteryTiles;
+                    localStorage.setItem('couple_ut_mystery_tiles', JSON.stringify(gameState.mysteryTiles));
+                }
+                if (data.state.selectedDecks && Array.isArray(data.state.selectedDecks)) {
+                    gameState.selectedDecks = data.state.selectedDecks;
+                    localStorage.setItem('couple_ut_selected_decks', JSON.stringify(gameState.selectedDecks));
+                    if (typeof syncLoveLangCheckboxes === 'function') syncLoveLangCheckboxes();
+                    if (typeof updateLoveLangPreview === 'function') updateLoveLangPreview();
+                }
+                if (data.state.playMode) {
+                    gameState.playMode = data.state.playMode;
+                    localStorage.setItem('couple_ut_play_mode', gameState.playMode);
+                    if (typeof updatePlayModeUI === 'function') updatePlayModeUI();
+                }
                 savePlayerSkillsLocally();
                 if (data.state.history !== undefined) {
                     gameHistory = data.state.history || [];
@@ -1334,6 +1803,7 @@ function connectWebSocket() {
             } else if (data.type === "DICE_ROLLED") {
                 handleDiceRollSequence(data);
             } else if (data.type === "CARD_REVEALED" && data.card) {
+                currentModalCard = data.card;
                 displayCardModal(data.card, data.card.tile);
             } else if (data.type === "SKILL_ACTIVATED") {
                 playSynthSound('reaction');

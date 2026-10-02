@@ -2,11 +2,13 @@ package models
 
 // QuestionCard merepresentasikan kartu Truth atau Dare
 type QuestionCard struct {
-	ID       int    `json:"id"`
-	Type     string `json:"type"`     // "TRUTH" atau "DARE"
-	Category string `json:"category"` // "Deep Talk", "Romantis", "Konyol", "Spicy", "Memori", "Intim"
-	Prompt   string `json:"prompt"`
-	IsCustom bool   `json:"isCustom"`
+	ID           int    `json:"id"`
+	Type         string `json:"type"`         // "TRUTH" atau "DARE"
+	LoveLanguage string `json:"loveLanguage"` // "WORDS_OF_AFFIRMATION", "QUALITY_TIME", "RECEIVING_GIFTS", "ACTS_OF_SERVICE", "PHYSICAL_TOUCH", "GENERAL"
+	Mode         string `json:"mode"`         // "ONLINE" (Video Call / LDR), "OFFLINE" (Ketemu Langsung), "BOTH" (Keduanya)
+	Category     string `json:"category"`     // "Deep Talk", "Romantis", "Konyol", "Spicy", "Memori", "Intim", "Pujian", dll.
+	Prompt       string `json:"prompt"`
+	IsCustom     bool   `json:"isCustom"`
 }
 
 // PlayerInfo menyimpan metadata pemain (nama, avatar emoji, warna tema)
@@ -25,11 +27,13 @@ type PlayerSkills struct {
 
 // ActiveCardPayload adalah payload kartu yang sedang terbuka di modal permainan
 type ActiveCardPayload struct {
-	Tile     int    `json:"tile"`
-	Type     string `json:"type"`
-	Category string `json:"category"`
-	Prompt   string `json:"prompt"`
-	TargetP  int    `json:"targetP"`
+	Tile         int    `json:"tile"`
+	Type         string `json:"type"`
+	LoveLanguage string `json:"loveLanguage"`
+	Mode         string `json:"mode"`
+	Category     string `json:"category"`
+	Prompt       string `json:"prompt"`
+	TargetP      int    `json:"targetP"`
 }
 
 // HistoryEntry mencatat setiap langkah pion, kartu yang dijawab, dan pemakaian skill
@@ -63,8 +67,11 @@ type GameState struct {
 	P2Skills   PlayerSkills       `json:"p2Skills"`
 	Turn       int                `json:"turn"` // 1 atau 2
 	LastDice   int                `json:"lastDice"`
-	ActiveCard *ActiveCardPayload `json:"activeCard,omitempty"`
-	RpsResult  string             `json:"rpsResult"`
-	CustomDeck []QuestionCard     `json:"customDeck"`
-	History    []HistoryEntry     `json:"history"`
+	ActiveCard    *ActiveCardPayload `json:"activeCard,omitempty"`
+	RpsResult     string             `json:"rpsResult"`
+	PlayMode      string             `json:"playMode"`      // "ONLINE" (Video Call / LDR), "OFFLINE" (Ketemu Langsung), "ALL" (Semua)
+	SelectedDecks []string           `json:"selectedDecks"` // Tipe Love Language yang diaktifkan (mis: "WORDS_OF_AFFIRMATION", "PHYSICAL_TOUCH")
+	CustomDeck    []QuestionCard     `json:"customDeck"`
+	History       []HistoryEntry     `json:"history"`
+	MysteryTiles  []int              `json:"mysteryTiles"` // 20 petak takdir acak rahasia (Forced Random)
 }
