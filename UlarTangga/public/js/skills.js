@@ -501,6 +501,7 @@ function toggleLuckyDicePicker() {
 
 function rollWithFixedDice(fixedNum) {
     if (isRolling) return;
+    if (typeof didInitiateRoll !== 'undefined') didInitiateRoll = true;
     const pNum = gameState.turn;
     const pSkills = pNum === 1 ? p1Skills : p2Skills;
     if (pSkills.uses.lucky_dice <= 0) {
@@ -719,7 +720,24 @@ function reRollCardPrompt() {
         ? getGameActivePool(isTruth ? 'TRUTH' : 'DARE', activeSelectedDecks, customCards, currentPlayMode)
         : (isTruth ? defaultTruthsList.concat(customCards.filter(c => c.type === 'TRUTH')) : defaultDaresList.concat(customCards.filter(c => c.type === 'DARE')));
 
-    const pick = pool[Math.floor(Math.random() * pool.length)];
+    if (typeof gameState !== 'undefined') {
+        if (!gameState.usedCardIds) gameState.usedCardIds = [];
+    }
+
+    const usedIds = (typeof gameState !== 'undefined' && gameState.usedCardIds) ? gameState.usedCardIds : [];
+    const unusedPool = pool.filter(c => c && c.id && !usedIds.includes(c.id));
+    const finalPool = unusedPool.length > 0 ? unusedPool : pool;
+
+    const pick = finalPool[Math.floor(Math.random() * finalPool.length)];
+
+    if (pick && pick.id && typeof gameState !== 'undefined') {
+        if (!gameState.usedCardIds.includes(pick.id)) {
+            gameState.usedCardIds.push(pick.id);
+        }
+    }
+
+    currentModalCard.id = pick.id || 0;
+    currentModalCard.type = pick.type || currentModalCard.type;
     currentModalCard.prompt = pick.prompt;
     currentModalCard.category = pick.category;
     currentModalCard.loveLanguage = pick.loveLanguage || 'GENERAL';
@@ -758,6 +776,17 @@ function reRollCardPrompt() {
     showToast(`Pertanyaan diacak ulang! (Sisa kuota: ${activeSkills.rerollCount}x) 🔄`, "🎲");
 
     if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({
+            type: "SHOW_CARD",
+            cardId: pick.id || 0,
+            tile: currentMoveContext.finalPos || pendingTileNumber || 1,
+            cardType: currentModalCard.type,
+            category: currentModalCard.category,
+            loveLanguage: currentModalCard.loveLanguage || "GENERAL",
+            mode: currentModalCard.mode || "BOTH",
+            prompt: currentModalCard.prompt,
+            targetP: activePNum
+        }));
         ws.send(JSON.stringify({
             type: "USE_SKILL",
             player: activePNum,

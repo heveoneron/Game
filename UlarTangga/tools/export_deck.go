@@ -85,14 +85,35 @@ function getGameActivePool(type, selectedDecks = null, customList = null, playMo
     activeSet.add('GENERAL'); // General selalu disertakan
 
     const customCardsList = customList || (typeof customCards !== 'undefined' ? customCards : []);
+    const masterList = type === 'TRUTH' ? defaultTruthsList : defaultDaresList;
 
-    let masterList = type === 'TRUTH' ? defaultTruthsList : defaultDaresList;
     let filtered = masterList.filter(c => {
         if (!activeSet.has(c.loveLanguage)) return false;
-        if (playMode === 'ONLINE' && c.mode !== 'ONLINE' && c.mode !== 'BOTH') return false;
-        if (playMode === 'OFFLINE' && c.mode !== 'OFFLINE' && c.mode !== 'BOTH') return false;
+        if (playMode === 'ONLINE') {
+            if (c.mode === 'OFFLINE') return false;
+        } else if (playMode === 'OFFLINE') {
+            if (c.mode === 'ONLINE') return false;
+            // Filter ketat: cegah prompt kamera/video call/virtual masuk ke mode ketemu langsung
+            const promptLower = (c.prompt || '').toLowerCase();
+            if (promptLower.includes('kamera') || 
+                promptLower.includes('video call') || 
+                promptLower.includes('virtual') || 
+                promptLower.includes('lensa') || 
+                promptLower.includes('layar hp') || 
+                promptLower.includes('lewat chat') ||
+                promptLower.includes('eskimo kiss virtual') ||
+                promptLower.includes('raga kita mungkin berjarak') ||
+                promptLower.includes('di depan kamera')) {
+                return false;
+            }
+        }
         return true;
     });
+
+    // Fallback keamanan jika filter terlalu ketat sehingga kosong
+    if (filtered.length === 0) {
+        filtered = [...masterList];
+    }
 
     // Jika kandidat default melebihi 75 per tipe (total 150 per game), acak dan potong tepat 75
     let selectedDefaults = [...filtered];
@@ -101,11 +122,15 @@ function getGameActivePool(type, selectedDecks = null, customList = null, playMo
         selectedDefaults = selectedDefaults.slice(0, 75);
     }
 
-    // Gabungkan dengan kartu kustom yang cocok dengan mode (atau jika kustom belum punya mode, sertakan langsung)
+    // Gabungkan dengan kartu kustom yang cocok dengan mode
     const customMatching = customCardsList.filter(c => {
         if (c.type !== type) return false;
-        if (c.mode && playMode === 'ONLINE' && c.mode !== 'ONLINE' && c.mode !== 'BOTH') return false;
-        if (c.mode && playMode === 'OFFLINE' && c.mode !== 'OFFLINE' && c.mode !== 'BOTH') return false;
+        if (playMode === 'ONLINE' && c.mode === 'OFFLINE') return false;
+        if (playMode === 'OFFLINE') {
+            if (c.mode === 'ONLINE') return false;
+            const promptLower = (c.prompt || '').toLowerCase();
+            if (promptLower.includes('kamera') || promptLower.includes('video call') || promptLower.includes('virtual')) return false;
+        }
         return true;
     });
 

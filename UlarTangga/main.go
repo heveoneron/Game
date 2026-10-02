@@ -38,12 +38,27 @@ func getLocalIP() string {
 	if err != nil {
 		return "localhost"
 	}
+	var fallbackIP string
 	for _, address := range addrs {
 		if ipnet, ok := address.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
 			if ipnet.IP.To4() != nil {
-				return ipnet.IP.String()
+				ipStr := ipnet.IP.String()
+				// Abaikan APIPA (Disconnected adapter)
+				if strings.HasPrefix(ipStr, "169.254.") {
+					continue
+				}
+				// Prioritaskan IP lokal rumahan / Wi-Fi umum
+				if strings.HasPrefix(ipStr, "192.168.") || strings.HasPrefix(ipStr, "10.") {
+					return ipStr
+				}
+				if fallbackIP == "" {
+					fallbackIP = ipStr
+				}
 			}
 		}
+	}
+	if fallbackIP != "" {
+		return fallbackIP
 	}
 	return "localhost"
 }
@@ -82,11 +97,19 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 
 		aType, _ := action["type"].(string)
 
+		var broadcastPayload interface{}
+		var shouldBroadcastState bool
+
 		room.Mutex.Lock()
 		state := room.State
 
 		switch aType {
 		case "ROLL_DICE":
+			if state.IsGameOver {
+				room.Mutex.Unlock()
+				continue
+			}
+
 			pNum := state.Turn
 
 			// Cek apakah angka dadu ditentukan oleh Skill Dadu Sakti
@@ -120,6 +143,13 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 				}
 			}
 
+			// Cek apakah pemain mencapai garis FINISH (Kotak 100)
+			if finalPos >= 100 {
+				finalPos = 100
+				state.IsGameOver = true
+				state.WinnerNum = pNum
+			}
+
 			// Cek apakah Double Roll aktif
 			isDoubleRoll, _ := action["isDoubleRoll"].(bool)
 			nextTurn := 1
@@ -144,7 +174,7 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 			}
 			state.ActiveCard = nil // Tutup kartu sebelumnya
 
-			room.BroadcastMessage(map[string]interface{}{
+			broadcastPayload = map[string]interface{}{
 				"type":         "DICE_ROLLED",
 				"player":       pNum,
 				"dice":         dice,
@@ -155,7 +185,9 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 				"nextTurn":     nextTurn,
 				"isDoubleRoll": isDoubleRoll,
 				"isShielded":   isShielded,
-			})
+				"isGameOver":   state.IsGameOver,
+				"winnerNum":    state.WinnerNum,
+			}
 
 		case "CONFIG_SKILLS":
 			rerolls := 3
@@ -180,7 +212,7 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 				}
 				state.P2Skills = skills.InitSkills(list, rerolls)
 			}
-			room.BroadcastState()
+			shouldBroadcastState = true
 
 		case "USE_SKILL":
 			player := int(action["player"].(float64))
@@ -199,19 +231,29 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 				pSkills.SkillUses[skillName]--
 			}
 
-			room.BroadcastMessage(map[string]interface{}{
+			broadcastPayload = map[string]interface{}{
 				"type":   "SKILL_ACTIVATED",
 				"player": player,
 				"skill":  skillName,
 				"state":  state,
-			})
+			}
 
 		case "SHOW_CARD":
-			tile := int(action["tile"].(float64))
+			tile := 1
+			if t, ok := action["tile"].(float64); ok {
+				tile = int(t)
+			}
 			cType, _ := action["cardType"].(string)
 			cat, _ := action["category"].(string)
 			prompt, _ := action["prompt"].(string)
-			targetP := int(action["targetP"].(float64))
+			targetP := 1
+			if tp, ok := action["targetP"].(float64); ok {
+				targetP = int(tp)
+			}
+
+			if cid, ok := action["cardId"].(float64); ok && cid > 0 {
+				state.UsedCardIds = append(state.UsedCardIds, int(cid))
+			}
 
 			loveLang, _ := action["loveLanguage"].(string)
 			if loveLang == "" {
@@ -232,16 +274,16 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 				TargetP:      targetP,
 			}
 
-			room.BroadcastMessage(map[string]interface{}{
+			broadcastPayload = map[string]interface{}{
 				"type": "CARD_REVEALED",
 				"card": state.ActiveCard,
-			})
+			}
 
 		case "CLOSE_MODAL":
 			state.ActiveCard = nil
-			room.BroadcastMessage(map[string]interface{}{
+			broadcastPayload = map[string]interface{}{
 				"type": "MODAL_CLOSED",
-			})
+			}
 
 		case "MOVE_PAWN":
 			player := int(action["player"].(float64))
@@ -251,7 +293,7 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 			} else {
 				state.P2Pos = pos
 			}
-			room.BroadcastState()
+			shouldBroadcastState = true
 
 		case "SUIT":
 			opts := []string{
@@ -265,10 +307,10 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 			}
 			res := opts[rand.Intn(len(opts))]
 			state.RpsResult = res
-			room.BroadcastMessage(map[string]interface{}{
+			broadcastPayload = map[string]interface{}{
 				"type":   "SUIT_RESULT",
 				"result": res,
-			})
+			}
 
 		case "UPDATE_PLAYERS":
 			if p1, ok := action["p1"].(map[string]interface{}); ok {
@@ -287,7 +329,7 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 					state.P2Info.Avatar = a
 				}
 			}
-			room.BroadcastState()
+			shouldBroadcastState = true
 
 		case "ADD_CUSTOM_CARD":
 			cType, _ := action["cardType"].(string)
@@ -312,7 +354,7 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 					IsCustom:     true,
 				}
 				state.CustomDeck = append(state.CustomDeck, newCard)
-				room.BroadcastState()
+				shouldBroadcastState = true
 			}
 
 		case "UPDATE_DECK_SELECTION":
@@ -330,12 +372,12 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 					state.SelectedDecks = langs
 				}
 			}
-			room.BroadcastState()
+			shouldBroadcastState = true
 
 		case "UPDATE_PLAY_MODE":
 			if mode, ok := action["playMode"].(string); ok && mode != "" {
 				state.PlayMode = mode
-				room.BroadcastState()
+				shouldBroadcastState = true
 			}
 
 		case "RECORD_HISTORY":
@@ -366,26 +408,32 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 					newEntry.SkillUsed = sk
 				}
 				state.History = append(state.History, newEntry)
-				room.BroadcastMessage(map[string]interface{}{
+				broadcastPayload = map[string]interface{}{
 					"type":  "HISTORY_UPDATED",
 					"entry": newEntry,
-				})
+				}
 			}
 
 		case "RESET":
 			room.Reset()
-			room.BroadcastState()
+			shouldBroadcastState = true
 
 		case "REACTION":
 			emoji, _ := action["emoji"].(string)
 			sender, _ := action["sender"].(string)
-			room.BroadcastMessage(map[string]interface{}{
+			broadcastPayload = map[string]interface{}{
 				"type":   "FLOATING_REACTION",
 				"emoji":  emoji,
 				"sender": sender,
-			})
+			}
 		}
 		room.Mutex.Unlock()
+
+		if shouldBroadcastState {
+			room.BroadcastState()
+		} else if broadcastPayload != nil {
+			room.BroadcastMessage(broadcastPayload)
+		}
 	}
 }
 

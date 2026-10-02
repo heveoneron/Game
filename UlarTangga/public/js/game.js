@@ -22,7 +22,10 @@ let gameState = {
         'WORDS_OF_AFFIRMATION', 'QUALITY_TIME', 'RECEIVING_GIFTS', 'ACTS_OF_SERVICE', 'PHYSICAL_TOUCH'
     ],
     playMode: localStorage.getItem('couple_ut_play_mode') || 'ONLINE', // 'ONLINE' (Video Call/LDR), 'OFFLINE' (Ketemu Langsung), 'ALL' (Campuran)
-    mysteryTiles: []
+    mysteryTiles: [],
+    usedCardIds: [],
+    isGameOver: false,
+    winnerNum: 0
 };
 
 // ================= MODE PERMAINAN (ONLINE / LDR vs OFFLINE KETEMU LANGSUNG) =================
@@ -155,6 +158,7 @@ if (savedP1) gameState.p1Info = JSON.parse(savedP1);
 if (savedP2) gameState.p2Info = JSON.parse(savedP2);
 
 let isRolling = false;
+let didInitiateRoll = false;
 let isAudioMuted = localStorage.getItem('couple_ut_muted') === 'true';
 let ws = null;
 let dareTimerInterval = null;
@@ -578,23 +582,25 @@ function drawSnakesAndLaddersSVG() {
 }
 
 // UPDATE POSISI PION & STATUS
-function updatePawnsUI() {
+function updatePawnsUI(hoppingPawnNum = 0) {
     document.querySelectorAll('[id^="pawn-container-"]').forEach(el => el.innerHTML = '');
 
     const p1Container = document.getElementById(`pawn-container-${gameState.p1Pos}`);
     const p2Container = document.getElementById(`pawn-container-${gameState.p2Pos}`);
 
     if (p1Container) {
+        const isHop = hoppingPawnNum === 1 ? 'pawn-hop' : '';
         p1Container.innerHTML += `
-            <div id="pawn-p1" class="pawn bg-sky-400 border-2 border-white shadow-md hover:scale-115" title="${gameState.p1Info.name}">
+            <div id="pawn-p1" class="pawn ${isHop} bg-sky-400 border-2 border-white shadow-md hover:scale-115" title="${gameState.p1Info.name}">
                 ${gameState.p1Info.avatar}
             </div>
         `;
     }
 
     if (p2Container) {
+        const isHop = hoppingPawnNum === 2 ? 'pawn-hop' : '';
         p2Container.innerHTML += `
-            <div id="pawn-p2" class="pawn bg-orange-400 border-2 border-white shadow-md hover:scale-115" title="${gameState.p2Info.name}">
+            <div id="pawn-p2" class="pawn ${isHop} bg-orange-400 border-2 border-white shadow-md hover:scale-115" title="${gameState.p2Info.name}">
                 ${gameState.p2Info.avatar}
             </div>
         `;
@@ -637,19 +643,39 @@ function updatePawnsUI() {
 
 // KOCOK DADU (SYNCHRONIZED & GLITCH-FREE)
 function rollDice() {
+    if (gameState.isGameOver) {
+        showToast("Permainan telah selesai! Klik 'Main Game Baru' untuk memulai ronde baru.", "🏆");
+        const modal = document.getElementById('gameOverModal');
+        if (modal) {
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+        return;
+    }
     if (isRolling) return;
+    didInitiateRoll = true;
     isRolling = true;
     const rollBtn = document.getElementById('rollDiceBtn');
     if (rollBtn) rollBtn.disabled = true;
 
+    // Safety watchdog: cegah tombol macet permanen jika jaringan/server bermasalah (15 detik)
+    setTimeout(() => {
+        if (isRolling) {
+            console.warn("Watchdog: Membuka kunci tombol dadu setelah timeout.");
+            isRolling = false;
+            const btn = document.getElementById('rollDiceBtn');
+            if (btn && !gameState.isGameOver) btn.disabled = false;
+        }
+    }, 15000);
+
     const pNum = gameState.turn;
     const pSkills = pNum === 1 ? p1Skills : p2Skills;
     const isDouble = isDoubleRollActive;
-    const willUseShield = pSkills.uses.snake_shield > 0;
+    const willUseShield = pSkills?.uses?.snake_shield > 0;
 
     if (ws && ws.readyState === WebSocket.OPEN) {
         if (isDoubleRollActive) {
-            pSkills.uses.double_roll--;
+            if (pSkills?.uses?.double_roll !== undefined) pSkills.uses.double_roll--;
             savePlayerSkillsLocally();
             ws.send(JSON.stringify({ type: "USE_SKILL", player: pNum, skill: "double_roll" }));
         }
@@ -670,7 +696,7 @@ function rollDice() {
 
         if (jumpDest > 0) {
             if (jumpDest < nextPos) {
-                if (pSkills.uses.snake_shield > 0) {
+                if (pSkills?.uses?.snake_shield > 0) {
                     isShielded = true;
                     pSkills.uses.snake_shield--;
                     savePlayerSkillsLocally();
@@ -685,7 +711,7 @@ function rollDice() {
         }
 
         if (isDoubleRollActive) {
-            pSkills.uses.double_roll--;
+            if (pSkills?.uses?.double_roll !== undefined) pSkills.uses.double_roll--;
             savePlayerSkillsLocally();
         }
         isDoubleRollActive = false;
@@ -702,30 +728,58 @@ function rollDice() {
             finalPos: finalPos,
             nextTurn: nextTurn,
             isShielded: isShielded,
-            isDoubleRoll: isDouble
+            isDoubleRoll: isDouble,
+            isGameOver: finalPos >= 100,
+            winnerNum: finalPos >= 100 ? pNum : 0
         });
     }
 }
 
 async function handleDiceRollSequence(data) {
-    const diceFace = document.getElementById('diceFace');
-    const diceFaces = ['⚀', '⚁', '⚂', '⚃', '⚄', '⚅'];
-    if (diceFace) diceFace.classList.add('dice-rolling');
-    playSynthSound('dice');
-
-    let count = 0;
-    const rollInterval = setInterval(() => {
-        if (diceFace) diceFace.innerText = diceFaces[Math.floor(Math.random() * 6)];
-        count++;
-        if (count >= 7) {
-            clearInterval(rollInterval);
-            if (diceFace) {
-                diceFace.classList.remove('dice-rolling');
-                diceFace.innerText = diceFaces[data.dice - 1];
-            }
-            executePawnHopping(data);
+    try {
+        const diceFace = document.getElementById('diceFace');
+        const diceBigNumber = document.getElementById('diceBigNumber');
+        const diceSubtext = document.getElementById('diceSubtext');
+        const diceFaces = ['⚀', '⚁', '⚂', '⚃', '⚄', '⚅'];
+        if (diceFace) {
+            diceFace.classList.add('dice-rolling');
+            diceFace.classList.remove('dice-revealed');
         }
-    }, 60);
+        playSynthSound('dice');
+
+        let count = 0;
+        // Kocokan dadu berputar ~1.1 detik (14 pergantian tiap 80ms)
+        const rollInterval = setInterval(() => {
+            const randVal = Math.floor(Math.random() * 6) + 1;
+            if (diceFace) diceFace.innerText = diceFaces[randVal - 1];
+            if (diceBigNumber) diceBigNumber.innerText = randVal;
+            count++;
+            if (count >= 14) {
+                clearInterval(rollInterval);
+                if (diceFace) {
+                    diceFace.classList.remove('dice-rolling');
+                    diceFace.innerText = diceFaces[(data.dice || 1) - 1];
+                    diceFace.classList.add('dice-revealed');
+                }
+                if (diceBigNumber) {
+                    diceBigNumber.innerText = data.dice || 1;
+                }
+                if (diceSubtext) {
+                    diceSubtext.innerText = `Dadu ${data.dice || 1}`;
+                }
+                
+                // Jeda 650ms agar pemain dapat melihat jelas angka dadu sebelum pion mulai melangkah
+                setTimeout(() => {
+                    executePawnHopping(data);
+                }, 650);
+            }
+        }, 80);
+    } catch (e) {
+        console.error("Gagal menjalankan sequence animasi dadu:", e);
+        isRolling = false;
+        const rollBtn = document.getElementById('rollDiceBtn');
+        if (rollBtn && !gameState.isGameOver) rollBtn.disabled = false;
+    }
 }
 
 async function executePawnHopping(data) {
@@ -734,75 +788,149 @@ async function executePawnHopping(data) {
     let current = data.fromPos;
     const target = data.nextPos;
 
-    const statusEl = document.getElementById('statusMessage');
-    if (statusEl) {
-        statusEl.innerText = `🎲 ${pInfo.name} dapat angka ${data.dice}! Melangkah ke kotak ${target}...`;
-    }
-
-    while (current < target) {
-        current++;
-        if (pNum === 1) gameState.p1Pos = current;
-        else gameState.p2Pos = current;
-
-        updatePawnsUI();
-        playSynthSound('hop');
-        await new Promise(res => setTimeout(res, 200));
-    }
-
-    // Cek Ular / Tangga / Perisai
-    if (data.isShielded) {
-        await new Promise(res => setTimeout(res, 250));
-        playSynthSound('reaction');
-        confetti({ particleCount: 40, spread: 65, origin: { y: 0.6 } });
-        if (statusEl) statusEl.innerText = `🛡️ PERISAI KEBISAN AKTIF! ${pInfo.name} kebal dari gigitan ular di kotak ${target}!`;
-        showToast(`🛡️ PERISAI KEBISAN AKTIF! ${pInfo.name} kebal dari ular!`, "🛡️");
-        await new Promise(res => setTimeout(res, 400));
-    } else if (data.jumpDest > 0) {
-        await new Promise(res => setTimeout(res, 300));
-        if (data.jumpDest > target) {
-            playSynthSound('ladder');
-            if (statusEl) statusEl.innerText = `🪜 WOW! ${pInfo.name} naik tangga dari kotak ${target} ke kotak ${data.jumpDest}!`;
-            confetti({ particleCount: 40, spread: 60, origin: { y: 0.6 } });
-        } else {
-            playSynthSound('snake');
-            if (statusEl) statusEl.innerText = `🐍 OUCH! ${pInfo.name} digigit ular di kotak ${target}, turun ke kotak ${data.jumpDest}!`;
+    try {
+        const statusEl = document.getElementById('statusMessage');
+        if (statusEl) {
+            statusEl.innerText = `🎲 ${pInfo.name} dapat angka ${data.dice}! Melangkah ke kotak ${target}...`;
         }
 
-        if (pNum === 1) gameState.p1Pos = data.finalPos;
-        else gameState.p2Pos = data.finalPos;
+        // Animasi langkah per petak (diperlambat ke 420ms per petak agar jelas terlihat)
+        while (current < target) {
+            current++;
+            if (pNum === 1) gameState.p1Pos = current;
+            else gameState.p2Pos = current;
 
-        updatePawnsUI();
-        await new Promise(res => setTimeout(res, 350));
+            updatePawnsUI(pNum);
+            playSynthSound('hop');
+            await new Promise(res => setTimeout(res, 420));
+        }
+
+        // Hapus efek loncat pion dan beri jeda 450ms di petak singgah
+        updatePawnsUI(0);
+        await new Promise(res => setTimeout(res, 450));
+
+        // Cek Ular / Tangga / Perisai
+        if (data.isShielded) {
+            playSynthSound('reaction');
+            if (typeof confetti === 'function') confetti({ particleCount: 40, spread: 65, origin: { y: 0.6 } });
+            if (statusEl) statusEl.innerText = `🛡️ PERISAI KEBISAN AKTIF! ${pInfo.name} kebal dari gigitan ular di kotak ${target}!`;
+            showToast(`🛡️ PERISAI KEBISAN AKTIF! ${pInfo.name} kebal dari ular!`, "🛡️");
+            await new Promise(res => setTimeout(res, 700));
+        } else if (data.jumpDest > 0) {
+            await new Promise(res => setTimeout(res, 350));
+            if (data.jumpDest > target) {
+                playSynthSound('ladder');
+                if (statusEl) statusEl.innerText = `🪜 WOW! ${pInfo.name} naik tangga dari kotak ${target} ke kotak ${data.jumpDest}!`;
+                if (typeof confetti === 'function') confetti({ particleCount: 40, spread: 60, origin: { y: 0.6 } });
+            } else {
+                playSynthSound('snake');
+                if (statusEl) statusEl.innerText = `🐍 OUCH! ${pInfo.name} digigit ular di kotak ${target}, turun ke kotak ${data.jumpDest}!`;
+            }
+
+            if (pNum === 1) gameState.p1Pos = data.finalPos;
+            else gameState.p2Pos = data.finalPos;
+
+            updatePawnsUI(pNum);
+            // Jeda 650ms setelah naik tangga atau turun ular
+            await new Promise(res => setTimeout(res, 650));
+            updatePawnsUI(0);
+        }
+
+        if (data.isDoubleRoll) {
+            showToast(`🎲 DOUBLE ROLL! ${pInfo.name} dapat giliran melempar dadu sekali lagi!`, "⚡");
+        }
+
+        gameState.turn = data.nextTurn;
+        updatePawnsUI(0);
+
+        currentMoveContext = {
+            player: pNum,
+            dice: data.dice,
+            fromPos: data.fromPos,
+            nextPos: data.nextPos,
+            jumpDest: data.jumpDest || 0,
+            finalPos: data.finalPos,
+            isShielded: data.isShielded || false,
+            isDoubleRoll: data.isDoubleRoll || false,
+            skillUsed: data.isShielded ? "🛡️ Perisai Kebal Ular" : (data.isDoubleRoll ? "🎲 Dadu Ganda" : "")
+        };
+
+        pendingTileNumber = data.finalPos;
+
+        // Cek Garis Finish / Game Selesai (Petak 100)
+        if (data.isGameOver || data.finalPos >= 100) {
+            didInitiateRoll = false;
+            triggerGameFinish(data.winnerNum || pNum);
+            return;
+        }
+
+        // HANYA klien yang melempar dadu (initiator) yang membuka pop-up pilihan tantangan
+        // Klien pasangan hanya menunggu kartu terbuka via CARD_REVEALED agar tidak terjadi tabrakan / penimpaan kartu!
+        const isMyRoll = didInitiateRoll || (!ws || ws.readyState !== WebSocket.OPEN);
+        didInitiateRoll = false; // Reset flag untuk giliran berikutnya
+
+        if (isMyRoll) {
+            // Jeda 450ms sebelum pop-up pilihan tantangan terbuka
+            await new Promise(res => setTimeout(res, 450));
+
+            if (data.finalPos > 1 && data.finalPos < 100 && isForcedRandomTile(data.finalPos)) {
+                triggerForcedRandomTile(data.finalPos, pNum);
+            } else {
+                openChoiceModal(data.finalPos, pNum);
+            }
+        } else {
+            // Klien pasangan: tampilkan pesan menunggu pasangan memilih kartu
+            const statusEl = document.getElementById('statusMessage');
+            if (statusEl) {
+                statusEl.innerText = `⏳ Menunggu ${pInfo.name} memilih tantangan Truth atau Dare...`;
+            }
+        }
+    } catch (e) {
+        console.error("Error selama animasi langkah pion:", e);
+    } finally {
+        isRolling = false;
+        const rollBtn = document.getElementById('rollDiceBtn');
+        if (rollBtn && !gameState.isGameOver) rollBtn.disabled = false;
     }
+}
 
-    if (data.isDoubleRoll) {
-        showToast(`🎲 DOUBLE ROLL! ${pInfo.name} dapat giliran melempar dadu sekali lagi!`, "⚡");
-    }
-
-    gameState.turn = data.nextTurn;
-    updatePawnsUI();
-
+// TRIGGER KEMENANGAN & SELESAI GAME (FINISH KOTAK 100)
+function triggerGameFinish(winnerNum) {
+    gameState.isGameOver = true;
+    gameState.winnerNum = winnerNum;
     isRolling = false;
+
+    const winner = winnerNum === 1 ? gameState.p1Info : gameState.p2Info;
     const rollBtn = document.getElementById('rollDiceBtn');
-    if (rollBtn) rollBtn.disabled = false;
+    if (rollBtn) rollBtn.disabled = true;
 
-    currentMoveContext = {
-        player: pNum,
-        dice: data.dice,
-        fromPos: data.fromPos,
-        nextPos: data.nextPos,
-        jumpDest: data.jumpDest || 0,
-        finalPos: data.finalPos,
-        isShielded: data.isShielded || false,
-        isDoubleRoll: data.isDoubleRoll || false,
-        skillUsed: data.isShielded ? "🛡️ Perisai Kebal Ular" : (data.isDoubleRoll ? "🎲 Dadu Ganda" : "")
-    };
+    const diceBigNumber = document.getElementById('diceBigNumber');
+    if (diceBigNumber) diceBigNumber.innerText = '🏆';
+    const diceSubtext = document.getElementById('diceSubtext');
+    if (diceSubtext) diceSubtext.innerText = 'Juara!';
 
-    pendingTileNumber = data.finalPos;
-    if (data.finalPos > 1 && data.finalPos < 100 && isForcedRandomTile(data.finalPos)) {
-        triggerForcedRandomTile(data.finalPos, pNum);
-    } else {
-        openChoiceModal(data.finalPos, pNum);
+    const statusEl = document.getElementById('statusMessage');
+    if (statusEl) {
+        statusEl.innerText = `🏆 PERMAINAN SELESAI! ${winner.name} mencapai garis FINISH (Kotak 100) dan menjadi JUARA! 🎉`;
+    }
+
+    const winnerTitle = document.getElementById('winnerTitle');
+    const winnerAvatarBox = document.getElementById('winnerAvatarBox');
+    if (winnerTitle) winnerTitle.innerText = `${winner.name} Juara! 🏆`;
+    if (winnerAvatarBox) winnerAvatarBox.innerText = winner.avatar;
+
+    playSynthSound('ladder');
+    if (typeof confetti === 'function') {
+        confetti({ particleCount: 120, spread: 90, origin: { y: 0.5 } });
+        setTimeout(() => {
+            confetti({ particleCount: 80, spread: 100, origin: { y: 0.4 } });
+        }, 400);
+    }
+
+    const gameOverModal = document.getElementById('gameOverModal');
+    if (gameOverModal) {
+        gameOverModal.classList.remove('hidden');
+        gameOverModal.classList.add('flex');
     }
 }
 
@@ -835,15 +963,20 @@ function openChoiceModal(tileNum, targetPNum) {
     playSynthSound('card');
 }
 
-function closeChoiceModal() {
+function closeChoiceModal(syncWithServer = false) {
     const modal = document.getElementById('choiceModal');
-    if (!modal) return;
-    modal.classList.add('hidden');
-    modal.classList.remove('flex');
+    if (modal) {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }
+    if (syncWithServer && ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({ type: "CLOSE_MODAL" }));
+    }
 }
 
 function handleTileClick(tileNum) {
     if (isRolling) return;
+    didInitiateRoll = true;
     pendingTileNumber = tileNum;
     if (tileNum > 1 && tileNum < 100 && isForcedRandomTile(tileNum)) {
         triggerForcedRandomTile(tileNum, gameState.turn);
@@ -865,84 +998,133 @@ function handleUserChoice(choice) {
 }
 
 function drawAndRevealCard(type, tileNum, userChoice = 'TRUTH', isForced = false) {
-    let card = null;
+    try {
+        let card = null;
 
-    if (tileNum === 57 && type === 'TRUTH') {
-        card = defaultTruthsList.find(c => c.id === 57) || defaultTruthsList[0];
-    } else if (tileNum === 21 && type === 'DARE') {
-        card = defaultDaresList.find(c => c.id === 21) || defaultDaresList[0];
-    } else if (tileNum === 100) {
-        card = {
-            type: "FINISH",
-            category: "Pemenang",
-            prompt: "🎉 SELAMAT! Kamu mencapai garis FINISH! Pasanganmu wajib menuruti 1 permintaan spesial darimu hari ini! ❤️"
-        };
-    } else {
-        const activeDecks = (gameState.selectedDecks && gameState.selectedDecks.length > 0)
-            ? gameState.selectedDecks
-            : (JSON.parse(localStorage.getItem('couple_ut_selected_decks') || 'null') || ['WORDS_OF_AFFIRMATION', 'QUALITY_TIME', 'RECEIVING_GIFTS', 'ACTS_OF_SERVICE', 'PHYSICAL_TOUCH']);
-        const currentPlayMode = gameState.playMode || localStorage.getItem('couple_ut_play_mode') || 'ONLINE';
+        if (tileNum === 57 && type === 'TRUTH') {
+            card = (typeof defaultTruthsList !== 'undefined' ? defaultTruthsList.find(c => c.id === 57) : null) || defaultTruthsList[0];
+        } else if (tileNum === 21 && type === 'DARE') {
+            card = (typeof defaultDaresList !== 'undefined' ? defaultDaresList.find(c => c.id === 21) : null) || defaultDaresList[0];
+        } else if (tileNum === 100) {
+            card = {
+                id: 9999,
+                type: "FINISH",
+                category: "Pemenang",
+                prompt: "🎉 SELAMAT! Kamu mencapai garis FINISH! Pasanganmu wajib menuruti 1 permintaan spesial darimu hari ini! ❤️"
+            };
+        } else {
+            const activeDecks = (gameState.selectedDecks && gameState.selectedDecks.length > 0)
+                ? gameState.selectedDecks
+                : (JSON.parse(localStorage.getItem('couple_ut_selected_decks') || 'null') || ['WORDS_OF_AFFIRMATION', 'QUALITY_TIME', 'RECEIVING_GIFTS', 'ACTS_OF_SERVICE', 'PHYSICAL_TOUCH']);
+            const currentPlayMode = gameState.playMode || localStorage.getItem('couple_ut_play_mode') || 'ONLINE';
+            
+            let pool = [];
+            if (typeof getGameActivePool === 'function') {
+                try {
+                    pool = getGameActivePool(type, activeDecks, customCards, currentPlayMode);
+                } catch(e) {
+                    console.error("Error saat getGameActivePool:", e);
+                }
+            }
+            if (!pool || pool.length === 0) {
+                const fallbackList = type === 'TRUTH' ? (typeof defaultTruthsList !== 'undefined' ? defaultTruthsList : []) : (typeof defaultDaresList !== 'undefined' ? defaultDaresList : []);
+                pool = fallbackList.length > 0 ? fallbackList : [{ id: 1, type: type, category: "Spesial", prompt: "Tatap mata pasanganmu dan ucapkan apa yang paling kamu syukuri tentangnya hari ini." }];
+            }
+            
+            if (!gameState.usedCardIds) {
+                gameState.usedCardIds = [];
+            }
+
+            // Filter kartu agar tiap game hanya muncul 1x
+            const unusedPool = pool.filter(c => c && c.id && !gameState.usedCardIds.includes(c.id));
+            const finalPool = unusedPool.length > 0 ? unusedPool : pool;
+            
+            card = finalPool[Math.floor(Math.random() * finalPool.length)];
+
+            if (card && card.id) {
+                if (!gameState.usedCardIds.includes(card.id)) {
+                    gameState.usedCardIds.push(card.id);
+                }
+            }
+        }
+
+        if (!card) {
+            const fallbackList = type === 'TRUTH' ? defaultTruthsList : defaultDaresList;
+            card = fallbackList[Math.floor(Math.random() * fallbackList.length)] || {
+                id: 1,
+                type: type,
+                category: "Spesial",
+                prompt: "Tatap mata pasanganmu selama 30 detik tanpa bicara, lalu tersenyum tulus! ❤️"
+            };
+        }
+
+        currentModalCard = card;
+        displayCardModal(card, tileNum, isForced);
+
+        const pNum = currentMoveContext.player || (gameState.turn === 2 ? 1 : 2);
+        const pInfo = pNum === 1 ? gameState.p1Info : gameState.p2Info;
         
-        const pool = (typeof getGameActivePool === 'function')
-            ? getGameActivePool(type, activeDecks, customCards, currentPlayMode)
-            : (type === 'TRUTH' ? defaultTruthsList.concat(customCards.filter(c => c.type === 'TRUTH')) : defaultDaresList.concat(customCards.filter(c => c.type === 'DARE')));
-        
-        card = pool[Math.floor(Math.random() * pool.length)];
-    }
+        let jumpType = "";
+        if (currentMoveContext.jumpDest > 0) {
+            jumpType = currentMoveContext.jumpDest > currentMoveContext.nextPos ? "LADDER" : "SNAKE";
+        }
 
-    currentModalCard = card;
-    displayCardModal(card, tileNum, isForced);
-
-    const pNum = currentMoveContext.player || (gameState.turn === 2 ? 1 : 2);
-    const pInfo = pNum === 1 ? gameState.p1Info : gameState.p2Info;
-    
-    let jumpType = "";
-    if (currentMoveContext.jumpDest > 0) {
-        jumpType = currentMoveContext.jumpDest > currentMoveContext.nextPos ? "LADDER" : "SNAKE";
-    }
-
-    const historyEntry = {
-        id: Date.now(),
-        turnNumber: gameHistory.length + 1,
-        playerNum: pNum,
-        playerName: pInfo.name,
-        avatar: pInfo.avatar,
-        dice: currentMoveContext.dice || gameState.lastDice,
-        fromPos: currentMoveContext.fromPos || 1,
-        toPos: currentMoveContext.nextPos || tileNum,
-        finalPos: currentMoveContext.finalPos || tileNum,
-        jumpType: jumpType,
-        jumpDest: currentMoveContext.jumpDest || 0,
-        skillUsed: currentMoveContext.skillUsed || "",
-        choice: isForced ? "TAKDIR RAHASIA (RANDOM)" : userChoice,
-        cardType: card.type,
-        category: isForced ? `${card.category} (Takdir)` : (card.category || "Spesial"),
-        prompt: card.prompt,
-        timeStr: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
-    };
-
-    addHistoryEntry(historyEntry);
-
-    if (ws && ws.readyState === WebSocket.OPEN) {
-        ws.send(JSON.stringify({
-            type: "SHOW_CARD",
-            tile: tileNum,
+        const historyEntry = {
+            id: Date.now(),
+            turnNumber: gameHistory.length + 1,
+            playerNum: pNum,
+            playerName: pInfo.name,
+            avatar: pInfo.avatar,
+            dice: currentMoveContext.dice || gameState.lastDice,
+            fromPos: currentMoveContext.fromPos || 1,
+            toPos: currentMoveContext.nextPos || tileNum,
+            finalPos: currentMoveContext.finalPos || tileNum,
+            jumpType: jumpType,
+            jumpDest: currentMoveContext.jumpDest || 0,
+            skillUsed: currentMoveContext.skillUsed || "",
+            choice: isForced ? "TAKDIR RAHASIA (RANDOM)" : userChoice,
             cardType: card.type,
-            category: card.category,
-            loveLanguage: card.loveLanguage || "GENERAL",
-            mode: card.mode || "BOTH",
+            category: isForced ? `${card.category} (Takdir)` : (card.category || "Spesial"),
             prompt: card.prompt,
-            targetP: gameState.turn === 2 ? 1 : 2
-        }));
+            timeStr: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
+        };
 
-        ws.send(JSON.stringify({
-            type: "RECORD_HISTORY",
-            entry: historyEntry
-        }));
+        addHistoryEntry(historyEntry);
+
+        if (ws && ws.readyState === WebSocket.OPEN) {
+            ws.send(JSON.stringify({
+                type: "SHOW_CARD",
+                cardId: card ? (card.id || 0) : 0,
+                tile: tileNum,
+                cardType: card.type,
+                category: card.category,
+                loveLanguage: card.loveLanguage || "GENERAL",
+                mode: card.mode || "BOTH",
+                prompt: card.prompt,
+                targetP: gameState.turn === 2 ? 1 : 2
+            }));
+
+            ws.send(JSON.stringify({
+                type: "RECORD_HISTORY",
+                entry: historyEntry
+            }));
+        }
+    } catch (err) {
+        console.error("Critical error in drawAndRevealCard:", err);
+        const fallbackCard = {
+            id: 1,
+            type: type || "TRUTH",
+            category: "Spesial",
+            prompt: "Ucapkan satu hal yang paling kamu sukai dari pasanganmu saat ini!"
+        };
+        currentModalCard = fallbackCard;
+        displayCardModal(fallbackCard, tileNum, isForced);
     }
 }
 
 function displayCardModal(card, tileNum, isForced = false) {
+    if (!card) return;
+    closeChoiceModal(false);
     const modal = document.getElementById('cardModal');
     const badgeNum = document.getElementById('modalBadgeNum');
     const typeTitle = document.getElementById('modalTypeTitle');
@@ -962,10 +1144,10 @@ function displayCardModal(card, tileNum, isForced = false) {
         }
     }
 
-    badgeNum.innerText = tileNum;
-    typeTitle.innerText = card.type;
-    categoryBadge.innerText = card.category || 'Spesial';
-    promptText.innerText = `"${card.prompt}"`;
+    if (badgeNum) badgeNum.innerText = tileNum || 1;
+    if (typeTitle) typeTitle.innerText = card.type || 'TANTANGAN';
+    if (categoryBadge) categoryBadge.innerText = card.category || 'Spesial';
+    if (promptText) promptText.innerText = `"${card.prompt || ''}"`;
 
     const loveLangBadge = document.getElementById('modalLoveLanguageBadge');
     if (loveLangBadge) {
@@ -996,8 +1178,8 @@ function displayCardModal(card, tileNum, isForced = false) {
 
     const activePNum = currentMoveContext.player || (gameState.turn === 2 ? 1 : 2);
     const activeP = activePNum === 1 ? gameState.p1Info : gameState.p2Info;
-    const activeSkills = activePNum === 1 ? p1Skills : p2Skills;
-    playerTarget.innerText = `Untuk: ${activeP.name} ${activeP.avatar}`;
+    const activeSkills = activePNum === 1 ? (typeof p1Skills !== 'undefined' ? p1Skills : null) : (typeof p2Skills !== 'undefined' ? p2Skills : null);
+    if (playerTarget) playerTarget.innerText = `Untuk: ${activeP.name} ${activeP.avatar}`;
 
     // Skill action row in card modal (Skip & Reverse)
     const skillRow = document.getElementById('modalSkillActionRow');
@@ -1008,9 +1190,11 @@ function displayCardModal(card, tileNum, isForced = false) {
     const rerollBtnLabel = document.getElementById('reRollBtnLabel');
 
     let showSkillRow = false;
-    if (activeSkills.selected.includes('skip') && activeSkills.uses.skip > 0) {
-        skipBtn.classList.remove('hidden');
-        skipBtn.classList.add('inline-flex');
+    if (activeSkills && activeSkills.selected && activeSkills.selected.includes('skip') && activeSkills.uses && activeSkills.uses.skip > 0) {
+        if (skipBtn) {
+            skipBtn.classList.remove('hidden');
+            skipBtn.classList.add('inline-flex');
+        }
         if (skipUsesSpan) skipUsesSpan.innerText = activeSkills.uses.skip;
         showSkillRow = true;
     } else if (skipBtn) {
@@ -1018,9 +1202,11 @@ function displayCardModal(card, tileNum, isForced = false) {
         skipBtn.classList.remove('inline-flex');
     }
 
-    if (activeSkills.selected.includes('uno_reverse') && activeSkills.uses.uno_reverse > 0) {
-        reverseBtn.classList.remove('hidden');
-        reverseBtn.classList.add('inline-flex');
+    if (activeSkills && activeSkills.selected && activeSkills.selected.includes('uno_reverse') && activeSkills.uses && activeSkills.uses.uno_reverse > 0) {
+        if (reverseBtn) {
+            reverseBtn.classList.remove('hidden');
+            reverseBtn.classList.add('inline-flex');
+        }
         if (reverseUsesSpan) reverseUsesSpan.innerText = activeSkills.uses.uno_reverse;
         showSkillRow = true;
     } else if (reverseBtn) {
@@ -1038,8 +1224,8 @@ function displayCardModal(card, tileNum, isForced = false) {
         }
     }
 
-    if (rerollBtnLabel) {
-        rerollBtnLabel.innerText = `Acak Lagi (${activeSkills.rerollCount})`;
+    if (rerollBtnLabel && activeSkills) {
+        rerollBtnLabel.innerText = `Acak Lagi (${activeSkills.rerollCount || 0})`;
     }
 
     resetDareTimer();
@@ -1072,6 +1258,7 @@ function displayCardModal(card, tileNum, isForced = false) {
 }
 
 function closeCardModal() {
+    closeChoiceModal(false);
     resetDareTimer();
     const modal = document.getElementById('cardModal');
     if (!modal) return;
@@ -1417,6 +1604,7 @@ function renderCardList() {
         return;
     }
 
+    let html = '';
     all.forEach((c) => {
         const isTruth = c.type === 'TRUTH';
         const meta = typeof getLoveLanguageMeta === 'function' ? getLoveLanguageMeta(c.loveLanguage || 'GENERAL') : { icon: '💬', name: c.loveLanguage || 'General' };
@@ -1430,7 +1618,7 @@ function renderCardList() {
             modeBadgeHtml = `<span class="text-[9px] bg-emerald-50 text-emerald-800 border border-emerald-200 px-1.5 py-0.5 rounded font-bold">✨ Fleksibel</span>`;
         }
 
-        container.innerHTML += `
+        html += `
             <div class="p-2.5 rounded-xl border border-stone-200 bg-white flex items-center justify-between gap-3 shadow-xs">
                 <div class="flex items-center gap-2 flex-1 flex-wrap">
                     <span class="text-[10px] font-black px-2 py-0.5 rounded-md ${isTruth ? 'bg-teal-100 text-teal-800' : 'bg-rose-100 text-rose-800'}">
@@ -1453,6 +1641,7 @@ function renderCardList() {
             </div>
         `;
     });
+    container.innerHTML = html;
 }
 
 function filterCardList() {
@@ -1575,15 +1764,33 @@ function manualMovePrompt(playerNum) {
     }
 }
 
-function promptResetGame() {
-    if (confirm("Reset ulang permainan ke Kotak 1, bersihkan seluruh riwayat langkah, dan isi ulang semua skill?")) {
+function promptResetGame(force = false) {
+    if (force || confirm("Reset ulang permainan ke Kotak 1, bersihkan seluruh riwayat langkah, dan isi ulang semua skill?")) {
         gameState.p1Pos = 1;
         gameState.p2Pos = 1;
         gameState.turn = 1;
+        gameState.isGameOver = false;
+        gameState.winnerNum = 0;
+        gameState.usedCardIds = [];
         gameHistory = [];
         localStorage.removeItem('couple_ut_history');
         resetPlayerSkillsToFull();
         gameState.mysteryTiles = generateOfflineMysteryTiles();
+
+        const gameOverModal = document.getElementById('gameOverModal');
+        if (gameOverModal) {
+            gameOverModal.classList.add('hidden');
+            gameOverModal.classList.remove('flex');
+        }
+
+        const rollBtn = document.getElementById('rollDiceBtn');
+        if (rollBtn) rollBtn.disabled = false;
+        const diceBigNumber = document.getElementById('diceBigNumber');
+        const diceSubtext = document.getElementById('diceSubtext');
+        if (diceBigNumber) diceBigNumber.innerText = '?';
+        if (diceSubtext) diceSubtext.innerText = 'Dadu';
+        isRolling = false;
+
         updatePawnsUI();
         renderHistoryUI();
         renderSkillsUI();
@@ -1791,6 +1998,32 @@ function connectWebSocket() {
                     localStorage.setItem('couple_ut_play_mode', gameState.playMode);
                     if (typeof updatePlayModeUI === 'function') updatePlayModeUI();
                 }
+                if (data.state.usedCardIds && Array.isArray(data.state.usedCardIds)) {
+                    gameState.usedCardIds = data.state.usedCardIds;
+                }
+                if (data.state.isGameOver !== undefined) {
+                    gameState.isGameOver = data.state.isGameOver;
+                    gameState.winnerNum = data.state.winnerNum || 0;
+                    if (gameState.isGameOver && gameState.winnerNum > 0) {
+                        triggerGameFinish(gameState.winnerNum);
+                    } else if (!gameState.isGameOver) {
+                        const gameOverModal = document.getElementById('gameOverModal');
+                        if (gameOverModal) {
+                            gameOverModal.classList.add('hidden');
+                            gameOverModal.classList.remove('flex');
+                        }
+                        const rollBtn = document.getElementById('rollDiceBtn');
+                        if (rollBtn) rollBtn.disabled = false;
+                        const diceBigNumber = document.getElementById('diceBigNumber');
+                        const diceSubtext = document.getElementById('diceSubtext');
+                        if (diceBigNumber && diceBigNumber.innerText === '🏆') {
+                            diceBigNumber.innerText = '?';
+                        }
+                        if (diceSubtext && diceSubtext.innerText === 'Juara!') {
+                            diceSubtext.innerText = 'Dadu';
+                        }
+                    }
+                }
                 savePlayerSkillsLocally();
                 if (data.state.history !== undefined) {
                     gameHistory = data.state.history || [];
@@ -1803,6 +2036,7 @@ function connectWebSocket() {
             } else if (data.type === "DICE_ROLLED") {
                 handleDiceRollSequence(data);
             } else if (data.type === "CARD_REVEALED" && data.card) {
+                closeChoiceModal(false);
                 currentModalCard = data.card;
                 displayCardModal(data.card, data.card.tile);
             } else if (data.type === "SKILL_ACTIVATED") {
@@ -1826,9 +2060,13 @@ function connectWebSocket() {
                 localStorage.setItem('couple_ut_history', JSON.stringify(gameHistory));
                 renderHistoryUI();
             } else if (data.type === "MODAL_CLOSED") {
+                closeChoiceModal(false);
+                resetDareTimer();
                 const modal = document.getElementById('cardModal');
-                modal.classList.add('hidden');
-                modal.classList.remove('flex');
+                if (modal) {
+                    modal.classList.add('hidden');
+                    modal.classList.remove('flex');
+                }
             } else if (data.type === "SUIT_RESULT") {
                 handleSuitResult(data.result);
             } else if (data.type === "FLOATING_REACTION") {

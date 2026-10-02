@@ -74,4 +74,7 @@ type GameState struct {
 	CustomDeck    []QuestionCard     `json:"customDeck"`
 	History       []HistoryEntry     `json:"history"`
 	MysteryTiles  []int              `json:"mysteryTiles"` // 20 petak takdir acak rahasia (Forced Random)
+	UsedCardIds   []int              `json:"usedCardIds"`
+	IsGameOver    bool               `json:"isGameOver"`
+	WinnerNum     int                `json:"winnerNum"`
 }

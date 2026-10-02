@@ -64,7 +64,7 @@ var QualityTimeDeck = []models.QuestionCard{
 	{354, "DARE", "QUALITY_TIME", "BOTH", "Romantis", "Putar satu lagu kenangan cinta kita di HP dan nikmati lagunya bersama sambil saling menatap hangat!", false},
 	{355, "DARE", "QUALITY_TIME", "BOTH", "Kencan", "Bikin rencana konkret untuk kencan berikutnya (tentukan hari, jam, tempat, dan outfit) sekarang juga!", false},
 	{356, "DARE", "QUALITY_TIME", "BOTH", "Deep Talk", "Tanyakan satu pertanyaan tentang masa kecil pasangan yang belum pernah kamu tanyakan sebelumnya!", false},
-	{357, "DARE", "QUALITY_TIME", "BOTH", "Fokus", "Duduk berhadapan, pegang tangan pasangan (atau tatap di kamera), dan dengarkan dia bercerita selama 1 menit tanpa menyela!", false},
+	{357, "DARE", "QUALITY_TIME", "BOTH", "Fokus", "Duduk berhadapan, tatap mata dan dengarkan pasanganmu bercerita tentang harinya selama 1 menit penuh tanpa menyela!", false},
 	{358, "DARE", "QUALITY_TIME", "OFFLINE", "Romantis", "Bikin teh atau kopi hangat dan nikmati berdua secara santai sambil duduk berdampingan!", false},
 	{359, "DARE", "QUALITY_TIME", "ONLINE", "LDR", "Ambil cangkir minumanmu masing-masing, lakukan 'virtual toast' (tos cangkir ke kamera HP) dan minum bersamaan!", false},
 	{360, "DARE", "QUALITY_TIME", "BOTH", "Kencan", "Buat daftar 'Bucket List 5 Tempat Kencan Impian' yang wajib kita kunjungi bersama dalam setahun ke depan!", false},

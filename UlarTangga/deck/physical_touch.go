@@ -108,5 +108,5 @@ var PhysicalTouchDeck = []models.QuestionCard{
 	{697, "DARE", "PHYSICAL_TOUCH", "OFFLINE", "Saku Jaket", "Genggam satu tangan pasanganmu dan masukkan ke dalam saku jaket/baju bersama selama 1 putaran!", false},
 	{698, "DARE", "PHYSICAL_TOUCH", "ONLINE", "Warm Breath", "Hembuskan napas hangatmu ke arah kamera HP seolah sedang menghangatkan jemari pasangan di malam yang dingin!", false},
 	{699, "DARE", "PHYSICAL_TOUCH", "OFFLINE", "Forehead Touch", "Tempelkan dahimu ke dahi pasanganmu (forehead touch) selama 15 detik sambil memejamkan mata merasakan napas berdua!", false},
-	{700, "DARE", "PHYSICAL_TOUCH", "BOTH", "Kemesraan Penuh", "Katakan dengan penuh ketulusan: 'Raga kita mungkin berjarak, tapi jiwaku selalu memelukmu erat setiap detik'!", false},
+	{700, "DARE", "PHYSICAL_TOUCH", "ONLINE", "Kemesraan Penuh", "Katakan dengan penuh ketulusan: 'Raga kita mungkin berjarak, tapi jiwaku selalu memelukmu erat setiap detik'!", false},
 }

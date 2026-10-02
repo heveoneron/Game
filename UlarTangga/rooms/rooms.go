@@ -132,6 +132,9 @@ func (rm *RoomManager) GetOrCreateRoom(code string) *Room {
 		CustomDeck:   []models.QuestionCard{},
 		History:      []models.HistoryEntry{},
 		MysteryTiles: GenerateMysteryTiles(),
+		UsedCardIds:  []int{},
+		IsGameOver:   false,
+		WinnerNum:    0,
 	}
 
 	newRoom := &Room{
@@ -239,6 +242,9 @@ func (r *Room) Reset() {
 	r.State.P1Skills = skills.InitSkills(r.State.P1Skills.SelectedSkills, 3)
 	r.State.P2Skills = skills.InitSkills(r.State.P2Skills.SelectedSkills, 3)
 	r.State.MysteryTiles = GenerateMysteryTiles()
+	r.State.UsedCardIds = []int{}
+	r.State.IsGameOver = false
+	r.State.WinnerNum = 0
 	r.LastActive = time.Now()
 }
 
