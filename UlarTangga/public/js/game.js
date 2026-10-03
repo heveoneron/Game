@@ -641,8 +641,55 @@ function updatePawnsUI(hoppingPawnNum = 0) {
     }
 }
 
+// PROMPT KONFIRMASI PENGGUNAAN PERISAI ULAR
+function promptSnakeShieldConfirmation(tileNum, destNum, pNum) {
+    return new Promise((resolve) => {
+        const modal = document.getElementById('shieldConfirmModal');
+        const tileEl = document.getElementById('shieldSnakeTile');
+        const destEl = document.getElementById('shieldSnakeDest');
+        const countEl = document.getElementById('shieldRemainingCount');
+        const useBtn = document.getElementById('shieldUseBtn');
+        const skipBtn = document.getElementById('shieldSkipBtn');
+
+        const pSkills = pNum === 1 ? p1Skills : p2Skills;
+        const currentCount = pSkills?.uses?.snake_shield || 1;
+
+        if (tileEl) tileEl.innerText = tileNum;
+        if (destEl) destEl.innerText = destNum;
+        if (countEl) countEl.innerText = currentCount;
+
+        if (!modal || !useBtn || !skipBtn) {
+            // Fallback jika modal tidak ditemukan
+            const confirmed = confirm(`⚠️ PERINGATAN GIGITAN ULAR!\nPionmu menginjak ular di kotak ${tileNum} (turun ke ${destNum}).\n\nKamu memiliki ${currentCount}x Perisai Ular. Gunakan Perisai sekarang agar tidak merosot?`);
+            resolve(confirmed);
+            return;
+        }
+
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        playSynthSound('card');
+
+        const cleanup = () => {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            useBtn.onclick = null;
+            skipBtn.onclick = null;
+        };
+
+        useBtn.onclick = () => {
+            cleanup();
+            resolve(true);
+        };
+
+        skipBtn.onclick = () => {
+            cleanup();
+            resolve(false);
+        };
+    });
+}
+
 // KOCOK DADU (SYNCHRONIZED & GLITCH-FREE)
-function rollDice() {
+async function rollDice() {
     if (gameState.isGameOver) {
         showToast("Permainan telah selesai! Klik 'Main Game Baru' untuk memulai ronde baru.", "🏆");
         const modal = document.getElementById('gameOverModal');
@@ -671,7 +718,10 @@ function rollDice() {
     const pNum = gameState.turn;
     const pSkills = pNum === 1 ? p1Skills : p2Skills;
     const isDouble = isDoubleRollActive;
-    const willUseShield = pSkills?.uses?.snake_shield > 0;
+
+    // Bersihkan status double roll & snake shield
+    const willUseShieldManual = typeof isSnakeShieldActive !== 'undefined' && isSnakeShieldActive && (pSkills?.uses?.snake_shield > 0);
+    if (typeof isSnakeShieldActive !== 'undefined') isSnakeShieldActive = false;
 
     if (ws && ws.readyState === WebSocket.OPEN) {
         if (isDoubleRollActive) {
@@ -683,7 +733,7 @@ function rollDice() {
         ws.send(JSON.stringify({
             type: "ROLL_DICE",
             isDoubleRoll: isDouble,
-            useShield: willUseShield
+            useShield: willUseShieldManual
         }));
         renderSkillsUI();
     } else {
@@ -696,7 +746,12 @@ function rollDice() {
 
         if (jumpDest > 0) {
             if (jumpDest < nextPos) {
-                if (pSkills?.uses?.snake_shield > 0) {
+                let wantUseShield = willUseShieldManual;
+                if (!wantUseShield && pSkills?.uses?.snake_shield > 0) {
+                    wantUseShield = await promptSnakeShieldConfirmation(nextPos, jumpDest, pNum);
+                }
+
+                if (wantUseShield && pSkills?.uses?.snake_shield > 0) {
                     isShielded = true;
                     pSkills.uses.snake_shield--;
                     savePlayerSkillsLocally();
@@ -2034,6 +2089,14 @@ function connectWebSocket() {
                 updatePawnsUI();
                 renderSkillsUI();
             } else if (data.type === "DICE_ROLLED") {
+                if (data.p1Skills && p1Skills) {
+                    p1Skills.uses = { ...p1Skills.uses, ...data.p1Skills.SkillUses };
+                }
+                if (data.p2Skills && p2Skills) {
+                    p2Skills.uses = { ...p2Skills.uses, ...data.p2Skills.SkillUses };
+                }
+                savePlayerSkillsLocally();
+                renderSkillsUI();
                 handleDiceRollSequence(data);
             } else if (data.type === "CARD_REVEALED" && data.card) {
                 closeChoiceModal(false);

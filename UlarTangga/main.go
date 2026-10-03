@@ -131,10 +131,16 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 			isShielded := false
 			if jumpDest > 0 {
 				if jumpDest < nextPos { // Ular
-					if shield, ok := action["useShield"].(bool); ok && shield {
+					pSkills := &state.P1Skills
+					if pNum == 2 {
+						pSkills = &state.P2Skills
+					}
+					shieldReq, _ := action["useShield"].(bool)
+					if shieldReq && pSkills.SkillUses["snake_shield"] > 0 {
 						isShielded = true
 						finalPos = nextPos
 						jumpDest = 0
+						pSkills.SkillUses["snake_shield"]--
 					} else {
 						finalPos = jumpDest
 					}
@@ -187,6 +193,8 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 				"isShielded":   isShielded,
 				"isGameOver":   state.IsGameOver,
 				"winnerNum":    state.WinnerNum,
+				"p1Skills":     state.P1Skills,
+				"p2Skills":     state.P2Skills,
 			}
 
 		case "CONFIG_SKILLS":

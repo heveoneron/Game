@@ -268,3 +268,259 @@ body {
     background: #A82828;
     border-radius: 4px;
 }
+
+/* ========================================================
+   OPTIMISASI RESPONSIVE LAYOUT (HP, TABLET, DESKTOP)
+   ======================================================== */
+
+/* Mode Landscape Handphone & Layar Pendek */
+@media screen and (orientation: landscape) and (max-height: 600px) {
+    html, body {
+        height: 100vh !important;
+        overflow: hidden !important;
+        margin: 0 !important;
+        padding: 4px 10px !important;
+        box-sizing: border-box !important;
+    }
+
+    header {
+        padding: 4px 10px !important;
+        margin-bottom: 4px !important;
+        border-radius: 12px !important;
+        border-width: 2px !important;
+        flex-wrap: nowrap !important;
+        gap: 6px !important;
+        height: 38px !important;
+        box-sizing: border-box !important;
+    }
+
+    header h1 {
+        font-size: 0.85rem !important;
+        white-space: nowrap !important;
+    }
+
+    header p {
+        display: none !important;
+    }
+
+    #headerActions {
+        gap: 4px !important;
+        flex-wrap: nowrap !important;
+        overflow-x: auto !important;
+        max-width: 65vw !important;
+        padding-bottom: 0px !important;
+    }
+
+    #headerActions .wood-btn {
+        padding: 2px 7px !important;
+        font-size: 10px !important;
+        border-width: 2px !important;
+        white-space: nowrap !important;
+        flex-shrink: 0 !important;
+        height: 26px !important;
+    }
+
+    #mainGameGrid {
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: stretch !important;
+        justify-content: center !important;
+        gap: 12px !important;
+        width: 100% !important;
+        max-width: 100vw !important;
+        height: calc(100vh - 48px) !important;
+        margin: 0 !important;
+        box-sizing: border-box !important;
+    }
+
+    /* Papan Game di Kanan */
+    #boardColumn {
+        order: 2 !important;
+        flex: 0 0 auto !important;
+        height: 100% !important;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: center !important;
+        width: auto !important;
+    }
+
+    .board-wrapper {
+        height: calc(100vh - 78px) !important;
+        width: calc(100vh - 78px) !important;
+        max-height: 480px !important;
+        max-width: 480px !important;
+        aspect-ratio: 1 / 1 !important;
+        border-width: 3px !important;
+        border-radius: 14px !important;
+        box-shadow: 0 6px 16px rgba(0,0,0,0.5) !important;
+    }
+
+    .board-grid {
+        border-radius: 11px !important;
+    }
+
+    .tile span {
+        font-size: 8px !important;
+        bottom: 1px !important;
+        right: 2px !important;
+    }
+
+    .tile-mystery-badge {
+        width: 55% !important;
+        height: 55% !important;
+        font-size: 0.65rem !important;
+    }
+
+    .pawn {
+        width: 24px !important;
+        height: 24px !important;
+        font-size: 13px !important;
+        border-width: 2px !important;
+    }
+
+    /* Legend papan */
+    #boardColumn .bg-black\/50 {
+        padding: 2px 10px !important;
+        margin-top: 4px !important;
+        font-size: 9px !important;
+        gap: 6px !important;
+        line-height: 1.2 !important;
+    }
+
+    /* Kolom kontrol di sebelah kiri: scroll vertikal mulus jika layar sempit */
+    #controlsColumn {
+        order: 1 !important;
+        flex: 1 1 260px !important;
+        max-width: 340px !important;
+        height: 100% !important;
+        max-height: 100% !important;
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+        padding-right: 4px !important;
+        gap: 8px !important;
+        display: flex !important;
+        flex-direction: column !important;
+    }
+
+    #controlsColumn .wood-border {
+        padding: 8px 10px !important;
+        border-radius: 14px !important;
+        border-width: 3px !important;
+    }
+
+    #turnBanner {
+        padding: 6px 10px !important;
+        margin-bottom: 8px !important;
+        border-radius: 10px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        gap: 6px !important;
+    }
+
+    #turnBanner h2 {
+        font-size: 0.85rem !important;
+        line-height: 1.2 !important;
+    }
+
+    #currentTurnAvatar {
+        font-size: 1.5rem !important;
+    }
+
+    /* Card P1 & P2 rapi seimbang */
+    #p1Card, #p2Card {
+        padding: 6px 8px !important;
+        min-width: 0 !important;
+    }
+
+    #p1AvatarDisplay, #p2AvatarDisplay {
+        font-size: 1.25rem !important;
+    }
+
+    #p1NameDisplay, #p2NameDisplay {
+        font-size: 0.75rem !important;
+    }
+
+    #p1PosNum, #p2PosNum {
+        font-size: 0.9rem !important;
+    }
+
+    /* Kocok Dadu & Suit Compact & Nyaman Dipencet */
+    #rollDiceBtn {
+        min-height: 56px !important;
+        padding: 6px 10px !important;
+        border-radius: 12px !important;
+    }
+
+    #diceFace {
+        width: 40px !important;
+        height: 40px !important;
+        font-size: 1.5rem !important;
+        border-radius: 10px !important;
+    }
+
+    #diceBigNumber {
+        font-size: 1.15rem !important;
+    }
+
+    #diceSubtext {
+        font-size: 9px !important;
+    }
+
+    /* Active Skill Bar */
+    #activeSkillBar {
+        margin-top: 6px !important;
+        padding: 6px 8px !important;
+        border-radius: 10px !important;
+    }
+
+    /* Status banner */
+    #statusBanner {
+        padding: 5px 10px !important;
+        font-size: 11px !important;
+        border-radius: 10px !important;
+    }
+
+    footer {
+        display: none !important;
+    }
+}
+
+/* Mode Tablet (iPad / Android Tablet) Landscape & Medium Screens */
+@media screen and (min-width: 768px) and (min-height: 601px) {
+    html, body {
+        height: auto !important;
+        min-height: 100vh !important;
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+    }
+
+    #mainGameGrid {
+        display: grid !important;
+        grid-template-columns: minmax(320px, 420px) minmax(420px, 1fr) !important;
+        gap: 16px !important;
+        align-items: start !important;
+        max-width: 1280px !important;
+        margin: 0 auto !important;
+    }
+
+    #controlsColumn {
+        order: 1 !important;
+    }
+
+    #boardColumn {
+        order: 2 !important;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        width: 100% !important;
+    }
+
+    .board-wrapper {
+        width: 100% !important;
+        max-width: min(72vh, 600px) !important;
+        height: auto !important;
+        aspect-ratio: 1 / 1 !important;
+    }
+}

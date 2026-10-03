@@ -67,6 +67,7 @@ const AVAILABLE_SKILLS = [
 // 2. STATE SKILL PEMAIN
 let baseRerollQuota = parseInt(localStorage.getItem('couple_ut_reroll_quota') || '3');
 let isDoubleRollActive = false;
+let isSnakeShieldActive = false;
 
 function initPlayerSkillsState(selected, defaultReroll = 3) {
     if (!selected || selected.length === 0) {
@@ -112,6 +113,7 @@ function resetPlayerSkillsToFull() {
     p1Skills = initPlayerSkillsState(p1Skills.selected, baseRerollQuota);
     p2Skills = initPlayerSkillsState(p2Skills.selected, baseRerollQuota);
     isDoubleRollActive = false;
+    isSnakeShieldActive = false;
     savePlayerSkillsLocally();
     renderSkillsUI();
 }
@@ -237,15 +239,21 @@ function renderSkillsUI() {
             activeBtnContainer.appendChild(btn);
         }
 
-        // Snake Shield
+        // Snake Shield (Bisa diklik untuk pasang/lepas status siaga)
         if (activeSkills.selected.includes('snake_shield')) {
             const count = activeSkills.uses.snake_shield;
-            const chip = document.createElement('span');
-            chip.className = `inline-flex items-center gap-1 text-[11px] font-extrabold px-2.5 py-1 rounded-xl cursor-help ${count > 0 ? 'bg-indigo-100 text-indigo-900 border border-indigo-300' : 'bg-stone-200 text-stone-400 line-through'}`;
-            chip.innerHTML = `<span>🛡️</span> Perisai Ular (${count > 0 ? count + 'x Siap' : 'Habis'})`;
-            chip.onmouseenter = (e) => showSkillTooltip(e, 'snake_shield', `Status: ${count}x kebal ular`);
-            chip.onmouseleave = hideSkillTooltip;
-            activeBtnContainer.appendChild(chip);
+            const btn = document.createElement('button');
+            if (isSnakeShieldActive) {
+                btn.className = "wood-btn bg-indigo-500 hover:bg-indigo-400 text-white text-xs font-black py-1.5 px-3 rounded-xl flex items-center gap-1.5 shadow-md ring-2 ring-indigo-300 animate-pulse";
+                btn.innerHTML = "<span>🛡️</span> Perisai Ular (SIAGA!)";
+            } else {
+                btn.className = `wood-btn ${count > 0 ? 'bg-indigo-100 hover:bg-indigo-200 text-indigo-900 border border-indigo-300' : 'bg-stone-200 text-stone-400 cursor-not-allowed line-through'} text-xs font-black py-1.5 px-3 rounded-xl flex items-center gap-1.5 shadow-xs`;
+                btn.innerHTML = `<span>🛡️</span> Perisai Ular (${count > 0 ? count + 'x' : 'Habis'})`;
+            }
+            btn.onclick = toggleSnakeShield;
+            btn.onmouseenter = (e) => showSkillTooltip(e, 'snake_shield', `Status: ${count}x kebal ular. Klik untuk pasang perisai sebelum lempar dadu.`);
+            btn.onmouseleave = hideSkillTooltip;
+            activeBtnContainer.appendChild(btn);
         }
 
         // Skip
@@ -476,6 +484,23 @@ function saveSkillsAndRules() {
 }
 
 // 6. AKSI GAMEPLAY SKILL
+function toggleSnakeShield() {
+    const pNum = gameState.turn;
+    const pSkills = pNum === 1 ? p1Skills : p2Skills;
+    if (pSkills.uses.snake_shield <= 0) {
+        showToast("Skill Perisai Ular sudah habis untuk permainan ini!", "⚠️");
+        return;
+    }
+    isSnakeShieldActive = !isSnakeShieldActive;
+    if (isSnakeShieldActive) {
+        showToast("🛡️ Perisai Ular SIAGA! Jika kamu terkena ular di langkah ini, gigitan ular akan ditahan!", "🛡️");
+        playSynthSound('reaction');
+    } else {
+        showToast("Perisai Ular dinonaktifkan.", "↩️");
+    }
+    renderSkillsUI();
+}
+
 function toggleDoubleRoll() {
     const pNum = gameState.turn;
     const pSkills = pNum === 1 ? p1Skills : p2Skills;
@@ -535,7 +560,7 @@ function rollWithFixedDice(fixedNum) {
     renderSkillsUI();
 }
 
-function executeFixedDiceOffline(fixedNum) {
+async function executeFixedDiceOffline(fixedNum) {
     if (isRolling) return;
     isRolling = true;
     document.getElementById('rollDiceBtn').disabled = true;
@@ -550,7 +575,12 @@ function executeFixedDiceOffline(fixedNum) {
 
     if (jumpDest > 0) {
         if (jumpDest < nextPos) {
-            if (pSkills.uses.snake_shield > 0) {
+            let wantUseShield = typeof isSnakeShieldActive !== 'undefined' && isSnakeShieldActive && (pSkills?.uses?.snake_shield > 0);
+            if (!wantUseShield && pSkills?.uses?.snake_shield > 0 && typeof promptSnakeShieldConfirmation === 'function') {
+                wantUseShield = await promptSnakeShieldConfirmation(nextPos, jumpDest, pNum);
+            }
+
+            if (wantUseShield && pSkills.uses.snake_shield > 0) {
                 isShielded = true;
                 pSkills.uses.snake_shield--;
                 savePlayerSkillsLocally();
@@ -563,6 +593,7 @@ function executeFixedDiceOffline(fixedNum) {
             finalPos = jumpDest;
         }
     }
+    if (typeof isSnakeShieldActive !== 'undefined') isSnakeShieldActive = false;
 
     const isDouble = isDoubleRollActive;
     if (isDoubleRollActive) {
