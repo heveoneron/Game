@@ -1,0 +1,2369 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>3D Board Game: Petualangan Mencari Harta Karun - Matematika Kelas 5 SD</title>
+  <!-- Google Fonts bergaya tulisan tangan rapi & komik edukatif -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Patrick+Hand&family=Plus+Jakarta+Sans:wght@500;600;700&display=swap" rel="stylesheet">
+  <!-- Three.js & OrbitControls CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+
+  <style>
+    :root {
+      --paper-bg: #fdf6e4;
+      --paper-dark: #eddcb9;
+      --ink: #2b2118;
+      --gold: #f59e0b;
+      --gold-light: #fef08a;
+      --sea-blue: #38bdf8;
+      --red-card: #ef4444;
+      --blue-card: #3b82f6;
+      --green-card: #22c55e;
+      --purple-card: #a855f7;
+      --orange-card: #f97316;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+    }
+
+    body {
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: radial-gradient(circle at center, #fdf6e4 0%, #e5d2ad 100%);
+      color: var(--ink);
+    }
+
+    #canvas-container {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+    }
+
+    /* ================= HEADER & TOP NAVIGATION ================= */
+    .top-hud {
+      position: absolute;
+      top: 12px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      width: min(96vw, 1180px);
+      pointer-events: none;
+    }
+
+    .title-banner {
+      pointer-events: auto;
+      background: linear-gradient(180deg, #fffbeb 0%, #fde68a 100%);
+      border: 3px solid var(--ink);
+      border-radius: 18px;
+      padding: 8px 28px;
+      box-shadow: 0 6px 0 var(--ink), 0 10px 20px rgba(0,0,0,0.18);
+      text-align: center;
+      position: relative;
+    }
+
+    .title-banner h1 {
+      font-family: 'Fredoka', cursive;
+      font-size: clamp(1.1rem, 2.2vw, 1.75rem);
+      font-weight: 700;
+      color: #b45309;
+      text-shadow: 2px 2px 0 #fff, -1px -1px 0 var(--ink);
+      letter-spacing: 0.5px;
+    }
+
+    .title-banner p {
+      font-family: 'Patrick Hand', cursive;
+      font-size: clamp(0.9rem, 1.4vw, 1.15rem);
+      color: var(--ink);
+      font-weight: 600;
+      margin-top: -2px;
+    }
+
+    .qr-menu-bar {
+      pointer-events: auto;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .qr-nav-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #f5e6c8;
+      border: 2.5px solid var(--ink);
+      border-radius: 12px;
+      padding: 6px 12px;
+      cursor: pointer;
+      font-family: 'Fredoka', sans-serif;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--ink);
+      box-shadow: 0 4px 0 var(--ink);
+      transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.15s;
+    }
+
+    .qr-nav-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 0 var(--ink);
+      background: #fffbeb;
+    }
+
+    .qr-nav-btn:active {
+      transform: translateY(2px);
+      box-shadow: 0 2px 0 var(--ink);
+    }
+
+    .qr-nav-btn .mini-qr {
+      width: 24px;
+      height: 24px;
+      border-radius: 4px;
+      background: #fff;
+      border: 1.5px solid var(--ink);
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1px;
+      padding: 2px;
+    }
+
+    .qr-nav-btn .mini-qr span {
+      background: var(--ink);
+      display: block;
+    }
+
+    /* ================= LEFT PANEL: 3D CONTROLS & EXPLODE ================= */
+    .left-panel {
+      position: absolute;
+      left: 16px;
+      top: 145px;
+      z-index: 10;
+      width: 265px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      pointer-events: none;
+    }
+
+    .sketch-card {
+      pointer-events: auto;
+      background: rgba(253, 246, 228, 0.94);
+      backdrop-filter: blur(8px);
+      border: 2.5px solid var(--ink);
+      border-radius: 16px;
+      padding: 12px 14px;
+      box-shadow: 0 5px 0 var(--ink), 0 8px 20px rgba(0,0,0,0.12);
+    }
+
+    .sketch-card h3 {
+      font-family: 'Fredoka', sans-serif;
+      font-size: 0.95rem;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: #92400e;
+      border-bottom: 2px dashed #d6c39c;
+      padding-bottom: 5px;
+    }
+
+    .btn-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 7px;
+    }
+
+    .ctrl-btn {
+      background: #fff;
+      border: 2px solid var(--ink);
+      border-radius: 10px;
+      padding: 7px 8px;
+      font-family: 'Fredoka', sans-serif;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--ink);
+      cursor: pointer;
+      box-shadow: 0 3px 0 var(--ink);
+      transition: all 0.12s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+    }
+
+    .ctrl-btn:hover {
+      background: #fef3c7;
+      transform: translateY(-1px);
+    }
+
+    .ctrl-btn.active {
+      background: #f59e0b;
+      color: #fff;
+    }
+
+    .ctrl-btn.full-width {
+      grid-column: span 2;
+    }
+
+    .slider-row {
+      margin-top: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      font-size: 0.78rem;
+      font-weight: 600;
+    }
+
+    .slider-row input[type="range"] {
+      width: 100%;
+      accent-color: #d97706;
+      cursor: pointer;
+    }
+
+    /* ================= RIGHT PANEL: GAMEPLAY & SPINNER HUD ================= */
+    .right-panel {
+      position: absolute;
+      right: 16px;
+      top: 145px;
+      z-index: 10;
+      width: 280px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      pointer-events: none;
+    }
+
+    .player-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .player-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 6px 10px;
+      border-radius: 10px;
+      border: 2px solid var(--ink);
+      background: #fff;
+      font-size: 0.8rem;
+      font-weight: 600;
+      transition: transform 0.15s, background 0.15s;
+    }
+
+    .player-item.current-turn {
+      background: #fef08a;
+      transform: scale(1.02);
+      box-shadow: 0 3px 0 var(--ink);
+    }
+
+    .player-badge {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .dot {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      border: 2px solid var(--ink);
+    }
+
+    .spin-action-btn {
+      width: 100%;
+      margin-top: 8px;
+      padding: 11px 14px;
+      background: linear-gradient(180deg, #22c55e 0%, #16a34a 100%);
+      color: #fff;
+      font-family: 'Fredoka', sans-serif;
+      font-size: 1rem;
+      font-weight: 700;
+      border: 2.5px solid var(--ink);
+      border-radius: 12px;
+      cursor: pointer;
+      box-shadow: 0 4px 0 var(--ink);
+      transition: all 0.12s;
+    }
+
+    .spin-action-btn:hover:not(:disabled) {
+      filter: brightness(1.06);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 0 var(--ink);
+    }
+
+    .spin-action-btn:disabled {
+      background: #9ca3af;
+      cursor: not-allowed;
+      opacity: 0.75;
+    }
+
+    .card-legend-list {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 5px;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 5px 9px;
+      border-radius: 8px;
+      border: 2px solid var(--ink);
+      font-family: 'Fredoka', sans-serif;
+      font-size: 0.78rem;
+      cursor: pointer;
+      transition: transform 0.1s;
+    }
+
+    .legend-item:hover {
+      transform: translateX(-3px);
+    }
+
+    /* ================= BOTTOM STATUS LOG ================= */
+    .bottom-log {
+      position: absolute;
+      bottom: 14px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 10;
+      background: rgba(253, 246, 228, 0.96);
+      border: 2.5px solid var(--ink);
+      border-radius: 999px;
+      padding: 8px 22px;
+      box-shadow: 0 4px 0 var(--ink);
+      font-family: 'Patrick Hand', cursive;
+      font-size: 1.08rem;
+      font-weight: 700;
+      color: var(--ink);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      max-width: 92vw;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .log-pill {
+      background: #f59e0b;
+      color: #fff;
+      font-family: 'Fredoka', sans-serif;
+      font-size: 0.75rem;
+      padding: 3px 10px;
+      border-radius: 999px;
+      border: 1.5px solid var(--ink);
+    }
+
+    /* ================= MODAL POPUP (QR CODE & MATH CARDS) ================= */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(25, 19, 12, 0.65);
+      backdrop-filter: blur(4px);
+      z-index: 100;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .modal-backdrop.open {
+      display: flex;
+    }
+
+    .modal-box {
+      background: var(--paper-bg);
+      border: 3.5px solid var(--ink);
+      border-radius: 22px;
+      max-width: 560px;
+      width: 100%;
+      padding: 22px 24px;
+      box-shadow: 0 10px 0 var(--ink), 0 20px 40px rgba(0,0,0,0.35);
+      position: relative;
+      animation: popIn 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+      max-height: 88vh;
+      overflow-y: auto;
+    }
+
+    @keyframes popIn {
+      from { transform: scale(0.85); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 2.5px dashed #cbb68e;
+      padding-bottom: 10px;
+      margin-bottom: 14px;
+    }
+
+    .modal-header h2 {
+      font-family: 'Fredoka', sans-serif;
+      font-size: 1.3rem;
+      color: #92400e;
+    }
+
+    .close-modal {
+      background: #ef4444;
+      color: #fff;
+      border: 2px solid var(--ink);
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      font-family: 'Fredoka', sans-serif;
+      font-size: 1rem;
+      cursor: pointer;
+      box-shadow: 0 3px 0 var(--ink);
+    }
+
+    .modal-body {
+      font-size: 0.94rem;
+      line-height: 1.55;
+      color: var(--ink);
+    }
+
+    .qr-showcase {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      background: #fff;
+      border: 2px solid var(--ink);
+      border-radius: 14px;
+      padding: 12px;
+      margin-bottom: 14px;
+    }
+
+    .qr-canvas-box {
+      width: 96px;
+      height: 96px;
+      flex-shrink: 0;
+      border: 2px solid var(--ink);
+      border-radius: 8px;
+      padding: 4px;
+      background: #fff;
+    }
+
+    .quiz-options {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    .quiz-opt-btn {
+      text-align: left;
+      background: #fff;
+      border: 2.5px solid var(--ink);
+      border-radius: 12px;
+      padding: 10px 14px;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 0.92rem;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 3px 0 var(--ink);
+      transition: all 0.12s;
+    }
+
+    .quiz-opt-btn:hover:not(:disabled) {
+      background: #fef3c7;
+      transform: translateX(4px);
+    }
+
+    .quiz-opt-btn.correct {
+      background: #bbf7d0;
+      border-color: #15803d;
+    }
+
+    .quiz-opt-btn.wrong {
+      background: #fecaca;
+      border-color: #b91c1c;
+    }
+
+    .feedback-box {
+      margin-top: 14px;
+      padding: 12px;
+      border-radius: 12px;
+      border: 2px solid var(--ink);
+      background: #fffbeb;
+      display: none;
+      font-size: 0.88rem;
+    }
+
+    /* Responsive adjustments & Touch-Friendly UI */
+    @media (max-width: 900px) {
+      .top-hud {
+        top: 6px;
+        gap: 5px;
+      }
+      .title-banner {
+        padding: 5px 14px;
+      }
+      .title-banner h1 {
+        font-size: 1rem;
+      }
+      .title-banner p {
+        font-size: 0.8rem;
+      }
+      .qr-menu-bar {
+        gap: 4px;
+      }
+      .qr-nav-btn {
+        padding: 4px 8px;
+        font-size: 0.72rem;
+      }
+      .left-panel {
+        top: auto;
+        bottom: 64px;
+        left: 8px;
+        width: min(240px, 46vw);
+        max-height: 42vh;
+        overflow-y: auto;
+      }
+      .right-panel {
+        top: auto;
+        bottom: 64px;
+        right: 8px;
+        width: min(250px, 48vw);
+        max-height: 42vh;
+        overflow-y: auto;
+      }
+      .bottom-log {
+        bottom: 8px;
+        padding: 5px 14px;
+        font-size: 0.88rem;
+      }
+      .sketch-card {
+        padding: 8px 10px;
+      }
+      .spin-action-btn {
+        padding: 8px 12px;
+        font-size: 0.85rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 3D VIEWPORT -->
+  <div id="canvas-container"></div>
+
+  <!-- TOP HEADER & QR MENU -->
+  <header class="top-hud">
+    <div class="title-banner">
+      <h1>🏴‍☠️ PETUALANGAN MENCARI HARTA KARUN 🏴‍☠️</h1>
+      <p>Ayo Selesaikan Setiap Misinya! — Media Ular Tangga Matematika SD Kelas 5</p>
+    </div>
+
+        <nav class="qr-menu-bar">
+      <a href="/" style="text-decoration:none;" class="qr-nav-btn">
+        <span>🎲 Ular Tangga Pasangan</span>
+      </a>
+      <button id="sound-toggle-btn" class="qr-nav-btn" style="background:#dcfce7;" onclick="toggleAudio()">
+        <span>🔊 Suara: ON</span>
+      </button>
+      <button class="qr-nav-btn" onclick="openInfoModal('tp')">
+        <span>🎯 Tujuan Pembelajaran</span>
+        <div class="mini-qr" style="border-color:#dc2626"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+      </button>
+      <button class="qr-nav-btn" onclick="openInfoModal('cp')">
+        <span>🏆 Capaian Pembelajaran</span>
+        <div class="mini-qr" style="border-color:#d97706"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+      </button>
+      <button class="qr-nav-btn" onclick="openInfoModal('materi')">
+        <span>📖 Materi Kelas 5</span>
+        <div class="mini-qr" style="border-color:#16a34a"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+      </button>
+      <button class="qr-nav-btn" onclick="openInfoModal('petunjuk')">
+        <span>📜 Petunjuk Permainan</span>
+        <div class="mini-qr" style="border-color:#2563eb"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+      </button>
+      <button class="qr-nav-btn" onclick="focusBoardAndPlay()">
+        <span>🎲 Mari Bermain</span>
+        <div class="mini-qr" style="border-color:#9333ea"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+      </button>
+    </nav>
+  </header>
+
+  <!-- LEFT PANEL: 3D INSPECTOR, EXPLODE, WIREFRAME, CAMERA -->
+  <aside class="left-panel">
+    <div class="sketch-card">
+      <h3>🛠️ Kontrol Visual & Struktur 3D</h3>
+      <div class="btn-grid">
+        <button id="btn-explode" class="ctrl-btn" onclick="toggleExplode()">💥 EXPLODE</button>
+        <button id="btn-assemble" class="ctrl-btn active" onclick="toggleAssemble()">🧩 ASSEMBLE</button>
+        <button id="btn-wireframe" class="ctrl-btn" onclick="toggleWireframe()">🕸️ Wireframe</button>
+        <button id="btn-ink" class="ctrl-btn active" onclick="toggleInkLines()">✒️ Coretan Kertas</button>
+      </div>
+
+      <div class="slider-row">
+        <div style="display:flex;justify-content:space-between;">
+          <span>Jarak Urut Lapisan (Explode):</span>
+          <span id="explode-val">0%</span>
+        </div>
+        <input id="explode-slider" type="range" min="0" max="100" value="0" oninput="onExplodeSlider(this.value)" />
+      </div>
+    </div>
+
+    <div class="sketch-card">
+      <h3>🎥 Sudut Kamera & Rotasi</h3>
+      <div class="btn-grid">
+        <button class="ctrl-btn" onclick="setCameraPreset('iso')">📐 Isometrik</button>
+        <button class="ctrl-btn" onclick="setCameraPreset('top')">🗺️ Atas (2D/3D)</button>
+        <button class="ctrl-btn" onclick="setCameraPreset('pawn')">🏴‍☠️ Fokus Pion</button>
+        <button class="ctrl-btn" onclick="setCameraPreset('spinner')">🎡 Fokus Spinner</button>
+        <button id="btn-autorotate" class="ctrl-btn full-width" onclick="toggleAutoRotate()">🔄 Putar Otomatis (Orbit)</button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- RIGHT PANEL: GAMEPLAY, PLAYERS, SPINNER & CARD DECKS -->
+  <aside class="right-panel">
+    <div class="sketch-card">
+      <h3>⚓ Giliran Bajak Laut & Spinner</h3>
+      <div class="player-list" id="player-list-ui"></div>
+      <button id="spin-btn" class="spin-action-btn" onclick="spinWheel()">
+        🎡 PUTAR SPINNER (1 - 3 Langkah)
+      </button>
+      <div style="display:flex;gap:6px;margin-top:6px;">
+        <button class="ctrl-btn" style="flex:1" onclick="manualStep(1)">+1 Petak</button>
+        <button class="ctrl-btn" style="flex:1" onclick="resetGame()">🔁 Reset Posisi</button>
+      </div>
+    </div>
+
+    <div class="sketch-card">
+      <h3>🃏 Dek Kartu Interaktif (Klik Uji)</h3>
+      <div class="card-legend-list">
+        <div class="legend-item" style="background:#f3e5ab" onclick="triggerCardModal('misi', true)">
+          <span>🔍 <b>Kartu Misi</b> (Problem Solving)</span>
+          <span>Buka ▸</span>
+        </div>
+        <div class="legend-item" style="background:#fef08a" onclick="triggerCardModal('bonus', true)">
+          <span>⭐ <b>Kartu Bonus</b> (Hadiah Langkah)</span>
+          <span>Buka ▸</span>
+        </div>
+        <div class="legend-item" style="background:#bae6fd" onclick="triggerCardModal('soal', true)">
+          <span>📄? <b>Kartu Soal</b> (Matematika)</span>
+          <span>Buka ▸</span>
+        </div>
+        <div class="legend-item" style="background:#fecaca" onclick="triggerCardModal('jebakan', true)">
+          <span>⚠️ <b>Kartu Jebakan</b> (Penalti)</span>
+          <span>Buka ▸</span>
+        </div>
+        <div class="legend-item" style="background:#fed7aa" onclick="triggerCardModal('tantangan', true)">
+          <span>⚡ <b>Kartu Tantangan</b> (Cepat Hitung)</span>
+          <span>Buka ▸</span>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- BOTTOM STATUS LOG -->
+  <div class="bottom-log">
+    <span class="log-pill" id="status-badge">SIAP BERMAIN</span>
+    <span id="status-text">Klik tombol "PUTAR SPINNER" atau klik langsung roda Spinner 3D di kanan bawah papan!</span>
+  </div>
+
+  <!-- MODAL POPUP -->
+  <div class="modal-backdrop" id="modal-backdrop">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h2 id="modal-title">Judul Modal</h2>
+        <button class="close-modal" onclick="closeModal()">✕</button>
+      </div>
+      <div class="modal-body" id="modal-body"></div>
+    </div>
+  </div>
+
+  <script>
+
+    // ============================================================================
+    // WEB AUDIO SYNTHESIZER & SOUND EFFECTS
+    // ============================================================================
+    let isGameAudioMuted = false;
+    let audioCtx = null;
+
+    function initAudio() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+    }
+
+    function toggleAudio() {
+      initAudio();
+      isGameAudioMuted = !isGameAudioMuted;
+      const btn = document.getElementById('sound-toggle-btn');
+      if (btn) {
+        btn.innerHTML = isGameAudioMuted ? '🔇 Suara: OFF' : '🔊 Suara: ON';
+        btn.style.background = isGameAudioMuted ? '#fecaca' : '#dcfce7';
+      }
+      setStatus("SUARA EFEK", isGameAudioMuted ? "Suara efek dimatikan 🔇" : "Suara efek diaktifkan 🔊");
+    }
+
+    function playSfx(type) {
+      if (isGameAudioMuted) return;
+      try {
+        initAudio();
+        if (!audioCtx) return;
+        const now = audioCtx.currentTime;
+
+        if (type === 'spin') {
+          // Putaran roda klik-klik
+          for (let i = 0; i < 5; i++) {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(320 + i * 40, now + i * 0.06);
+            gain.gain.setValueAtTime(0.12, now + i * 0.06);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.06 + 0.05);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start(now + i * 0.06);
+            osc.stop(now + i * 0.06 + 0.06);
+          }
+        } else if (type === 'hop') {
+          // Suara lompatan pion
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(400, now);
+          osc.frequency.exponentialRampToValueAtTime(650, now + 0.08);
+          gain.gain.setValueAtTime(0.15, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.start(now);
+          osc.stop(now + 0.11);
+        } else if (type === 'card') {
+          // Suara buka kartu
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(520, now);
+          osc.frequency.exponentialRampToValueAtTime(880, now + 0.12);
+          gain.gain.setValueAtTime(0.18, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.start(now);
+          osc.stop(now + 0.19);
+        } else if (type === 'correct') {
+          // Suara benar (chime nada ceria)
+          [523.25, 659.25, 783.99, 1046.50].forEach((freq, idx) => {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(freq, now + idx * 0.08);
+            gain.gain.setValueAtTime(0.2, now + idx * 0.08);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.08 + 0.22);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start(now + idx * 0.08);
+            osc.stop(now + idx * 0.08 + 0.23);
+          });
+        } else if (type === 'wrong') {
+          // Suara salah / jebakan
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(320, now);
+          osc.frequency.exponentialRampToValueAtTime(140, now + 0.25);
+          gain.gain.setValueAtTime(0.15, now);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.26);
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.start(now);
+          osc.stop(now + 0.27);
+        } else if (type === 'win') {
+          // Fanfare kemenangan
+          [523.25, 659.25, 783.99, 1046.50, 1318.51].forEach((freq, idx) => {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(freq, now + idx * 0.1);
+            gain.gain.setValueAtTime(0.25, now + idx * 0.1);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.1 + 0.35);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start(now + idx * 0.1);
+            osc.stop(now + idx * 0.1 + 0.36);
+          });
+        }
+      } catch (e) {
+        console.warn("Audio error:", e);
+      }
+    }
+
+    // ============================================================================
+    // 1. DATA KURIKULUM, QR CODE & BANK SOAL MATEMATIKA SD KELAS 5
+    // ============================================================================
+    const INFO_CONTENT = {
+      tp: {
+        title: "🎯 Tujuan Pembelajaran (Matematika Kelas V)",
+        qrColor: "#dc2626",
+        codeUrl: "https://pgsd-media.id/qr/tujuan-pembelajaran-kelas5",
+        html: `
+          <p>Melalui media permainan papan <b>"Petualangan Mencari Harta Karun"</b> terintegrasi QR Code, peserta didik Kelas V SD diharapkan mampu:</p>
+          <ol style="margin:10px 0 10px 20px; display:flex; flex-direction:column; gap:6px;">
+            <li>Menyelesaikan operasi hitung <b>penjumlahan dan pengurangan pecahan</b> berbeda penyebut dengan tepat.</li>
+            <li>Mengonversi dan mengoperasikan <b>bilangan desimal serta persen</b> dalam masalah sehari-hari.</li>
+            <li>Menghitung <b>volume bangun ruang sederhana (kubus dan balok)</b> serta luas bangun datar.</li>
+            <li>Meningkatkan kemampuan pemecahan masalah (<i>problem solving</i>), bernalar kritis, dan gotong royong melalui misi kelompok.</li>
+          </ol>
+        `
+      },
+      cp: {
+        title: "🏆 Capaian Pembelajaran (Kurikulum Merdeka Fase C)",
+        qrColor: "#d97706",
+        codeUrl: "https://pgsd-media.id/qr/capaian-pembelajaran-fase-c",
+        html: `
+          <p><b>Fase C (Kelas V dan VI Sekolah Dasar):</b></p>
+          <ul style="margin:10px 0 10px 20px; display:flex; flex-direction:column; gap:6px;">
+            <li><b>Elemen Bilangan:</b> Peserta didik dapat melakukan operasi penjumlahan, pengurangan, perkalian, dan pembagian pecahan serta desimal.</li>
+            <li><b>Elemen Pengukuran & Geometri:</b> Peserta didik dapat menentukan keliling, luas berbagai bentuk bangun datar, serta menghitung durasi waktu, kecepatan, dan volume bangun ruang (kubus & balok).</li>
+            <li><b>Profil Pelajar Pancasila:</b> Bernalar Kritis, Mandiri, dan Gotong Royong.</li>
+          </ul>
+        `
+      },
+      materi: {
+        title: "📖 Ringkasan Materi Matematika Kelas 5 SD",
+        qrColor: "#16a34a",
+        codeUrl: "https://pgsd-media.id/qr/materi-matematika-kelas5",
+        html: `
+          <div style="display:flex;flex-direction:column;gap:10px;">
+            <div style="background:#fff;padding:10px;border-radius:10px;border:2px solid #2b2118;">
+              <b>1. Operasi Hitung Pecahan:</b><br/>
+              Samakan penyebut menggunakan KPK sebelum menjumlahkan atau mengurangkan.<br/>
+              Contoh: <code>1/2 + 1/3 = 3/6 + 2/6 = 5/6</code>
+            </div>
+            <div style="background:#fff;padding:10px;border-radius:10px;border:2px solid #2b2118;">
+              <b>2. Volume Kubus & Balok:</b><br/>
+              • Volume Kubus = <code>s × s × s = s³</code><br/>
+              • Volume Balok = <code>p × l × t</code>
+            </div>
+            <div style="background:#fff;padding:10px;border-radius:10px;border:2px solid #2b2118;">
+              <b>3. Kecepatan, Jarak, dan Waktu:</b><br/>
+              • Jarak (J) = Kecepatan (K) × Waktu (W)<br/>
+              • Kecepatan (K) = Jarak (J) ÷ Waktu (W)
+            </div>
+          </div>
+        `
+      },
+      petunjuk: {
+        title: "📜 Petunjuk Permainan 'Petualangan Mencari Harta Karun'",
+        qrColor: "#2563eb",
+        codeUrl: "https://pgsd-media.id/qr/petunjuk-permainan",
+        html: `
+          <ol style="margin:8px 0 8px 20px; display:flex; flex-direction:column; gap:7px;">
+            <li>Tempatkan seluruh <b>Pion Bajak Laut</b> di petak <b>START</b> (pantai kiri bawah).</li>
+            <li>Pemain memutar <b>Spinner</b> untuk mendapatkan langkah (<b>Maju 1, 2, atau 3 Langkah</b>).</li>
+            <li>Pion bergerak mengikuti jalur berliku menuju pulau dan <b>Peti Harta Karun (FINISH)</b>.</li>
+            <li>Sesuaikan tindakan dengan ikon petak tempat pion berhenti:
+              <ul style="margin-left:18px;margin-top:4px;">
+                <li>🔍 <b>Lup (Kartu Misi):</b> Selesaikan soal cerita kontekstual (Benar = Maju 1 langkah).</li>
+                <li>⭐ <b>Bintang (Kartu Bonus):</b> Hadiah langsung maju 1–2 langkah!</li>
+                <li>📄? <b>Tanda Tanya (Kartu Soal):</b> Jawab soal konsep Matematika Kelas 5.</li>
+                <li>⚠️ <b>Segitiga Seru (Kartu Jebakan):</b> Awas! Mundur 1 langkah jika terkena badai laut.</li>
+                <li>⚡ <b>Petir (Kartu Tantangan):</b> Tantangan berhitung cepat bernilai poin emas ganda!</li>
+              </ul>
+            </li>
+            <li>Pemain pertama yang mencapai petak <b>FINISH</b> membuka Peti Harta Karun dan menjadi pemenang!</li>
+          </ol>
+        `
+      }
+    };
+
+    const CARD_BANK = {
+      soal: [
+        {
+          q: "Kapten Bajak Laut memiliki tali tambang sepanjang 3/4 meter, lalu disambung lagi dengan 1/2 meter. Berapa meter total panjang tali tambang sekarang?",
+          opts: ["A. 4/6 meter", "B. 5/4 meter (1 ¼ meter)", "C. 2/4 meter", "D. 7/4 meter"],
+          ans: 1,
+          exp: "Samakan penyebut ke 4: 3/4 + 2/4 = 5/4 meter atau 1 ¼ meter.",
+          rewardSteps: 1
+        },
+        {
+          q: "Sebuah peti harta karun berbentuk balok memiliki panjang 10 dm, lebar 5 dm, dan tinggi 4 dm. Berapakah volume peti harta karun tersebut?",
+          opts: ["A. 190 dm³", "B. 200 dm³", "C. 250 dm³", "D. 90 dm³"],
+          ans: 1,
+          exp: "Rumus Volume Balok = p × l × t = 10 × 5 × 4 = 200 dm³.",
+          rewardSteps: 1
+        },
+        {
+          q: "Bentuk pecahan desimal dari 3/5 adalah...",
+          opts: ["A. 0,3", "B. 0,5", "C. 0,6", "D. 0,75"],
+          ans: 2,
+          exp: "3/5 = 6/10 = 0,6.",
+          rewardSteps: 1
+        }
+      ],
+      misi: [
+        {
+          q: "🔍 MISI EKSPLORASI PULAU: Kapal bajak laut berlayar dengan kecepatan rata-rata 40 km/jam selama 2,5 jam menuju Pulau Harta Karun. Berapa km jarak yang ditempuh kapal?",
+          opts: ["A. 80 km", "B. 90 km", "C. 100 km", "D. 120 km"],
+          ans: 2,
+          exp: "Jarak = Kecepatan × Waktu = 40 km/jam × 2,5 jam = 100 km.",
+          rewardSteps: 2
+        },
+        {
+          q: "🔍 MISI PETA KUNO: Pada peta berskala 1 : 100.000, jarak dermaga ke Gua Tengkorak adalah 6 cm. Berapa km jarak sebenarnya?",
+          opts: ["A. 0,6 km", "B. 6 km", "C. 60 km", "D. 600 km"],
+          ans: 1,
+          exp: "Jarak sebenarnya = 6 × 100.000 cm = 600.000 cm = 6 km.",
+          rewardSteps: 2
+        }
+      ],
+      tantangan: [
+        {
+          q: "⚡ TANTANGAN KILAT: Sebuah dadu emas berbentuk kubus memiliki panjang rusuk 6 cm. Berapakah volume kubus tersebut?",
+          opts: ["A. 36 cm³", "B. 108 cm³", "C. 216 cm³", "D. 324 cm³"],
+          ans: 2,
+          exp: "Volume Kubus = s × s × s = 6 × 6 × 6 = 216 cm³.",
+          rewardSteps: 2
+        },
+        {
+          q: "⚡ TANTANGAN KILAT: Hasil dari 25% + 0,45 dalam bentuk desimal adalah...",
+          opts: ["A. 0,60", "B. 0,70", "C. 0,75", "D. 0,80"],
+          ans: 1,
+          exp: "25% = 0,25. Maka 0,25 + 0,45 = 0,70.",
+          rewardSteps: 2
+        }
+      ],
+      bonus: [
+        {
+          title: "⭐ KARTU BONUS KEBERUNTUNGAN!",
+          desc: "Angin laut berhembus kencang mendorong layar kapalmu! Kamu mendapatkan kompas emas dan langsung <b>Maju 2 Langkah</b> serta tambahan +50 Koin Emas!",
+          steps: 2,
+          coins: 50
+        },
+        {
+          title: "⭐ KARTU BONUS PETA PINTAS!",
+          desc: "Kamu menemukan terowongan rahasia di dekat pohon kelapa! Pionmu berhak <b>Maju 1 Langkah</b> ekstra!",
+          steps: 1,
+          coins: 30
+        }
+      ],
+      jebakan: [
+        {
+          title: "⚠️ KARTU JEBAKAN: OMBANG-AMBING MONSTER LAUT!",
+          desc: "Seekor naga laut muncul di dekat jalurmu! Untuk menghindari pusaran air, kapalmu harus <b>Mundur 1 Langkah</b>. Tetap semangat!",
+          steps: -1
+        },
+        {
+          title: "⚠️ KARTU JEBAKAN: KABUT TEBAL PULAU TENGGKORAK!",
+          desc: "Pandangan tertutup kabut tebal! Kamu harus memeriksa ulang rumus matematikamu dan <b>Mundur 1 Langkah</b>.",
+          steps: -1
+        }
+      ]
+    };
+
+    // ============================================================================
+    // 2. KONFIGURASI JALUR PAPAN PERMAINAN (26 PETAK KURVA-S SESUAI GAMBAR)
+    // ============================================================================
+    // Tipe petak: 'start', 'empty', 'misi' (lup), 'bonus' (bintang), 'soal' (dokumen?), 'jebakan' (!), 'tantangan' (petir), 'finish'
+    const TILE_TYPES = [
+      { type: 'start',     color: '#eab676', label: 'START' },
+      { type: 'empty',     color: '#f87171', label: '1' },
+      { type: 'misi',      color: '#4ade80', label: '2' },
+      { type: 'bonus',     color: '#facc15', label: '3' },
+      { type: 'soal',      color: '#60a5fa', label: '4' },
+      { type: 'jebakan',   color: '#f87171', label: '5' },
+      { type: 'jebakan',   color: '#fde047', label: '6' },
+      { type: 'tantangan', color: '#c084fc', label: '7' },
+      { type: 'empty',     color: '#fb7185', label: '8' },
+      { type: 'empty',     color: '#fb923c', label: '9' },
+      { type: 'jebakan',   color: '#86efac', label: '10' },
+      { type: 'tantangan', color: '#f87171', label: '11' },
+      { type: 'jebakan',   color: '#60a5fa', label: '12' },
+      { type: 'misi',      color: '#4ade80', label: '13' },
+      { type: 'jebakan',   color: '#f87171', label: '14' },
+      { type: 'empty',     color: '#c084fc', label: '15' },
+      { type: 'empty',     color: '#fb923c', label: '16' },
+      { type: 'soal',      color: '#fde047', label: '17' },
+      { type: 'misi',      color: '#f87171', label: '18' },
+      { type: 'soal',      color: '#c084fc', label: '19' },
+      { type: 'empty',     color: '#4ade80', label: '20' },
+      { type: 'tantangan', color: '#fb923c', label: '21' },
+      { type: 'jebakan',   color: '#f87171', label: '22' },
+      { type: 'misi',      color: '#60a5fa', label: '23' },
+      { type: 'soal',      color: '#f87171', label: '24' },
+      { type: 'jebakan',   color: '#fb923c', label: '25' },
+      { type: 'tantangan', color: '#86efac', label: '26' },
+      { type: 'soal',      color: '#c084fc', label: '27' },
+      { type: 'bonus',     color: '#fde047', label: '28' },
+      { type: 'misi',      color: '#f87171', label: '29' },
+      { type: 'finish',    color: '#b45309', label: 'FINISH' }
+    ];
+
+    // ============================================================================
+    // 3. INISIALISASI THREE.JS SCENE, RENDERER, LIGHTS, & PROCEDURAL PAPER TEXTURES
+    // ============================================================================
+    const container = document.getElementById('canvas-container');
+    const scene = new THREE.Scene();
+
+    const camera = new THREE.PerspectiveCamera(42, window.innerWidth / window.innerHeight, 0.1, 300);
+    camera.position.set(0, 26, 26);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    container.appendChild(renderer.domElement);
+
+    const controls = new THREE.OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.06;
+    controls.maxPolarAngle = Math.PI / 2 - 0.04;
+    controls.minDistance = 8;
+    controls.maxDistance = 55;
+    controls.target.set(0, 0.5, 0);
+
+    // Pencahayaan Realistis & Hangat
+    const ambientLight = new THREE.AmbientLight(0xfff8e7, 0.72);
+    scene.add(ambientLight);
+
+    const hemiLight = new THREE.HemisphereLight(0xe0f2fe, 0xfde68a, 0.45);
+    hemiLight.position.set(0, 30, 0);
+    scene.add(hemiLight);
+
+    const dirLight = new THREE.DirectionalLight(0xfffbeb, 0.95);
+    dirLight.position.set(14, 28, 16);
+    dirLight.castShadow = true;
+    dirLight.shadow.mapSize.width = 2048;
+    dirLight.shadow.mapSize.height = 2048;
+    dirLight.shadow.camera.near = 5;
+    dirLight.shadow.camera.far = 65;
+    const d = 18;
+    dirLight.shadow.camera.left = -d;
+    dirLight.shadow.camera.right = d;
+    dirLight.shadow.camera.top = d;
+    dirLight.shadow.camera.bottom = -d;
+    dirLight.shadow.bias = -0.0005;
+    scene.add(dirLight);
+
+    // PointLight Emas di atas Peti Harta Karun
+    const treasureGlow = new THREE.PointLight(0xfbbf24, 1.4, 9);
+    treasureGlow.position.set(-7.8, 2.8, -6.2);
+    scene.add(treasureGlow);
+
+    // ============================================================================
+    // 4. SISTEM EXPLODE / ASSEMBLE & GARIS CORETAN TINTA (SKETCH INK EDGES)
+    // ============================================================================
+    const explodableObjects = []; // { mesh, basePos: Vector3, explodeOffset: Vector3 }
+    const allMeshMaterials = [];
+    const allInkLines = [];
+    let targetExplodeFactor = 0;
+    let currentExplodeFactor = 0;
+    let isWireframe = false;
+    let showInkLines = true;
+
+    function registerExplodable(obj, offsetX, offsetY, offsetZ) {
+      obj.userData.basePos = obj.position.clone();
+      obj.userData.explodeOffset = new THREE.Vector3(offsetX, offsetY, offsetZ);
+      explodableObjects.push(obj);
+    }
+
+    function addSketchOutline(mesh, color = 0x2b2118, thresholdAngle = 18) {
+      if (!mesh.geometry) return;
+      const edges = new THREE.EdgesGeometry(mesh.geometry, thresholdAngle);
+      const lineMat = new THREE.LineBasicMaterial({ color: color, transparent: true, opacity: 0.85 });
+      const line = new THREE.LineSegments(edges, lineMat);
+      mesh.add(line);
+      allInkLines.push(line);
+      if (mesh.material) {
+        if (Array.isArray(mesh.material)) {
+          mesh.material.forEach(m => allMeshMaterials.push(m));
+        } else {
+          allMeshMaterials.push(mesh.material);
+        }
+      }
+    }
+
+    // Helper pembuat tekstur kertas bergaris buku catatan (Loose-Leaf Binder Paper)
+    function createNotebookPaperTexture() {
+      const canvas = document.createElement('canvas');
+      canvas.width = 1024;
+      canvas.height = 1024;
+      const ctx = canvas.getContext('2d');
+
+      // Warna dasar kertas krem hangat
+      ctx.fillStyle = '#fbf4e2';
+      ctx.fillRect(0, 0, 1024, 1024);
+
+      // Bintik serat kertas halus
+      for (let i = 0; i < 3500; i++) {
+        ctx.fillStyle = i % 2 === 0 ? 'rgba(180,150,110,0.06)' : 'rgba(255,255,255,0.08)';
+        ctx.fillRect(Math.random() * 1024, Math.random() * 1024, 2, 2);
+      }
+
+      // Garis-garis buku tulis horizontal biru muda pudar
+      ctx.strokeStyle = 'rgba(120, 155, 195, 0.32)';
+      ctx.lineWidth = 2;
+      for (let y = 110; y < 980; y += 28) {
+        ctx.beginPath();
+        ctx.moveTo(40, y);
+        ctx.lineTo(960, y);
+        ctx.stroke();
+      }
+
+      // Garis margin merah muda di kiri
+      ctx.strokeStyle = 'rgba(220, 100, 100, 0.35)';
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.moveTo(95, 40);
+      ctx.lineTo(95, 984);
+      ctx.stroke();
+
+      // Tulisan catatan tangan samar di sudut seperti sketsa asli
+      ctx.font = 'italic 22px "Patrick Hand", sans-serif';
+      ctx.fillStyle = 'rgba(60, 45, 30, 0.45)';
+      ctx.fillText('Notes: Nanti per icon-nya bisa diakses pake QR-Code • Media Skripsi PGSD Kelas 5', 115, 965);
+
+      const tex = new THREE.CanvasTexture(canvas);
+      tex.anisotropy = 4;
+      return tex;
+    }
+
+    // Helper pembuat tekstur ikon di atas petak & kartu
+    function createIconCanvasTexture(type, bgHex, labelText) {
+      const canvas = document.createElement('canvas');
+      canvas.width = 256;
+      canvas.height = 256;
+      const ctx = canvas.getContext('2d');
+
+      // Background
+      ctx.fillStyle = bgHex;
+      ctx.fillRect(0, 0, 256, 256);
+
+      // Bingkai coretan tangan
+      ctx.strokeStyle = '#2b2118';
+      ctx.lineWidth = 12;
+      ctx.strokeRect(10, 10, 236, 236);
+
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+
+      if (type === 'start' || type === 'finish') {
+        ctx.font = 'bold 54px "Fredoka", sans-serif';
+        ctx.fillStyle = type === 'finish' ? '#fef08a' : '#2b2118';
+        ctx.fillText(labelText, 128, 128);
+      } else if (type === 'misi') {
+        // Gambar Lup / Kaca Pembesar
+        ctx.strokeStyle = '#2b2118';
+        ctx.lineWidth = 10;
+        ctx.fillStyle = '#bae6fd';
+        ctx.beginPath();
+        ctx.arc(112, 105, 42, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(142, 135);
+        ctx.lineTo(185, 180);
+        ctx.stroke();
+      } else if (type === 'bonus') {
+        // Gambar Bintang
+        ctx.fillStyle = '#facc15';
+        ctx.strokeStyle = '#2b2118';
+        ctx.lineWidth = 8;
+        drawStar(ctx, 128, 125, 5, 64, 30);
+      } else if (type === 'soal') {
+        // Kertas & Tanda Tanya
+        ctx.fillStyle = '#ffffff';
+        ctx.strokeStyle = '#2b2118';
+        ctx.lineWidth = 8;
+        ctx.fillRect(72, 52, 112, 148);
+        ctx.strokeRect(72, 52, 112, 148);
+        ctx.fillStyle = '#ef4444';
+        ctx.font = 'bold 82px "Fredoka", sans-serif';
+        ctx.fillText('?', 128, 130);
+      } else if (type === 'jebakan') {
+        // Segitiga tanda seru
+        ctx.fillStyle = '#facc15';
+        ctx.strokeStyle = '#2b2118';
+        ctx.lineWidth = 9;
+        ctx.beginPath();
+        ctx.moveTo(128, 52);
+        ctx.lineTo(198, 188);
+        ctx.lineTo(58, 188);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+        ctx.fillStyle = '#2b2118';
+        ctx.font = 'bold 74px "Fredoka", sans-serif';
+        ctx.fillText('!', 128, 145);
+      } else if (type === 'tantangan') {
+        // Petir
+        ctx.fillStyle = '#facc15';
+        ctx.strokeStyle = '#2b2118';
+        ctx.lineWidth = 8;
+        ctx.beginPath();
+        ctx.moveTo(142, 45);
+        ctx.lineTo(82, 132);
+        ctx.lineTo(130, 132);
+        ctx.lineTo(108, 208);
+        ctx.lineTo(176, 115);
+        ctx.lineTo(128, 115);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+      } else {
+        // Nomor petak halus
+        ctx.fillStyle = 'rgba(43, 33, 24, 0.35)';
+        ctx.font = 'bold 52px "Patrick Hand", sans-serif';
+        ctx.fillText(labelText, 128, 128);
+      }
+
+      const tex = new THREE.CanvasTexture(canvas);
+      tex.anisotropy = 4;
+      return tex;
+    }
+
+    function drawStar(ctx, cx, cy, spikes, outerRadius, innerRadius) {
+      let rot = Math.PI / 2 * 3;
+      let x = cx;
+      let y = cy;
+      const step = Math.PI / spikes;
+      ctx.beginPath();
+      ctx.moveTo(cx, cy - outerRadius);
+      for (let i = 0; i < spikes; i++) {
+        x = cx + Math.cos(rot) * outerRadius;
+        y = cy + Math.sin(rot) * outerRadius;
+        ctx.lineTo(x, y);
+        rot += step;
+        x = cx + Math.cos(rot) * innerRadius;
+        y = cy + Math.sin(rot) * innerRadius;
+        ctx.lineTo(x, y);
+        rot += step;
+      }
+      ctx.lineTo(cx, cy - outerRadius);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+    }
+
+    // ============================================================================
+    // 5. MEMBANGUN LAPISAN 1: MEJA KERTAS BUKU CATATAN BERGARIS (LOOSE-LEAF PAPER)
+    // ============================================================================
+    const paperGroup = new THREE.Group();
+    scene.add(paperGroup);
+
+    const paperGeo = new THREE.BoxGeometry(27, 0.35, 19.5);
+    const paperMat = new THREE.MeshStandardMaterial({
+      map: createNotebookPaperTexture(),
+      roughness: 0.85,
+      metalness: 0.02
+    });
+    const paperBase = new THREE.Mesh(paperGeo, paperMat);
+    paperBase.position.set(0, -0.45, 0);
+    paperBase.receiveShadow = true;
+    addSketchOutline(paperBase);
+    paperGroup.add(paperBase);
+
+    // Lubang-lubang kertas binder di pinggir kanan (seperti di foto buku tulis asli)
+    const holeGeo = new THREE.CylinderGeometry(0.28, 0.28, 0.4, 16);
+    const holeMat = new THREE.MeshBasicMaterial({ color: 0x6b4c35 });
+    for (let z = -8.2; z <= 8.2; z += 1.35) {
+      const hole = new THREE.Mesh(holeGeo, holeMat);
+      hole.position.set(12.7, -0.44, z);
+      paperGroup.add(hole);
+    }
+    registerExplodable(paperGroup, 0, -4.5, 0);
+
+    // ============================================================================
+    // 6. MEMBANGUN LAPISAN 2: LAUT BIRU, PANTAI PASIR, & PULAU TENGAH
+    // ============================================================================
+    const seaAndBeachGroup = new THREE.Group();
+    scene.add(seaAndBeachGroup);
+
+    // Laut Biru Utama
+    const seaGeo = new THREE.BoxGeometry(23.5, 0.32, 16.5);
+    const seaMat = new THREE.MeshStandardMaterial({
+      color: 0x38bdf8,
+      roughness: 0.55,
+      metalness: 0.08
+    });
+    const seaMesh = new THREE.Mesh(seaGeo, seaMat);
+    seaMesh.position.set(-0.6, -0.1, 0.2);
+    seaMesh.receiveShadow = true;
+    addSketchOutline(seaMesh);
+    seaAndBeachGroup.add(seaMesh);
+
+    // Pantai Kiri Bawah (Area START) & Kiri Atas (Area FINISH Harta Karun)
+    const beachGeo = new THREE.CylinderGeometry(5.5, 5.8, 0.28, 32);
+    const beachMat = new THREE.MeshStandardMaterial({ color: 0xfde68a, roughness: 0.8 });
+
+    const startBeach = new THREE.Mesh(beachGeo, beachMat);
+    startBeach.scale.set(1.2, 1, 0.95);
+    startBeach.position.set(-7.8, 0.08, 4.8);
+    startBeach.receiveShadow = true;
+    addSketchOutline(startBeach);
+    seaAndBeachGroup.add(startBeach);
+
+    const finishBeach = new THREE.Mesh(beachGeo, beachMat);
+    finishBeach.scale.set(1.15, 1, 0.85);
+    finishBeach.position.set(-7.8, 0.08, -5.2);
+    finishBeach.receiveShadow = true;
+    addSketchOutline(finishBeach);
+    seaAndBeachGroup.add(finishBeach);
+
+    // Kompas Mata Angin 3D di Laut Bawah
+    const compassGroup = new THREE.Group();
+    const compDisk = new THREE.Mesh(
+      new THREE.CylinderGeometry(1.1, 1.1, 0.12, 24),
+      new THREE.MeshStandardMaterial({ color: 0xfef3c7, roughness: 0.6 })
+    );
+    addSketchOutline(compDisk);
+    compassGroup.add(compDisk);
+    const compStar = new THREE.Mesh(
+      new THREE.ConeGeometry(0.35, 1.6, 4),
+      new THREE.MeshStandardMaterial({ color: 0xef4444 })
+    );
+    compStar.rotation.x = Math.PI / 2;
+    compStar.position.y = 0.12;
+    addSketchOutline(compStar);
+    compassGroup.add(compStar);
+    compassGroup.position.set(1.5, 0.12, 4.3);
+    seaAndBeachGroup.add(compassGroup);
+
+    registerExplodable(seaAndBeachGroup, 0, -2.2, 0);
+
+    // ============================================================================
+    // 7. MEMBANGUN LAPISAN 3: PULAU TENGAH, GUA TENGKORAK, POHON KELAPA, KAPAL & PETI HARTA KARUN
+    // ============================================================================
+    const islandDecorGroup = new THREE.Group();
+    scene.add(islandDecorGroup);
+
+    // Pulau Tengah (Tempat Gua Tengkorak & Gunung)
+    const centerIsland = new THREE.Mesh(
+      new THREE.CylinderGeometry(3.6, 4.1, 0.45, 28),
+      new THREE.MeshStandardMaterial({ color: 0xfde047, roughness: 0.75 })
+    );
+    centerIsland.scale.set(1.3, 1, 0.78);
+    centerIsland.position.set(-1.0, 0.18, -0.3);
+    centerIsland.castShadow = true;
+    centerIsland.receiveShadow = true;
+    addSketchOutline(centerIsland);
+    islandDecorGroup.add(centerIsland);
+
+    const grassIsland = new THREE.Mesh(
+      new THREE.CylinderGeometry(2.9, 3.3, 0.3, 24),
+      new THREE.MeshStandardMaterial({ color: 0x4ade80, roughness: 0.7 })
+    );
+    grassIsland.scale.set(1.25, 1, 0.72);
+    grassIsland.position.set(-1.0, 0.42, -0.3);
+    addSketchOutline(grassIsland);
+    islandDecorGroup.add(grassIsland);
+
+    // Gunung di Pulau Tengah
+    const mountain = new THREE.Mesh(
+      new THREE.ConeGeometry(1.45, 2.5, 7),
+      new THREE.MeshStandardMaterial({ color: 0xa16207, roughness: 0.8 })
+    );
+    mountain.position.set(-0.9, 1.7, -1.1);
+    mountain.castShadow = true;
+    addSketchOutline(mountain);
+    islandDecorGroup.add(mountain);
+
+    const snowCap = new THREE.Mesh(
+      new THREE.ConeGeometry(0.56, 0.9, 7),
+      new THREE.MeshStandardMaterial({ color: 0xfef3c7 })
+    );
+    snowCap.position.set(-0.9, 2.52, -1.1);
+    addSketchOutline(snowCap);
+    islandDecorGroup.add(snowCap);
+
+    // Gua Tengkorak Bajak Laut (Pirate Skull Cave)
+    const caveGroup = new THREE.Group();
+    const caveDome = new THREE.Mesh(
+      new THREE.SphereGeometry(0.95, 16, 12, 0, Math.PI * 2, 0, Math.PI * 0.65),
+      new THREE.MeshStandardMaterial({ color: 0x78350f, roughness: 0.85 })
+    );
+    caveDome.castShadow = true;
+    addSketchOutline(caveDome);
+    caveGroup.add(caveDome);
+
+    const pirateHat = new THREE.Mesh(
+      new THREE.BoxGeometry(1.5, 0.42, 0.7),
+      new THREE.MeshStandardMaterial({ color: 0x1f2937 })
+    );
+    pirateHat.position.set(0, 0.82, 0.15);
+    addSketchOutline(pirateHat);
+    caveGroup.add(pirateHat);
+
+    const skullBadge = new THREE.Mesh(
+      new THREE.SphereGeometry(0.2, 12, 12),
+      new THREE.MeshStandardMaterial({ color: 0xffffff })
+    );
+    skullBadge.position.set(0, 0.84, 0.52);
+    caveGroup.add(skullBadge);
+
+    caveGroup.position.set(-1.0, 0.55, 0.35);
+    islandDecorGroup.add(caveGroup);
+
+    // Fungsi Pembuat Pohon Kelapa 3D
+    function createPalmTree(x, y, z, scale = 1) {
+      const tree = new THREE.Group();
+      const trunkMat = new THREE.MeshStandardMaterial({ color: 0x92400e, roughness: 0.8 });
+      for (let i = 0; i < 4; i++) {
+        const seg = new THREE.Mesh(new THREE.CylinderGeometry(0.14 - i * 0.02, 0.17 - i * 0.02, 0.5, 8), trunkMat);
+        seg.position.set(i * 0.05, i * 0.44 + 0.25, 0);
+        seg.rotation.z = -i * 0.06;
+        seg.castShadow = true;
+        addSketchOutline(seg);
+        tree.add(seg);
+      }
+      const leafMat = new THREE.MeshStandardMaterial({ color: 0x22c55e, roughness: 0.6 });
+      for (let a = 0; a < 5; a++) {
+        const leaf = new THREE.Mesh(new THREE.BoxGeometry(1.1, 0.08, 0.32), leafMat);
+        const angle = (a / 5) * Math.PI * 2;
+        leaf.position.set(0.18 + Math.cos(angle) * 0.45, 1.95, Math.sin(angle) * 0.45);
+        leaf.rotation.y = -angle;
+        leaf.rotation.z = -0.35;
+        leaf.castShadow = true;
+        addSketchOutline(leaf);
+        tree.add(leaf);
+      }
+      tree.position.set(x, y, z);
+      tree.scale.setScalar(scale);
+      return tree;
+    }
+
+    islandDecorGroup.add(createPalmTree(-10.8, 0.2, 2.2, 1.25));
+    islandDecorGroup.add(createPalmTree(-11.2, 0.2, -5.8, 1.15));
+    islandDecorGroup.add(createPalmTree(-2.7, 0.5, -0.5, 0.9));
+    islandDecorGroup.add(createPalmTree(0.7, 0.5, -0.4, 0.9));
+
+    // Fungsi Pembuat Kapal Bajak Laut 3D
+    function createPirateShip(x, z, rotY = 0) {
+      const ship = new THREE.Group();
+      const hull = new THREE.Mesh(
+        new THREE.BoxGeometry(1.5, 0.45, 0.75),
+        new THREE.MeshStandardMaterial({ color: 0x78350f, roughness: 0.75 })
+      );
+      hull.position.y = 0.22;
+      hull.castShadow = true;
+      addSketchOutline(hull);
+      ship.add(hull);
+
+      const mast = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.05, 0.05, 1.6, 8),
+        new THREE.MeshStandardMaterial({ color: 0x451a03 })
+      );
+      mast.position.y = 1.0;
+      ship.add(mast);
+
+      const sail = new THREE.Mesh(
+        new THREE.BoxGeometry(0.12, 0.95, 1.05),
+        new THREE.MeshStandardMaterial({ color: 0x1f2937 })
+      );
+      sail.position.set(0.08, 1.1, 0);
+      sail.castShadow = true;
+      addSketchOutline(sail);
+      ship.add(sail);
+
+      const skullDot = new THREE.Mesh(
+        new THREE.SphereGeometry(0.16, 10, 10),
+        new THREE.MeshStandardMaterial({ color: 0xffffff })
+      );
+      skullDot.position.set(0.15, 1.1, 0);
+      ship.add(skullDot);
+
+      ship.position.set(x, 0.08, z);
+      ship.rotation.y = rotY;
+      return ship;
+    }
+
+    const ship1 = createPirateShip(-8.6, 0.2, 0.35);
+    const ship2 = createPirateShip(5.2, -5.5, -0.4);
+    const ship3 = createPirateShip(4.8, 0.4, -2.5);
+    islandDecorGroup.add(ship1, ship2, ship3);
+
+    // Peti Harta Karun 3D Berkilau di Dekat FINISH
+    const chestGroup = new THREE.Group();
+    const chestBase = new THREE.Mesh(
+      new THREE.BoxGeometry(1.8, 0.95, 1.25),
+      new THREE.MeshStandardMaterial({ color: 0x92400e, roughness: 0.6 })
+    );
+    chestBase.position.y = 0.48;
+    chestBase.castShadow = true;
+    addSketchOutline(chestBase);
+    chestGroup.add(chestBase);
+
+    const goldPile = new THREE.Mesh(
+      new THREE.BoxGeometry(1.6, 0.35, 1.05),
+      new THREE.MeshStandardMaterial({
+        color: 0xfacc15,
+        emissive: 0xf59e0b,
+        emissiveIntensity: 0.55,
+        metalness: 0.6,
+        roughness: 0.2
+      })
+    );
+    goldPile.position.y = 0.98;
+    addSketchOutline(goldPile);
+    chestGroup.add(goldPile);
+
+    const chestLid = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.62, 0.62, 1.8, 16, 1, false, 0, Math.PI),
+      new THREE.MeshStandardMaterial({ color: 0xb45309, roughness: 0.6 })
+    );
+    chestLid.rotation.z = Math.PI / 2;
+    chestLid.rotation.x = -0.55; // Sedikit terbuka memancarkan emas
+    chestLid.position.set(0, 1.15, -0.45);
+    chestLid.castShadow = true;
+    addSketchOutline(chestLid);
+    chestGroup.add(chestLid);
+
+    chestGroup.position.set(-8.2, 0.22, -5.4);
+    chestGroup.rotation.y = 0.35;
+    islandDecorGroup.add(chestGroup);
+
+    registerExplodable(islandDecorGroup, 0, 2.8, 0);
+
+    // ============================================================================
+    // 8. MEMBANGUN LAPISAN 4 & 5: PETAK JALUR S-CURVE & IKON 3D DI ATAS PETAK
+    // ============================================================================
+    const tilesGroup = new THREE.Group();
+    const tileIconsGroup = new THREE.Group();
+    scene.add(tilesGroup);
+    scene.add(tileIconsGroup);
+
+    // Kurva S yang merepresentasikan jalur dari START (kiri bawah) -> kanan bawah -> tengah -> kiri tengah -> kanan atas -> FINISH (kiri atas)
+    const curvePoints = [
+      new THREE.Vector3(-6.2, 0.35, 6.4),   // START
+      new THREE.Vector3(-3.8, 0.35, 5.9),
+      new THREE.Vector3(-1.2, 0.35, 6.2),
+      new THREE.Vector3(1.5, 0.35, 6.4),
+      new THREE.Vector3(3.8, 0.35, 5.6),
+      new THREE.Vector3(4.9, 0.35, 3.8),    // Belokan kanan bawah
+      new THREE.Vector3(3.5, 0.35, 2.2),
+      new THREE.Vector3(1.0, 0.35, 1.9),
+      new THREE.Vector3(-1.8, 0.35, 2.3),
+      new THREE.Vector3(-4.5, 0.35, 2.6),
+      new THREE.Vector3(-6.2, 0.35, 1.2),   // Belokan kiri tengah
+      new THREE.Vector3(-5.8, 0.35, -0.8),
+      new THREE.Vector3(-3.6, 0.35, -1.7),
+      new THREE.Vector3(-0.5, 0.35, -1.7),
+      new THREE.Vector3(2.4, 0.35, -1.5),
+      new THREE.Vector3(4.4, 0.35, -2.5),   // Belokan kanan atas
+      new THREE.Vector3(4.2, 0.35, -4.3),
+      new THREE.Vector3(2.0, 0.35, -5.2),
+      new THREE.Vector3(-0.8, 0.35, -5.3),
+      new THREE.Vector3(-3.5, 0.35, -5.0),
+      new THREE.Vector3(-5.5, 0.35, -4.7)   // FINISH
+    ];
+
+    const boardCurve = new THREE.CatmullRomCurve3(curvePoints);
+    const tileMeshes = [];
+    const tileWorldPositions = [];
+
+    const totalTiles = TILE_TYPES.length;
+    for (let i = 0; i < totalTiles; i++) {
+      const t = i / (totalTiles - 1);
+      const pos = boardCurve.getPointAt(t);
+      const tangent = boardCurve.getTangentAt(t);
+      tileWorldPositions.push(pos.clone());
+
+      const info = TILE_TYPES[i];
+      const isEndCap = (info.type === 'start' || info.type === 'finish');
+      const w = isEndCap ? 1.55 : 1.18;
+      const d = isEndCap ? 1.25 : 1.12;
+
+      const topTex = createIconCanvasTexture(info.type, info.color, info.label);
+      const sideMat = new THREE.MeshStandardMaterial({ color: info.color, roughness: 0.55 });
+      const topMat = new THREE.MeshStandardMaterial({ map: topTex, roughness: 0.5 });
+
+      const tileGeo = new THREE.BoxGeometry(w, 0.28, d);
+      const tileMesh = new THREE.Mesh(tileGeo, [sideMat, sideMat, topMat, sideMat, sideMat, sideMat]);
+      tileMesh.position.copy(pos);
+      tileMesh.rotation.y = Math.atan2(tangent.x, tangent.z);
+      tileMesh.castShadow = true;
+      tileMesh.receiveShadow = true;
+      tileMesh.userData = { tileIndex: i, tileInfo: info };
+
+      addSketchOutline(tileMesh);
+      tilesGroup.add(tileMesh);
+      tileMeshes.push(tileMesh);
+
+      // Tambahkan Ornamen Ikon 3D Timbul di atas Petak Khusus
+      if (info.type !== 'empty' && info.type !== 'start' && info.type !== 'finish') {
+        const badge3D = createFloating3DBadge(info.type);
+        badge3D.position.set(pos.x, pos.y + 0.28, pos.z);
+        tileIconsGroup.add(badge3D);
+      }
+    }
+
+    function createFloating3DBadge(type) {
+      const g = new THREE.Group();
+      if (type === 'bonus') {
+        const starMesh = new THREE.Mesh(
+          new THREE.OctahedronGeometry(0.22, 0),
+          new THREE.MeshStandardMaterial({ color: 0xfacc15, metalness: 0.4, roughness: 0.3 })
+        );
+        addSketchOutline(starMesh);
+        g.add(starMesh);
+      } else if (type === 'jebakan') {
+        const cone = new THREE.Mesh(
+          new THREE.ConeGeometry(0.22, 0.38, 3),
+          new THREE.MeshStandardMaterial({ color: 0xef4444 })
+        );
+        addSketchOutline(cone);
+        g.add(cone);
+      } else if (type === 'tantangan') {
+        const bolt = new THREE.Mesh(
+          new THREE.TetrahedronGeometry(0.23),
+          new THREE.MeshStandardMaterial({ color: 0xf97316 })
+        );
+        addSketchOutline(bolt);
+        g.add(bolt);
+      } else if (type === 'misi') {
+        const ring = new THREE.Mesh(
+          new THREE.TorusGeometry(0.15, 0.05, 8, 16),
+          new THREE.MeshStandardMaterial({ color: 0x38bdf8 })
+        );
+        ring.rotation.x = Math.PI / 2;
+        addSketchOutline(ring);
+        g.add(ring);
+      } else if (type === 'soal') {
+        const cardMini = new THREE.Mesh(
+          new THREE.BoxGeometry(0.26, 0.08, 0.34),
+          new THREE.MeshStandardMaterial({ color: 0xffffff })
+        );
+        addSketchOutline(cardMini);
+        g.add(cardMini);
+      }
+      return g;
+    }
+
+    registerExplodable(tilesGroup, 0, 1.5, 0);
+    registerExplodable(tileIconsGroup, 0, 4.2, 0);
+
+    // ============================================================================
+    // 9. MEMBANGUN LAPISAN 6: DEK KARTU 3D & RODA SPINNER 3D INTERAKTIF DI KANAN
+    // ============================================================================
+    const rightBoardPropsGroup = new THREE.Group();
+    scene.add(rightBoardPropsGroup);
+
+    // Papan Alas Dek Kartu di Sisi Kanan
+    const deckTray = new THREE.Mesh(
+      new THREE.BoxGeometry(3.4, 0.25, 10.2),
+      new THREE.MeshStandardMaterial({ color: 0xeeddba, roughness: 0.75 })
+    );
+    deckTray.position.set(8.8, 0.15, -2.0);
+    deckTray.castShadow = true;
+    deckTray.receiveShadow = true;
+    addSketchOutline(deckTray);
+    rightBoardPropsGroup.add(deckTray);
+
+    const deckSpecs = [
+      { id: 'misi',      label: 'Kartu Misi',      color: 0xe6ccb2, z: -5.8 },
+      { id: 'bonus',     label: 'Kartu Bonus',     color: 0xfde047, z: -3.9 },
+      { id: 'soal',      label: 'Kartu Soal',      color: 0x60a5fa, z: -2.0 },
+      { id: 'jebakan',   label: 'Kartu Jebakan',   color: 0xf87171, z: -0.1 },
+      { id: 'tantangan', label: 'Kartu Tantangan', color: 0xfb923c, z: 1.8 }
+    ];
+
+    deckSpecs.forEach((d) => {
+      const cardStack = new THREE.Mesh(
+        new THREE.BoxGeometry(2.7, 0.38, 1.5),
+        new THREE.MeshStandardMaterial({ color: d.color, roughness: 0.5 })
+      );
+      cardStack.position.set(8.8, 0.46, d.z);
+      cardStack.castShadow = true;
+      cardStack.userData = { deckType: d.id };
+      addSketchOutline(cardStack);
+      rightBoardPropsGroup.add(cardStack);
+    });
+
+    // Roda Spinner 3D di Sudut Kanan Bawah ("Maju 1 Langkah", "Maju 2 Langkah", "Maju 3 Langkah")
+    const spinnerGroup = new THREE.Group();
+    spinnerGroup.position.set(8.8, 0.25, 5.5);
+    scene.add(spinnerGroup);
+
+    function createSpinnerWheelTexture() {
+      const canvas = document.createElement('canvas');
+      canvas.width = 512;
+      canvas.height = 512;
+      const ctx = canvas.getContext('2d');
+      const cx = 256, cy = 256, r = 240;
+
+      const sectors = [
+        { start: 0, end: (Math.PI * 2) / 3, color: '#fb923c', text: 'Maju 2 Langkah' },
+        { start: (Math.PI * 2) / 3, end: (Math.PI * 4) / 3, color: '#ef4444', text: 'Maju 3 Langkah' },
+        { start: (Math.PI * 4) / 3, end: Math.PI * 2, color: '#4ade80', text: 'Maju 1 Langkah' }
+      ];
+
+      sectors.forEach(s => {
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.arc(cx, cy, r, s.start, s.end);
+        ctx.closePath();
+        ctx.fillStyle = s.color;
+        ctx.fill();
+        ctx.lineWidth = 10;
+        ctx.strokeStyle = '#2b2118';
+        ctx.stroke();
+
+        // Teks di setiap sektor
+        const midAngle = (s.start + s.end) / 2;
+        ctx.save();
+        ctx.translate(cx + Math.cos(midAngle) * 130, cy + Math.sin(midAngle) * 130);
+        ctx.rotate(midAngle + Math.PI / 2);
+        ctx.fillStyle = '#2b2118';
+        ctx.font = 'bold 28px "Fredoka", sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(s.text, 0, 0);
+        ctx.restore();
+      });
+
+      return new THREE.CanvasTexture(canvas);
+    }
+
+    const wheelDisk = new THREE.Mesh(
+      new THREE.CylinderGeometry(2.15, 2.2, 0.3, 36),
+      new THREE.MeshStandardMaterial({ map: createSpinnerWheelTexture(), roughness: 0.5 })
+    );
+    wheelDisk.castShadow = true;
+    wheelDisk.receiveShadow = true;
+    wheelDisk.userData = { isSpinner: true };
+    addSketchOutline(wheelDisk);
+    spinnerGroup.add(wheelDisk);
+
+    // Jarum Penunjuk Spinner 3D yang Berputar
+    const spinnerArrowPivot = new THREE.Group();
+    spinnerArrowPivot.position.y = 0.25;
+
+    const arrowHub = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.32, 0.32, 0.25, 16),
+      new THREE.MeshStandardMaterial({ color: 0x78350f })
+    );
+    addSketchOutline(arrowHub);
+    spinnerArrowPivot.add(arrowHub);
+
+    const arrowPointer = new THREE.Mesh(
+      new THREE.ConeGeometry(0.24, 1.55, 4),
+      new THREE.MeshStandardMaterial({ color: 0x451a03 })
+    );
+    arrowPointer.rotation.x = Math.PI / 2;
+    arrowPointer.position.set(0, 0.06, -0.65);
+    arrowPointer.castShadow = true;
+    addSketchOutline(arrowPointer);
+    spinnerArrowPivot.add(arrowPointer);
+
+    spinnerGroup.add(spinnerArrowPivot);
+
+    registerExplodable(rightBoardPropsGroup, 3.2, 2.4, 0);
+    registerExplodable(spinnerGroup, 3.2, 3.8, 2.2);
+
+    // ============================================================================
+    // 10. MEMBANGUN LAPISAN 7: 3 PION BAJAK LAUT 3D & LOGIKA GAMEPLAY
+    // ============================================================================
+    const pawnsGroup = new THREE.Group();
+    scene.add(pawnsGroup);
+
+    const players = [
+      { id: 0, name: "Kapten Merah", color: 0xef4444, hex: "#ef4444", tileIndex: 0, score: 100, mesh: null, offset: new THREE.Vector3(-0.32, 0, -0.25) },
+      { id: 1, name: "Navigator Biru", color: 0x3b82f6, hex: "#3b82f6", tileIndex: 0, score: 100, mesh: null, offset: new THREE.Vector3(0.32, 0, -0.25) },
+      { id: 2, name: "Meriam Hijau", color: 0x22c55e, hex: "#22c55e", tileIndex: 0, score: 100, mesh: null, offset: new THREE.Vector3(0, 0, 0.32) }
+    ];
+
+    let currentPlayerIdx = 0;
+    let isSpinningOrMoving = false;
+    let spinnerAngularVel = 0;
+    let pendingSpinSteps = 0;
+
+    function createPiratePawnMesh(coatColor) {
+      const pawn = new THREE.Group();
+
+      // Alas Pion
+      const base = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.34, 0.4, 0.16, 16),
+        new THREE.MeshStandardMaterial({ color: 0x78350f })
+      );
+      base.position.y = 0.08;
+      base.castShadow = true;
+      addSketchOutline(base);
+      pawn.add(base);
+
+      // Badan Bajak Laut
+      const body = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.22, 0.3, 0.62, 14),
+        new THREE.MeshStandardMaterial({ color: coatColor, roughness: 0.5 })
+      );
+      body.position.y = 0.46;
+      body.castShadow = true;
+      addSketchOutline(body);
+      pawn.add(body);
+
+      // Kepala
+      const head = new THREE.Mesh(
+        new THREE.SphereGeometry(0.24, 14, 14),
+        new THREE.MeshStandardMaterial({ color: 0xfde68a })
+      );
+      head.position.y = 0.92;
+      head.castShadow = true;
+      addSketchOutline(head);
+      pawn.add(head);
+
+      // Topi Bajak Laut (Tricorne Hat)
+      const hat = new THREE.Mesh(
+        new THREE.ConeGeometry(0.38, 0.28, 3),
+        new THREE.MeshStandardMaterial({ color: 0x1f2937 })
+      );
+      hat.position.y = 1.16;
+      hat.castShadow = true;
+      addSketchOutline(hat);
+      pawn.add(hat);
+
+      return pawn;
+    }
+
+    players.forEach((p) => {
+      const pawnMesh = createPiratePawnMesh(p.color);
+      const startPos = tileWorldPositions[0];
+      pawnMesh.position.set(
+        startPos.x + p.offset.x,
+        startPos.y + 0.14,
+        startPos.z + p.offset.z
+      );
+      p.mesh = pawnMesh;
+      pawnsGroup.add(pawnMesh);
+    });
+
+    registerExplodable(pawnsGroup, 0, 5.5, 0);
+
+    // Render daftar pemain di panel kanan
+    function updatePlayerListUI() {
+      const containerUI = document.getElementById('player-list-ui');
+      containerUI.innerHTML = players.map((p, idx) => `
+        <div class="player-item ${idx === currentPlayerIdx ? 'current-turn' : ''}">
+          <div class="player-badge">
+            <span class="dot" style="background:${p.hex}"></span>
+            <span>${p.name}</span>
+          </div>
+          <span>Petak <b>${p.tileIndex === 0 ? 'START' : (p.tileIndex === totalTiles - 1 ? 'FINISH' : p.tileIndex)}</b> • 🪙${p.score}</span>
+        </div>
+      `).join('');
+    }
+    updatePlayerListUI();
+
+    function setStatus(badge, text) {
+      document.getElementById('status-badge').textContent = badge;
+      document.getElementById('status-text').textContent = text;
+    }
+
+    // ============================================================================
+    // 11. ANIMASI SPINNER & PERGERAKAN LOMPATAN PION PETAK DEMI PETAK
+    // ============================================================================
+    function spinWheel() {
+      playSfx('spin');
+      if (isSpinningOrMoving) return;
+      isSpinningOrMoving = true;
+      document.getElementById('spin-btn').disabled = true;
+
+      // Pilih hasil langkah 1, 2, atau 3 secara acak
+      pendingSpinSteps = Math.floor(Math.random() * 3) + 1;
+      spinnerAngularVel = 0.45 + Math.random() * 0.18;
+
+      const p = players[currentPlayerIdx];
+      setStatus("MEMUTAR SPINNER", `${p.name} sedang memutar roda Spinner...`);
+    }
+
+    function movePawnSteps(playerIndex, steps, onComplete) {
+      const p = players[playerIndex];
+      const direction = steps >= 0 ? 1 : -1;
+      let remaining = Math.abs(steps);
+
+      function stepOnce() {
+        if (remaining <= 0) {
+          if (onComplete) onComplete();
+          return;
+        }
+        const nextIndex = Math.max(0, Math.min(totalTiles - 1, p.tileIndex + direction));
+        if (nextIndex === p.tileIndex) {
+          remaining = 0;
+          if (onComplete) onComplete();
+          return;
+        }
+
+        const startVec = p.mesh.position.clone();
+        const targetTilePos = tileWorldPositions[nextIndex];
+        const endVec = new THREE.Vector3(
+          targetTilePos.x + p.offset.x,
+          targetTilePos.y + 0.14 + currentExplodeFactor * 5.5,
+          targetTilePos.z + p.offset.z
+        );
+
+        let progress = 0;
+        function animateHop() {
+          if (progress === 0) playSfx('hop');
+          progress += 0.08;
+          if (progress >= 1) {
+            p.mesh.position.copy(endVec);
+            p.tileIndex = nextIndex;
+            updatePlayerListUI();
+            remaining--;
+            setTimeout(stepOnce, 90);
+            return;
+          }
+          // Kurva parabolik lompatan pion
+          p.mesh.position.lerpVectors(startVec, endVec, progress);
+          p.mesh.position.y += Math.sin(progress * Math.PI) * 1.15;
+          requestAnimationFrame(animateHop);
+        }
+        animateHop();
+      }
+
+      stepOnce();
+    }
+
+    function evaluateTileLanding() {
+      const p = players[currentPlayerIdx];
+      const tileInfo = TILE_TYPES[p.tileIndex];
+
+      if (tileInfo.type === 'finish') {
+        p.score += 200;
+        updatePlayerListUI();
+        setStatus("🎉 HARTA KARUN DITEMUKAN!", `Selamat! ${p.name} mencapai petak FINISH dan membuka Peti Harta Karun!`);
+        openWinModal(p);
+        isSpinningOrMoving = false;
+        document.getElementById('spin-btn').disabled = false;
+        return;
+      }
+
+      if (['soal', 'misi', 'tantangan', 'bonus', 'jebakan'].includes(tileInfo.type)) {
+        setStatus(`PETAK ${tileInfo.type.toUpperCase()}`, `${p.name} mendarat di petak ${tileInfo.type.toUpperCase()}! Selesaikan kartunya.`);
+        setTimeout(() => {
+          triggerCardModal(tileInfo.type, false);
+        }, 350);
+      } else {
+        nextTurn();
+      }
+    }
+
+    function nextTurn() {
+      currentPlayerIdx = (currentPlayerIdx + 1) % players.length;
+      updatePlayerListUI();
+      isSpinningOrMoving = false;
+      document.getElementById('spin-btn').disabled = false;
+      setStatus("GILIRAN BERIKUTNYA", `Sekarang giliran ${players[currentPlayerIdx].name}. Putar Spinner untuk melangkah!`);
+    }
+
+    function manualStep(steps) {
+      if (isSpinningOrMoving) return;
+      isSpinningOrMoving = true;
+      movePawnSteps(currentPlayerIdx, steps, () => {
+        evaluateTileLanding();
+      });
+    }
+
+    function resetGame() {
+      isSpinningOrMoving = false;
+      document.getElementById('spin-btn').disabled = false;
+      currentPlayerIdx = 0;
+      players.forEach(p => {
+        p.tileIndex = 0;
+        p.score = 100;
+        const startPos = tileWorldPositions[0];
+        p.mesh.position.set(
+          startPos.x + p.offset.x,
+          startPos.y + 0.14 + currentExplodeFactor * 5.5,
+          startPos.z + p.offset.z
+        );
+      });
+      updatePlayerListUI();
+      setStatus("RESET PERMAINAN", "Semua Pion Bajak Laut kembali ke pantai START!");
+    }
+
+    // ============================================================================
+    // 12. MODAL POPUP: QR CODE GENERATOR & KARTU KUIS MATEMATIKA KELAS 5
+    // ============================================================================
+    function drawSimulatedQRCode(canvas, seedText, colorHex) {
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      const cells = 13;
+      const size = canvas.width / cells;
+      ctx.fillStyle = colorHex || '#2b2118';
+
+      // Kotak sudut QR finder pattern
+      function drawFinder(ox, oy) {
+        ctx.fillRect(ox * size, oy * size, 3 * size, 3 * size);
+      }
+      drawFinder(1, 1);
+      drawFinder(cells - 4, 1);
+      drawFinder(1, cells - 4);
+
+      // Pola bit deterministik dari teks
+      let hash = 2166136261;
+      for (let i = 0; i < seedText.length; i++) {
+        hash ^= seedText.charCodeAt(i);
+        hash = Math.imul(hash, 16777619);
+      }
+
+      for (let x = 1; x < cells - 1; x++) {
+        for (let y = 1; y < cells - 1; y++) {
+          if ((x < 4 && y < 4) || (x >= cells - 4 && y < 4) || (x < 4 && y >= cells - 4)) continue;
+          hash ^= (x * 31 + y * 17);
+          if (Math.abs(hash) % 2 === 0) {
+            ctx.fillRect(x * size, y * size, size * 0.92, size * 0.92);
+          }
+        }
+      }
+    }
+
+    function openInfoModal(key) {
+      const data = INFO_CONTENT[key];
+      if (!data) return;
+
+      document.getElementById('modal-title').textContent = data.title;
+      document.getElementById('modal-body').innerHTML = `
+        <div class="qr-showcase">
+          <canvas id="qr-modal-canvas" class="qr-canvas-box" width="130" height="130"></canvas>
+          <div>
+            <div style="font-family:'Fredoka',sans-serif;font-weight:700;color:${data.qrColor};margin-bottom:4px;">
+              📱 QR Code Terintegrasi Media Cetak & Digital
+            </div>
+            <p style="font-size:0.84rem;">
+              Pada media fisik papan permainan, siswa/guru memindai barcode ini untuk membuka konten interaktif secara langsung:
+              <br/><code style="font-size:0.78rem;background:#fef3c7;padding:2px 6px;border-radius:4px;">${data.codeUrl}</code>
+            </p>
+          </div>
+        </div>
+        ${data.html}
+      `;
+      document.getElementById('modal-backdrop').classList.add('open');
+      const qrCanvas = document.getElementById('qr-modal-canvas');
+      drawSimulatedQRCode(qrCanvas, data.codeUrl, data.qrColor);
+    }
+
+    function triggerCardModal(cardType, isPreviewOnly) {
+      playSfx('card');
+      const p = players[currentPlayerIdx];
+      const modalTitle = document.getElementById('modal-title');
+      const modalBody = document.getElementById('modal-body');
+
+      if (cardType === 'bonus' || cardType === 'jebakan') {
+        const list = CARD_BANK[cardType];
+        const item = list[Math.floor(Math.random() * list.length)];
+        modalTitle.textContent = item.title;
+        modalBody.innerHTML = `
+          <p style="font-size:1rem;margin-bottom:16px;">${item.desc}</p>
+          <button class="spin-action-btn" onclick="applyDirectCardEffect(${item.steps}, ${item.coins || 0}, ${isPreviewOnly})">
+            ${isPreviewOnly ? 'Tutup Pratinjau Kartu' : 'Laksanakan Instruksi Kartu ▸'}
+          </button>
+        `;
+        document.getElementById('modal-backdrop').classList.add('open');
+        return;
+      }
+
+      // Kartu Kuis (Soal, Misi, Tantangan)
+      const list = CARD_BANK[cardType];
+      const quiz = list[Math.floor(Math.random() * list.length)];
+      const titleMap = {
+        soal: "📄? KARTU SOAL MATEMATIKA KELAS 5",
+        misi: "🔍 KARTU MISI PEMECAHAN MASALAH",
+        tantangan: "⚡ KARTU TANTANGAN KILAT"
+      };
+      modalTitle.textContent = titleMap[cardType] || "Kartu Matematika";
+
+      modalBody.innerHTML = `
+        <div style="background:#fff;border:2px solid #2b2118;padding:12px;border-radius:12px;font-weight:600;">
+          ${quiz.q}
+        </div>
+        <div class="quiz-options" id="quiz-options-box">
+          ${quiz.opts.map((opt, idx) => `
+            <button class="quiz-opt-btn" onclick="submitQuizAnswer(${idx}, ${quiz.ans}, ${quiz.rewardSteps}, ${isPreviewOnly})">
+              ${opt}
+            </button>
+          `).join('')}
+        </div>
+        <div class="feedback-box" id="quiz-feedback"></div>
+      `;
+      window.currentQuizExplanation = quiz.exp;
+      document.getElementById('modal-backdrop').classList.add('open');
+    }
+
+    window.submitQuizAnswer = function(selectedIdx, correctIdx, rewardSteps, isPreviewOnly) {
+      const btns = document.querySelectorAll('.quiz-opt-btn');
+      btns.forEach((b, i) => {
+        b.disabled = true;
+        if (i === correctIdx) b.classList.add('correct');
+        else if (i === selectedIdx) b.classList.add('wrong');
+      });
+
+      const fb = document.getElementById('quiz-feedback');
+      fb.style.display = 'block';
+      const isCorrect = selectedIdx === correctIdx;
+      const p = players[currentPlayerIdx];
+
+      if (isCorrect) {
+        playSfx('correct');
+        if (!isPreviewOnly) p.score += 30;
+        fb.innerHTML = `
+          <b style="color:#15803d;">✅ Jawaban Benar! (+30 Koin Emas & Bonus Maju ${rewardSteps} Langkah)</b><br/>
+          <span><b>Pembahasan:</b> ${window.currentQuizExplanation}</span>
+          <button class="spin-action-btn" style="margin-top:10px;" onclick="finishQuizTurn(${rewardSteps}, ${isPreviewOnly})">
+            ${isPreviewOnly ? 'Selesai & Tutup' : `Maju ${rewardSteps} Langkah Ekstra ▸`}
+          </button>
+        `;
+      } else {
+        playSfx('wrong');
+        fb.innerHTML = `
+          <b style="color:#b91c1c;">❌ Jawaban Belum Tepat!</b><br/>
+          <span><b>Pembahasan:</b> ${window.currentQuizExplanation}</span>
+          <button class="spin-action-btn" style="margin-top:10px;background:#f59e0b;" onclick="finishQuizTurn(0, ${isPreviewOnly})">
+            Lanjutkan Permainan ▸
+          </button>
+        `;
+      }
+      updatePlayerListUI();
+    };
+
+    window.finishQuizTurn = function(extraSteps, isPreviewOnly) {
+      closeModal();
+      if (isPreviewOnly) return;
+      if (extraSteps !== 0) {
+        movePawnSteps(currentPlayerIdx, extraSteps, () => {
+          nextTurn();
+        });
+      } else {
+        nextTurn();
+      }
+    };
+
+    window.applyDirectCardEffect = function(steps, coins, isPreviewOnly) {
+      closeModal();
+      if (isPreviewOnly) return;
+      const p = players[currentPlayerIdx];
+      p.score += coins;
+      updatePlayerListUI();
+      movePawnSteps(currentPlayerIdx, steps, () => {
+        nextTurn();
+      });
+    };
+
+    function openWinModal(winner) {
+      playSfx('win');
+      document.getElementById('modal-title').textContent = "🏆 HARTA KARUN BERHASIL DITEMUKAN!";
+      document.getElementById('modal-body').innerHTML = `
+        <div style="text-align:center;padding:10px;">
+          <div style="font-size:3.2rem;margin-bottom:8px;">👑🏴‍☠️💰</div>
+          <h3 style="font-family:'Fredoka',sans-serif;font-size:1.35rem;color:#b45309;">
+            Selamat kepada ${winner.name}!
+          </h3>
+          <p style="margin:8px 0 16px;">
+            Kamu berhasil menyelesaikan seluruh misi Matematika Kelas 5 SD dan membuka <b>Peti Harta Karun</b> dengan total perolehan <b>🪙 ${winner.score} Koin Emas</b>!
+          </p>
+          <button class="spin-action-btn" onclick="closeModal(); resetGame();">
+            🔄 Mainkan Lagi dari Awal
+          </button>
+        </div>
+      `;
+      document.getElementById('modal-backdrop').classList.add('open');
+    }
+
+    function closeModal() {
+      document.getElementById('modal-backdrop').classList.remove('open');
+    }
+
+    // ============================================================================
+    // 13. KONTROL UI: EXPLODE, ASSEMBLE, WIREFRAME, INK OUTLINE & KAMERA PRESET
+    // ============================================================================
+    function toggleExplode() {
+      targetExplodeFactor = 1;
+      document.getElementById('explode-slider').value = 100;
+      document.getElementById('explode-val').textContent = '100%';
+      document.getElementById('btn-explode').classList.add('active');
+      document.getElementById('btn-assemble').classList.remove('active');
+      setStatus("MODE EXPLODE AKTIF", "Seluruh 7 lapisan geometri 3D papan permainan diurai secara vertikal!");
+    }
+
+    function toggleAssemble() {
+      targetExplodeFactor = 0;
+      document.getElementById('explode-slider').value = 0;
+      document.getElementById('explode-val').textContent = '0%';
+      document.getElementById('btn-assemble').classList.add('active');
+      document.getElementById('btn-explode').classList.remove('active');
+      setStatus("MODE ASSEMBLE AKTIF", "Seluruh komponen papan permainan dirakit kembali dengan presisi.");
+    }
+
+    function onExplodeSlider(val) {
+      targetExplodeFactor = Number(val) / 100;
+      document.getElementById('explode-val').textContent = `${val}%`;
+      document.getElementById('btn-explode').classList.toggle('active', targetExplodeFactor > 0.5);
+      document.getElementById('btn-assemble').classList.toggle('active', targetExplodeFactor <= 0.5);
+    }
+
+    function toggleWireframe() {
+      isWireframe = !isWireframe;
+      allMeshMaterials.forEach(m => {
+        m.wireframe = isWireframe;
+      });
+      document.getElementById('btn-wireframe').classList.toggle('active', isWireframe);
+      setStatus(isWireframe ? "MODE WIREFRAME" : "MODE SOLID", isWireframe ? "Menampilkan struktur jaring poligon 3D." : "Menampilkan material tekstur kertas premium.");
+    }
+
+    function toggleInkLines() {
+      showInkLines = !showInkLines;
+      allInkLines.forEach(line => {
+        line.visible = showInkLines;
+      });
+      document.getElementById('btn-ink').classList.toggle('active', showInkLines);
+    }
+
+    function toggleAutoRotate() {
+      controls.autoRotate = !controls.autoRotate;
+      controls.autoRotateSpeed = 1.6;
+      document.getElementById('btn-autorotate').classList.toggle('active', controls.autoRotate);
+    }
+
+    let cameraTargetPos = null;
+    let controlsTargetLook = null;
+
+    function setCameraPreset(preset) {
+      if (preset === 'iso') {
+        cameraTargetPos = new THREE.Vector3(0, 25, 25);
+        controlsTargetLook = new THREE.Vector3(0, 0.5, 0);
+      } else if (preset === 'top') {
+        cameraTargetPos = new THREE.Vector3(0, 34, 0.01);
+        controlsTargetLook = new THREE.Vector3(0, 0, 0);
+      } else if (preset === 'pawn') {
+        const p = players[currentPlayerIdx].mesh.position;
+        cameraTargetPos = new THREE.Vector3(p.x + 4, p.y + 7, p.z + 7);
+        controlsTargetLook = p.clone();
+      } else if (preset === 'spinner') {
+        cameraTargetPos = new THREE.Vector3(8.8, 9.5, 11.5);
+        controlsTargetLook = new THREE.Vector3(8.8, 0.4, 5.2);
+      }
+      setTimeout(() => {
+        cameraTargetPos = null;
+        controlsTargetLook = null;
+      }, 950);
+    }
+
+    function focusBoardAndPlay() {
+      setCameraPreset('iso');
+      setStatus("MARI BERMAIN!", `Giliran ${players[currentPlayerIdx].name} — Klik tombol Putar Spinner untuk memulai petualangan!`);
+    }
+
+    // ============================================================================
+    // 14. INTERAKSI KLIK LANGSUNG OBJEK 3D (RAYCASTER)
+    // ============================================================================
+    const raycaster = new THREE.Raycaster();
+    const mouse = new THREE.Vector2();
+
+    renderer.domElement.addEventListener('pointerdown', (e) => {
+      const rect = renderer.domElement.getBoundingClientRect();
+      mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+      mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+
+      raycaster.setFromCamera(mouse, camera);
+      const intersects = raycaster.intersectObjects(scene.children, true);
+
+      for (let hit of intersects) {
+        let obj = hit.object;
+        while (obj) {
+          if (obj.userData && obj.userData.isSpinner) {
+            spinWheel();
+            return;
+          }
+          if (obj.userData && obj.userData.deckType) {
+            triggerCardModal(obj.userData.deckType, true);
+            return;
+          }
+          if (obj.userData && obj.userData.tileInfo) {
+            const info = obj.userData.tileInfo;
+            setStatus(`INFO PETAK ${info.label}`, `Petak ${info.label} — Kategori: ${info.type.toUpperCase()}`);
+            return;
+          }
+          obj = obj.parent;
+        }
+      }
+    });
+
+    // ============================================================================
+    // 15. ANIMATION LOOP UTAMA (60 FPS)
+    // ============================================================================
+    const clock = new THREE.Clock();
+
+    function animate() {
+      requestAnimationFrame(animate);
+      const elapsed = clock.getElapsedTime();
+
+      // Interpolasi halus untuk fitur EXPLODE / ASSEMBLE
+      currentExplodeFactor += (targetExplodeFactor - currentExplodeFactor) * 0.08;
+      explodableObjects.forEach(obj => {
+        obj.position.x = obj.userData.basePos.x + obj.userData.explodeOffset.x * currentExplodeFactor;
+        obj.position.y = obj.userData.basePos.y + obj.userData.explodeOffset.y * currentExplodeFactor;
+        obj.position.z = obj.userData.basePos.z + obj.userData.explodeOffset.z * currentExplodeFactor;
+      });
+
+      // Animasi mengapung ikon 3D di atas petak & kapal berayun lembut di laut
+      tileIconsGroup.children.forEach((badge, i) => {
+        badge.rotation.y = elapsed * 1.4 + i * 0.5;
+        badge.position.y = 0.65 + Math.sin(elapsed * 2.5 + i) * 0.08;
+      });
+
+      ship1.rotation.z = Math.sin(elapsed * 2.0) * 0.05;
+      ship2.rotation.z = Math.cos(elapsed * 1.8) * 0.05;
+      ship3.rotation.z = Math.sin(elapsed * 2.2 + 1) * 0.05;
+
+      // Putaran fisika Jarum Spinner 3D
+      if (spinnerAngularVel > 0.002) {
+        spinnerArrowPivot.rotation.y -= spinnerAngularVel;
+        spinnerAngularVel *= 0.965;
+        if (spinnerAngularVel <= 0.0025) {
+          spinnerAngularVel = 0;
+          const p = players[currentPlayerIdx];
+          setStatus(`HASIL SPINNER: MAJU ${pendingSpinSteps} LANGKAH`, `${p.name} melangkah maju ${pendingSpinSteps} petak!`);
+          movePawnSteps(currentPlayerIdx, pendingSpinSteps, () => {
+            evaluateTileLanding();
+          });
+        }
+      }
+
+      // Transisi preset kamera halus
+      if (cameraTargetPos && controlsTargetLook) {
+        camera.position.lerp(cameraTargetPos, 0.08);
+        controls.target.lerp(controlsTargetLook, 0.08);
+      }
+
+      controls.update();
+      renderer.render(scene, camera);
+    }
+
+    animate();
+
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+  </script>
+</body>
+</html>
