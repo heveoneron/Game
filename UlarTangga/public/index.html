@@ -65,6 +65,9 @@
                 <span>Game 3D Harta Karun 🧭</span>
             </a>
             <!-- Audio Toggle -->
+            <button id="view3dToggleBtn" onclick="toggle3DMode()" class="wood-btn bg-sky-100 hover:bg-sky-200 text-sky-900 px-3 py-1.5 rounded-xl text-xs font-black flex items-center gap-1.5 shadow-xs border border-sky-300" title="Ganti Tampilan Papan 3D Interaktif / 2D Klasik">
+                <span>🧊 Mode 3D</span>
+            </button>
             <button id="soundToggleBtn" onclick="toggleAudio()" class="wood-btn bg-amber-100 hover:bg-amber-200 px-3 py-1.5 rounded-xl text-xs font-bold text-[#3D2216] flex items-center gap-1.5" title="Suara Efek">
                 <span id="soundIcon">🔊</span>
                 <span id="soundText" class="hidden sm:inline">Sound ON</span>
@@ -323,6 +326,10 @@
                 <!-- 100 Grid Tiles (Boustrophedon 10x10) -->
                 <div id="boardGrid" class="board-grid"></div>
             </div>
+
+            <!-- Board Area 3D (Three.js Diorama) -->
+            <div id="board3DContainer" class="wood-border rounded-2xl relative shadow-2xl" style="display:none; width:100%; max-width:650px; height:600px; background:#f6f0e8; overflow:hidden;"></div>
+
 
             <!-- Bottom Legend -->
             <div class="flex items-center gap-3 text-xs font-bold text-amber-100 mt-2 px-4 py-1.5 bg-black/50 rounded-full backdrop-blur-sm flex-wrap justify-center">
@@ -1175,6 +1182,11 @@
     <!-- ================= JAVASCRIPT MODULAR SCRIPTS ================= -->
     <script src="js/deck.js?v=10"></script>
     <script src="js/skills.js?v=10"></script>
-    <script src="js/game.js?v=10"></script>
+    <!-- Three.js & OrbitControls for 3D Board View -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="js/game3d.js?v=1"></script>
+
+    <script src="js/game.js?v=11"></script>
 </body>
 </html>

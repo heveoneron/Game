@@ -583,6 +583,9 @@ function drawSnakesAndLaddersSVG() {
 
 // UPDATE POSISI PION & STATUS
 function updatePawnsUI(hoppingPawnNum = 0) {
+    if (typeof window.sync3DPawns === 'function') {
+        window.sync3DPawns(hoppingPawnNum);
+    }
     document.querySelectorAll('[id^="pawn-container-"]').forEach(el => el.innerHTML = '');
 
     const p1Container = document.getElementById(`pawn-container-${gameState.p1Pos}`);

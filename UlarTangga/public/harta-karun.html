@@ -597,6 +597,10 @@
         <span>📜 Petunjuk Permainan</span>
         <div class="mini-qr" style="border-color:#2563eb"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
       </button>
+      <button class="qr-nav-btn" style="background:#e0e7ff; color:#3730a3; font-weight:800; border:2px solid #6366f1;" onclick="openDeckManagerModal()">
+        <div class="mini-qr"><span></span><span></span><span></span></div>
+        🃏 Kelola Dek Soal
+      </button>
       <button class="qr-nav-btn" onclick="focusBoardAndPlay()">
         <span>🎲 Mari Bermain</span>
         <div class="mini-qr" style="border-color:#9333ea"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
@@ -651,7 +655,10 @@
     </div>
 
     <div class="sketch-card">
-      <h3>🃏 Dek Kartu Interaktif (Klik Uji)</h3>
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+        <h3 style="margin:0;">🃏 Dek Kartu Interaktif</h3>
+        <button onclick="openDeckManagerModal()" style="padding:4px 8px; font-size:11px; background:#4f46e5; color:white; border:none; border-radius:6px; cursor:pointer; font-weight:bold;">⚙️ Atur Soal</button>
+      </div>
       <div class="card-legend-list">
         <div class="legend-item" style="background:#f3e5ab" onclick="triggerCardModal('misi', true)">
           <span>🔍 <b>Kartu Misi</b> (Problem Solving)</span>
@@ -895,7 +902,7 @@
       }
     };
 
-    const CARD_BANK = {
+    const DEFAULT_CARD_BANK = {
       soal: [
         {
           q: "Kapten Bajak Laut memiliki tali tambang sepanjang 3/4 meter, lalu disambung lagi dengan 1/2 meter. Berapa meter total panjang tali tambang sekarang?",
@@ -1021,6 +1028,188 @@
     // 3. INISIALISASI THREE.JS SCENE, RENDERER, LIGHTS, & PROCEDURAL PAPER TEXTURES
     // ============================================================================
     const container = document.getElementById('canvas-container');
+
+    // --- DECK STORAGE & MANAGEMENT SYSTEM ---
+    let CARD_BANK = null;
+
+    function initDeckBank() {
+      try {
+        const stored = localStorage.getItem('harta_karun_deck_cards_v1');
+        if (stored) {
+          CARD_BANK = JSON.parse(stored);
+        } else {
+          CARD_BANK = JSON.parse(JSON.stringify(DEFAULT_CARD_BANK));
+          saveDeckBankToStorage();
+        }
+      } catch (e) {
+        console.warn('Storage read error, using defaults', e);
+        CARD_BANK = JSON.parse(JSON.stringify(DEFAULT_CARD_BANK));
+      }
+    }
+
+    function saveDeckBankToStorage() {
+      try {
+        localStorage.setItem('harta_karun_deck_cards_v1', JSON.stringify(CARD_BANK));
+      } catch (e) {
+        console.error('Storage write error', e);
+      }
+    }
+
+    initDeckBank();
+
+    function openDeckManagerModal() {
+      initDeckBank();
+      renderDeckCardList();
+      const modal = document.getElementById('deck-manager-modal');
+      if (modal) modal.style.display = 'flex';
+    }
+
+    function closeDeckManagerModal() {
+      const modal = document.getElementById('deck-manager-modal');
+      if (modal) modal.style.display = 'none';
+    }
+
+    function renderDeckCardList() {
+      const container = document.getElementById('deck-card-list-container');
+      const filterType = document.getElementById('deck-filter-type')?.value || 'all';
+      if (!container || !CARD_BANK) return;
+
+      container.innerHTML = '';
+      let total = 0;
+
+      const categoryLabels = {
+        soal: { label: '📘 Soal Kuis', color: '#0284c7', bg: '#f0f9ff' },
+        misi: { label: '🔍 Misi', color: '#b45309', bg: '#fffbeb' },
+        tantangan: { label: '⚡ Tantangan', color: '#c2410c', bg: '#fff7ed' },
+        bonus: { label: '⭐ Bonus', color: '#a16207', bg: '#fefce8' },
+        jebakan: { label: '⚠️ Jebakan', color: '#b91c1c', bg: '#fef2f2' }
+      };
+
+      Object.keys(CARD_BANK).forEach(cat => {
+        if (filterType !== 'all' && filterType !== cat) return;
+        const list = CARD_BANK[cat] || [];
+        total += list.length;
+
+        list.forEach((card, idx) => {
+          const catMeta = categoryLabels[cat] || { label: cat, color: '#333', bg: '#f8fafc' };
+          const cardDiv = document.createElement('div');
+          cardDiv.style.cssText = 'background:' + catMeta.bg + '; border:1px solid #cbd5e1; border-left:4px solid ' + catMeta.color + '; border-radius:8px; padding:10px 14px; display:flex; justify-content:space-between; align-items:flex-start; gap:12px;';
+
+          const optsHtml = (card.opts || []).map((opt, oIdx) => {
+            const isCorrect = oIdx === card.ans;
+            return '<div style="font-size:12px; margin-top:2px; ' + (isCorrect ? 'color:#15803d; font-weight:bold;' : 'color:#64748b;') + '">' + (isCorrect ? '✓ ' : '• ') + opt + '</div>';
+          }).join('');
+
+          cardDiv.innerHTML = `
+            <div style="flex:1;">
+              <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
+                <span style="font-size:11px; font-weight:bold; background:${catMeta.color}; color:#fff; padding:2px 8px; border-radius:4px;">${catMeta.label} #${idx + 1}</span>
+                <span style="font-size:11px; font-weight:600; color:#64748b;">Efek: ${card.steps >= 0 ? '+' : ''}${card.steps} Petak</span>
+              </div>
+              <div style="font-size:13px; font-weight:bold; color:#1e293b; margin-bottom:4px;">${card.q || card.text || '(Tanpa judul)'}</div>
+              ${optsHtml ? `<div style="background:rgba(255,255,255,0.7); padding:6px 10px; border-radius:6px; margin-top:6px;">${optsHtml}</div>` : ''}
+              ${card.exp ? `<div style="font-size:11px; color:#475569; margin-top:6px; font-style:italic;">💡 Pembahasan: ${card.exp}</div>` : ''}
+            </div>
+            <div>
+              <button onclick="deleteDeckCard('${cat}', ${idx})" style="padding:4px 8px; font-size:11px; background:#fee2e2; color:#ef4444; border:1px solid #fca5a5; border-radius:6px; cursor:pointer; font-weight:bold;">🗑️ Hapus</button>
+            </div>
+          `;
+          container.appendChild(cardDiv);
+        });
+      });
+
+      const badge = document.getElementById('deck-total-count-badge');
+      if (badge) badge.textContent = `${total} Kartu Tersedia`;
+    }
+
+    function saveNewDeckCard() {
+      const type = document.getElementById('new-card-type').value;
+      const steps = parseInt(document.getElementById('new-card-steps').value) || 0;
+      const q = document.getElementById('new-card-q').value.trim();
+      const rawOpts = document.getElementById('new-card-opts').value.trim();
+      const ans = parseInt(document.getElementById('new-card-ans').value) || 0;
+      const exp = document.getElementById('new-card-exp').value.trim();
+
+      if (!q) {
+        alert('Harap masukkan pertanyaan atau teks kartu!');
+        return;
+      }
+
+      let opts = [];
+      if (rawOpts) {
+        opts = rawOpts.split('\n').map(o => o.trim()).filter(o => o.length > 0);
+      } else {
+        opts = ['Lanjutkan Petualangan'];
+      }
+
+      if (!CARD_BANK[type]) CARD_BANK[type] = [];
+      CARD_BANK[type].push({
+        id: 'custom_' + Date.now(),
+        q: q,
+        opts: opts,
+        ans: Math.min(ans, opts.length - 1),
+        exp: exp,
+        steps: steps
+      });
+
+      saveDeckBankToStorage();
+      renderDeckCardList();
+
+      document.getElementById('new-card-q').value = '';
+      document.getElementById('new-card-opts').value = '';
+      document.getElementById('new-card-exp').value = '';
+      alert('Kartu baru berhasil disimpan ke Dek!');
+    }
+
+    function deleteDeckCard(cat, index) {
+      if (!confirm('Yakin ingin menghapus kartu ini dari dek?')) return;
+      if (CARD_BANK[cat] && CARD_BANK[cat][index]) {
+        CARD_BANK[cat].splice(index, 1);
+        saveDeckBankToStorage();
+        renderDeckCardList();
+      }
+    }
+
+    function resetDeckToDefault() {
+      if (!confirm('Peringatan: Semua kartu kustom akan dihapus dan dek akan dikembalikan ke soal default bawaan. Lanjutkan?')) return;
+      CARD_BANK = JSON.parse(JSON.stringify(DEFAULT_CARD_BANK));
+      saveDeckBankToStorage();
+      renderDeckCardList();
+      alert('Dek kartu berhasil di-reset ke pengaturan awal!');
+    }
+
+    function exportDeckJSON() {
+      const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(CARD_BANK, null, 2));
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute('href', dataStr);
+      downloadAnchor.setAttribute('download', 'bank_kartu_harta_karun.json');
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+    }
+
+    function importDeckJSON(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const parsed = JSON.parse(e.target.result);
+          if (typeof parsed === 'object') {
+            CARD_BANK = parsed;
+            saveDeckBankToStorage();
+            renderDeckCardList();
+            alert('Dek kartu berhasil diimpor!');
+          } else {
+            alert('Format file JSON tidak valid!');
+          }
+        } catch (err) {
+          alert('Gagal membaca file JSON: ' + err.message);
+        }
+      };
+      reader.readAsText(file);
+    }
+
     const scene = new THREE.Scene();
 
     const camera = new THREE.PerspectiveCamera(42, window.innerWidth / window.innerHeight, 0.1, 300);
@@ -2365,5 +2554,97 @@
       renderer.setSize(window.innerWidth, window.innerHeight);
     });
   </script>
+
+  <!-- MODAL DECK MANAGER INTERAKTIF -->
+  <div class="modal-backdrop" id="deck-manager-modal" style="display:none;">
+    <div class="modal-box" style="max-width:760px; max-height:88vh; display:flex; flex-direction:column;">
+      <div class="modal-header" style="background:#4338ca; border-bottom:3px solid #312e81;">
+        <h2 style="color:#fff; font-size:18px; margin:0;">🃏 Manajemen Dek Kartu & Soal Matematika SD</h2>
+        <button class="close-modal" onclick="closeDeckManagerModal()" style="color:#fff; background:rgba(255,255,255,0.2);">✕</button>
+      </div>
+      <div class="modal-body" style="flex:1; overflow-y:auto; padding:16px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:12px; background:#f8fafc; padding:10px; border-radius:8px; border:1px solid #e2e8f0;">
+          <div style="font-size:13px; font-weight:bold; color:#1e293b;">
+            Filter Tipe:
+            <select id="deck-filter-type" onchange="renderDeckCardList()" style="padding:4px 8px; border-radius:6px; border:1px solid #cbd5e1; margin-left:6px;">
+              <option value="all">Semua Kategori</option>
+              <option value="soal">📘 Kuis Soal Matematika</option>
+              <option value="misi">🔍 Misi Pemecahan Masalah</option>
+              <option value="tantangan">⚡ Tantangan Kilat</option>
+              <option value="bonus">⭐ Kartu Bonus Langkah</option>
+              <option value="jebakan">⚠️ Kartu Jebakan</option>
+            </select>
+          </div>
+          <div style="display:flex; gap:6px;">
+            <button onclick="exportDeckJSON()" style="padding:6px 10px; font-size:12px; font-weight:bold; background:#059669; color:white; border:none; border-radius:6px; cursor:pointer;">📥 Unduh JSON</button>
+            <label style="padding:6px 10px; font-size:12px; font-weight:bold; background:#0284c7; color:white; border-radius:6px; cursor:pointer; margin:0;">
+              📤 Unggah JSON
+              <input type="file" id="deck-import-file" accept=".json" onchange="importDeckJSON(event)" style="display:none;">
+            </label>
+            <button onclick="resetDeckToDefault()" style="padding:6px 10px; font-size:12px; font-weight:bold; background:#e11d48; color:white; border:none; border-radius:6px; cursor:pointer;">🔄 Reset Awal</button>
+          </div>
+        </div>
+
+        <!-- FORM TAMBAH / EDIT KARTU -->
+        <details id="card-form-details" style="background:#f1f5f9; padding:12px; border-radius:8px; margin-bottom:16px; border:1px solid #cbd5e1;">
+          <summary style="font-weight:bold; cursor:pointer; color:#334155; font-size:14px;">➕ Tambah Kartu / Soal Baru (Klik di sini)</summary>
+          <div style="display:flex; flex-direction:column; gap:10px; margin-top:12px;">
+            <div style="display:flex; gap:10px;">
+              <div style="flex:1;">
+                <label style="display:block; font-size:12px; font-weight:bold; color:#475569;">Kategori Kartu:</label>
+                <select id="new-card-type" style="width:100%; padding:6px; border-radius:6px; border:1px solid #cbd5e1;">
+                  <option value="soal">📘 Soal Kuis Matematika</option>
+                  <option value="misi">🔍 Misi Matematika</option>
+                  <option value="tantangan">⚡ Tantangan Kilat</option>
+                  <option value="bonus">⭐ Bonus Langkah</option>
+                  <option value="jebakan">⚠️ Jebakan</option>
+                </select>
+              </div>
+              <div style="width:110px;">
+                <label style="display:block; font-size:12px; font-weight:bold; color:#475569;">Efek Langkah:</label>
+                <input type="number" id="new-card-steps" value="2" style="width:100%; padding:6px; border-radius:6px; border:1px solid #cbd5e1;">
+              </div>
+            </div>
+
+            <div>
+              <label style="display:block; font-size:12px; font-weight:bold; color:#475569;">Pertanyaan / Perintah Kartu:</label>
+              <textarea id="new-card-q" rows="2" placeholder="Contoh: Berapakah hasil dari 3/4 + 1/2?" style="width:100%; padding:8px; border-radius:6px; border:1px solid #cbd5e1; font-family:inherit;"></textarea>
+            </div>
+
+            <div>
+              <label style="display:block; font-size:12px; font-weight:bold; color:#475569;">4 Pilihan Jawaban (Pisahkan dengan baris baru):</label>
+              <textarea id="new-card-opts" rows="4" placeholder="A. 1 1/4&#10;B. 1 1/2&#10;C. 2&#10;D. 1" style="width:100%; padding:8px; border-radius:6px; border:1px solid #cbd5e1; font-family:inherit;"></textarea>
+            </div>
+
+            <div style="display:flex; gap:10px;">
+              <div style="flex:1;">
+                <label style="display:block; font-size:12px; font-weight:bold; color:#475569;">Kunci Jawaban Yang Benar:</label>
+                <select id="new-card-ans" style="width:100%; padding:6px; border-radius:6px; border:1px solid #cbd5e1;">
+                  <option value="0">Pilihan 1 (A)</option>
+                  <option value="1">Pilihan 2 (B)</option>
+                  <option value="2">Pilihan 3 (C)</option>
+                  <option value="3">Pilihan 4 (D)</option>
+                </select>
+              </div>
+              <div style="flex:2;">
+                <label style="display:block; font-size:12px; font-weight:bold; color:#475569;">Pembahasan / Catatan Solusi:</label>
+                <input type="text" id="new-card-exp" placeholder="Contoh: Samakan penyebut 3/4 + 2/4 = 5/4 = 1 1/4" style="width:100%; padding:6px; border-radius:6px; border:1px solid #cbd5e1;">
+              </div>
+            </div>
+
+            <button onclick="saveNewDeckCard()" style="margin-top:6px; padding:8px 16px; background:#4f46e5; color:white; border:none; border-radius:6px; font-weight:bold; cursor:pointer;">💾 Simpan Kartu ke Dek</button>
+          </div>
+        </details>
+
+        <!-- DAFTAR KARTU -->
+        <h4 style="margin:0 0 8px 0; color:#1e293b; font-size:14px; display:flex; justify-content:space-between;">
+          <span>Daftar Kartu Aktif</span>
+          <span id="deck-total-count-badge" style="background:#e2e8f0; padding:2px 8px; border-radius:12px; font-size:12px;">0 Kartu</span>
+        </h4>
+        <div id="deck-card-list-container" style="display:flex; flex-direction:column; gap:8px;"></div>
+      </div>
+    </div>
+  </div>
+
 </body>
 </html>
