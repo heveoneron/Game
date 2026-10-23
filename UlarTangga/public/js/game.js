@@ -974,8 +974,13 @@ function triggerGameFinish(winnerNum) {
 
     const winnerTitle = document.getElementById('winnerTitle');
     const winnerAvatarBox = document.getElementById('winnerAvatarBox');
+    const winnerWishlistEl = document.getElementById('winnerWishlistText');
     if (winnerTitle) winnerTitle.innerText = `${winner.name} Juara! 🏆`;
     if (winnerAvatarBox) winnerAvatarBox.innerText = winner.avatar;
+    if (winnerWishlistEl) {
+        const reward = winner.wishlist ? `❤️ <b>${winner.name}</b> berhak mendapatkan hadiah impiannya:<br/><span style="color:#b45309; font-size:1.05rem;">“${winner.wishlist}”</span><br/>Pasangan wajib menuruti janji ini hari ini tanpa menolak! 🎁` : `❤️ <b>Selamat!</b> Pasanganmu wajib menuruti <b>1 permintaan spesial atau hadiah impian</b> darimu hari ini tanpa boleh menolak! 🎁`;
+        winnerWishlistEl.innerHTML = reward;
+    }
 
     playSynthSound('ladder');
     if (typeof confetti === 'function') {
@@ -1327,6 +1332,40 @@ function closeCardModal() {
         ws.send(JSON.stringify({ type: "CLOSE_MODAL" }));
     }
 }
+
+
+function skipCurrentChallenge() {
+    if (!confirm('Apakah kamu ingin melewati tantangan ini dengan konsekuensi penalti mundur 3 petak?')) return;
+    
+    closeCardModal();
+    const pNum = gameState.turn;
+    const currentPos = pNum === 1 ? gameState.p1Pos : gameState.p2Pos;
+    const targetPos = Math.max(1, currentPos - 3);
+
+    if (pNum === 1) gameState.p1Pos = targetPos;
+    else gameState.p2Pos = targetPos;
+
+    updatePawnsUI();
+    playSfx('snake');
+
+    const pName = pNum === 1 ? gameState.p1Info.name : gameState.p2Info.name;
+    const logEl = document.getElementById('gameLog');
+    if (logEl) {
+        const item = document.createElement('div');
+        item.className = 'text-xs text-rose-700 bg-rose-50 border border-rose-200 p-2 rounded-lg mb-1 font-bold';
+        item.innerText = `⚠️ ${pName} memilih skip tantangan dan terkena penalti mundur 3 petak (ke kotak ${targetPos}).`;
+        logEl.prepend(item);
+    }
+
+    if (gameState.isOnline && gameState.ws && gameState.ws.readyState === WebSocket.OPEN) {
+        gameState.ws.send(JSON.stringify({
+            type: 'SKIP_CHALLENGE',
+            player: pNum,
+            newPos: targetPos
+        }));
+    }
+}
+window.skipCurrentChallenge = skipCurrentChallenge;
 
 function completeCardModal() {
     confetti({ particleCount: 45, spread: 65, origin: { y: 0.6 } });
@@ -1757,8 +1796,10 @@ function openPlayerModal() {
     document.getElementById('playerModal').classList.add('flex');
     document.getElementById('p1NameInput').value = gameState.p1Info.name;
     document.getElementById('p1AvatarSelect').value = gameState.p1Info.avatar;
+    if (document.getElementById('p1WishlistInput')) document.getElementById('p1WishlistInput').value = gameState.p1Info.wishlist || '';
     document.getElementById('p2NameInput').value = gameState.p2Info.name;
     document.getElementById('p2AvatarSelect').value = gameState.p2Info.avatar;
+    if (document.getElementById('p2WishlistInput')) document.getElementById('p2WishlistInput').value = gameState.p2Info.wishlist || '';
 }
 
 function closePlayerModal() {
@@ -1769,8 +1810,10 @@ function closePlayerModal() {
 function savePlayerSettings() {
     gameState.p1Info.name = document.getElementById('p1NameInput').value.trim() || "Pemain 1";
     gameState.p1Info.avatar = document.getElementById('p1AvatarSelect').value;
+    if (document.getElementById('p1WishlistInput')) gameState.p1Info.wishlist = document.getElementById('p1WishlistInput').value.trim();
     gameState.p2Info.name = document.getElementById('p2NameInput').value.trim() || "Pemain 2";
     gameState.p2Info.avatar = document.getElementById('p2AvatarSelect').value;
+    if (document.getElementById('p2WishlistInput')) gameState.p2Info.wishlist = document.getElementById('p2WishlistInput').value.trim();
 
     localStorage.setItem('couple_ut_p1', JSON.stringify(gameState.p1Info));
     localStorage.setItem('couple_ut_p2', JSON.stringify(gameState.p2Info));

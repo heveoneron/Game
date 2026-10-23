@@ -1,0 +1,1059 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ular Tangga Pasangan - 3D Playful & Doodle Edition</title>
+  <!-- Google Fonts: Fredoka (3D Playful), Caveat (Pencil Handwriting), JetBrains Mono (Timer) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Fredoka:wght@500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg-cream: #FFF8F6;
+      --paper-grid: rgba(244, 63, 94, 0.06);
+      --pencil-stroke: #57534E;
+      --pencil-accent: #E11D48;
+      
+      --rose-main: #F43F5E;
+      --rose-dark: #BE123C;
+      
+      --blue-truth: #3B82F6;
+      --blue-dark: #1D4ED8;
+      
+      --pink-dare: #EC4899;
+      --pink-dark: #BE185D;
+      
+      --amber-skill: #F59E0B;
+      --amber-dark: #B45309;
+
+      --violet-destiny: #8B5CF6;
+      --violet-dark: #5B21B6;
+
+      --emerald-ladder: #10B981;
+      --emerald-dark: #047857;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: var(--bg-cream);
+      /* Efek Kertas Buku Sketsa / Dottled Notebook */
+      background-image: 
+        radial-gradient(var(--paper-grid) 2px, transparent 2px),
+        radial-gradient(var(--paper-grid) 2px, var(--bg-cream) 2px);
+      background-size: 32px 32px;
+      background-position: 0 0, 16px 16px;
+      color: #292524;
+      min-height: 100vh;
+      overflow-x: hidden;
+      position: relative;
+      padding-bottom: 180px; /* Ruang untuk Bottom Sheet */
+    }
+
+    /* =========================================================
+       1. PENCIL ART DOODLES (BACKGROUND & ANNOTATIONS)
+       ========================================================= */
+    .doodle-layer {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+
+    .pencil-doodle {
+      position: absolute;
+      fill: none;
+      stroke: var(--pencil-stroke);
+      stroke-width: 2.2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      opacity: 0.35;
+      filter: url(#pencil-texture);
+      animation: floatDoodle 6s ease-in-out infinite alternate;
+    }
+
+    .pencil-doodle.rose {
+      stroke: var(--pencil-accent);
+      opacity: 0.45;
+    }
+
+    @keyframes floatDoodle {
+      0% { transform: translateY(0px) rotate(-3deg); }
+      100% { transform: translateY(-10px) rotate(4deg); }
+    }
+
+    .handwritten-note {
+      font-family: 'Caveat', cursive;
+      font-size: 1.35rem;
+      color: var(--pencil-accent);
+      transform: rotate(-4deg);
+      display: inline-block;
+      line-height: 1.1;
+    }
+
+    /* =========================================================
+       2. STICKY TOP BAR (RINGKAS UNTUK MOBILE & DESKTOP)
+       ========================================================= */
+    .sticky-topbar {
+      position: sticky;
+      top: 12px;
+      z-index: 20;
+      max-width: 540px;
+      margin: 0 auto 16px;
+      padding: 0 14px;
+    }
+
+    .topbar-card {
+      background: #FFFFFF;
+      border: 3px solid #292524;
+      border-radius: 22px;
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 6px 0 #292524, 0 10px 20px rgba(0,0,0,0.08);
+    }
+
+    .player-pill {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      border-radius: 14px;
+      background: #F5F5F4;
+      border: 2px solid transparent;
+      transition: all 0.25s ease;
+    }
+
+    .player-pill.active {
+      background: #FFE4E6;
+      border-color: var(--rose-main);
+      transform: scale(1.04);
+      box-shadow: 0 3px 0 var(--rose-main);
+    }
+
+    .player-avatar {
+      font-size: 1.4rem;
+      filter: drop-shadow(0 2px 2px rgba(0,0,0,0.15));
+    }
+
+    .player-info h4 {
+      font-family: 'Fredoka', sans-serif;
+      font-size: 0.85rem;
+      line-height: 1.1;
+    }
+
+    .player-info span {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--rose-main);
+    }
+
+    .vs-badge {
+      font-family: 'Caveat', cursive;
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--pencil-stroke);
+    }
+
+    /* =========================================================
+       3. PLAYFUL 3D BOARD CANVAS (MINI SHOWCASE GRID)
+       ========================================================= */
+    .board-wrapper {
+      position: relative;
+      z-index: 5;
+      max-width: 520px;
+      margin: 0 auto;
+      padding: 0 14px;
+    }
+
+    .doodle-header-tag {
+      text-align: center;
+      margin-bottom: 10px;
+    }
+
+    .board-3d-frame {
+      background: #FFFFFF;
+      border: 3.5px solid #292524;
+      border-radius: 28px;
+      padding: 16px;
+      box-shadow: 
+        0 12px 0 #292524,
+        0 20px 30px rgba(41, 37, 36, 0.15);
+      position: relative;
+    }
+
+    .board-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 10px;
+      perspective: 800px;
+    }
+
+    /* Efek 3D Tactile Tile */
+    .tile-3d {
+      aspect-ratio: 1 / 1;
+      background: #FAF5FF;
+      border: 2.5px solid #292524;
+      border-radius: 16px;
+      box-shadow: 0 5px 0 #292524;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      font-family: 'Fredoka', sans-serif;
+      font-weight: 700;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.15s ease;
+    }
+
+    .tile-3d:nth-child(odd) {
+      background: #FFF1F2;
+    }
+
+    .tile-3d:active {
+      transform: translateY(4px);
+      box-shadow: 0 1px 0 #292524;
+    }
+
+    /* Landmark Tiles 21 & 57 */
+    .tile-3d.destiny {
+      background: linear-gradient(135deg, #EDE9FE, #DDD6FE);
+      border-color: var(--violet-dark);
+      box-shadow: 0 5px 0 var(--violet-dark);
+      color: var(--violet-dark);
+      animation: destinyPulse 2.2s infinite ease-in-out;
+    }
+
+    @keyframes destinyPulse {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-3px); }
+    }
+
+    .tile-3d.ladder {
+      background: #ECFDF5;
+      border-color: var(--emerald-dark);
+      box-shadow: 0 5px 0 var(--emerald-dark);
+    }
+
+    .tile-icon {
+      font-size: 1.15rem;
+      margin-top: 2px;
+    }
+
+    /* Pion 3D */
+    .pawn-3d {
+      position: absolute;
+      top: -10px;
+      right: -6px;
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: var(--rose-main);
+      border: 2.5px solid #292524;
+      box-shadow: 0 4px 0 #292524;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      z-index: 10;
+      animation: pawnBounce 1.2s infinite alternate ease-in-out;
+    }
+
+    @keyframes pawnBounce {
+      from { transform: translateY(0); }
+      to { transform: translateY(-6px); }
+    }
+
+    /* =========================================================
+       4. MOBILE BOTTOM SHEET (3D TACTILE THUMB ZONE)
+       ========================================================= */
+    .bottom-sheet-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(25, 21, 34, 0.35);
+      backdrop-filter: blur(2px);
+      z-index: 35;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    .bottom-sheet-backdrop.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .bottom-sheet {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 40;
+      max-width: 540px;
+      margin: 0 auto;
+      background: #FFFFFF;
+      border-top: 3.5px solid #292524;
+      border-left: 3.5px solid #292524;
+      border-right: 3.5px solid #292524;
+      border-radius: 30px 30px 0 0;
+      box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.12);
+      transform: translateY(calc(100% - 138px)); /* Hanya tampilkan Primary Bar saat collapsed */
+      transition: transform 0.38s cubic-bezier(0.32, 1.25, 0.37, 1);
+      padding: 10px 18px 24px;
+    }
+
+    .bottom-sheet.expanded {
+      transform: translateY(0%);
+    }
+
+    .sheet-drag-handle {
+      width: 100%;
+      padding: 6px 0 10px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .handle-pill {
+      width: 48px;
+      height: 6px;
+      background: #D6D3D1;
+      border-radius: 99px;
+      border: 1.5px solid #292524;
+    }
+
+    .handle-hint {
+      font-family: 'Caveat', cursive;
+      font-size: 1.05rem;
+      color: #78716C;
+    }
+
+    /* Baris Utama (Selalu Terlihat di Thumb Zone) */
+    .sheet-primary-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    /* Tombol 3D Umum */
+    .btn-3d {
+      font-family: 'Fredoka', sans-serif;
+      font-weight: 700;
+      border: 2.5px solid #292524;
+      border-radius: 18px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: transform 0.12s ease, box-shadow 0.12s ease;
+    }
+
+    .btn-3d:active {
+      transform: translateY(5px) !important;
+      box-shadow: 0 1px 0 #292524 !important;
+    }
+
+    /* Tombol Kocok Dadu Utama */
+    .btn-roll-dice {
+      flex: 1;
+      background: linear-gradient(180deg, #FB7185 0%, var(--rose-main) 100%);
+      color: #FFFFFF;
+      font-size: 1.15rem;
+      padding: 14px 20px;
+      box-shadow: 0 6px 0 var(--rose-dark), 0 8px 0 #292524;
+      text-shadow: 0 2px 0 rgba(0,0,0,0.2);
+    }
+
+    .btn-skill-toggle {
+      background: #FEF3C7;
+      color: #92400E;
+      padding: 14px;
+      font-size: 1rem;
+      box-shadow: 0 6px 0 var(--amber-dark), 0 8px 0 #292524;
+    }
+
+    /* Konten Drawer Saat Bottom Sheet Di-expand */
+    .sheet-drawer-content {
+      border-top: 2px dashed #E7E5E4;
+      padding-top: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .drawer-section-title {
+      font-family: 'Fredoka', sans-serif;
+      font-size: 0.9rem;
+      color: #57534E;
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    /* Deretan Angka Langkah Pasti (1-6) */
+    .deterministic-dice-grid {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 8px;
+    }
+
+    .btn-step-num {
+      background: #FFFBEB;
+      border: 2px solid #292524;
+      border-radius: 12px;
+      padding: 10px 0;
+      font-family: 'Fredoka', sans-serif;
+      font-weight: 700;
+      font-size: 1rem;
+      box-shadow: 0 4px 0 #292524;
+      cursor: pointer;
+    }
+
+    .btn-step-num:hover {
+      background: #FDE68A;
+    }
+
+    /* Quick Emoji Bar */
+    .emoji-bar {
+      display: flex;
+      justify-content: space-between;
+      background: #F5F5F4;
+      border: 2px solid #292524;
+      border-radius: 16px;
+      padding: 8px 12px;
+    }
+
+    .emoji-btn {
+      background: none;
+      border: none;
+      font-size: 1.45rem;
+      cursor: pointer;
+      transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .emoji-btn:hover {
+      transform: scale(1.3) rotate(8deg);
+    }
+
+    /* =========================================================
+       5. 3D CARD FLIP MODAL (STAGE 1 CHOICE -> STAGE 2 FLIP)
+       ========================================================= */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(26, 22, 37, 0.72);
+      backdrop-filter: blur(5px);
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    .modal-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    /* Perspektif 3D Container */
+    .card-3d-scene {
+      width: 100%;
+      max-width: 390px;
+      height: 490px;
+      perspective: 1400px;
+    }
+
+    .card-3d-inner {
+      width: 100%;
+      height: 100%;
+      position: relative;
+      transform-style: preserve-3d;
+      transition: transform 0.8s cubic-bezier(0.34, 1.45, 0.64, 1);
+    }
+
+    /* Class yang memicu putaran 3D 180 derajat */
+    .card-3d-inner.is-flipped {
+      transform: rotateY(180deg);
+    }
+
+    .card-face {
+      position: absolute;
+      inset: 0;
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+      background: #FFFFFF;
+      border: 4px solid #292524;
+      border-radius: 30px;
+      box-shadow: 0 14px 0 #292524, 0 25px 50px rgba(0,0,0,0.35);
+      padding: 24px 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      overflow: hidden;
+    }
+
+    /* Dekorasi Sudut Sketsa di Dalam Kartu */
+    .card-face::before {
+      content: "";
+      position: absolute;
+      inset: 8px;
+      border: 2px dashed rgba(41, 37, 36, 0.2);
+      border-radius: 22px;
+      pointer-events: none;
+    }
+
+    /* --- SISI DEPAN: PILIH JALUR TANTANGAN (STAGE 1) --- */
+    .card-front {
+      background: linear-gradient(180deg, #FFFDF9 0%, #FFF1F2 100%);
+      text-align: center;
+    }
+
+    .tile-badge-pill {
+      display: inline-block;
+      background: #FFE4E6;
+      color: var(--rose-dark);
+      border: 2px solid #292524;
+      border-radius: 99px;
+      padding: 5px 14px;
+      font-family: 'Fredoka', sans-serif;
+      font-weight: 700;
+      font-size: 0.85rem;
+      box-shadow: 0 3px 0 #292524;
+      margin-bottom: 8px;
+    }
+
+    .card-front h3 {
+      font-family: 'Fredoka', sans-serif;
+      font-size: 1.65rem;
+      color: #292524;
+    }
+
+    .choice-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin: 12px 0;
+    }
+
+    .btn-choice-3d {
+      padding: 15px 16px;
+      border-radius: 20px;
+      color: #FFFFFF;
+      font-size: 1.05rem;
+      justify-content: space-between;
+    }
+
+    .btn-choice-truth {
+      background: var(--blue-truth);
+      box-shadow: 0 6px 0 var(--blue-dark), 0 8px 0 #292524;
+    }
+
+    .btn-choice-dare {
+      background: var(--pink-dare);
+      box-shadow: 0 6px 0 var(--pink-dark), 0 8px 0 #292524;
+    }
+
+    .btn-choice-random {
+      background: var(--violet-destiny);
+      box-shadow: 0 6px 0 var(--violet-dark), 0 8px 0 #292524;
+    }
+
+    /* --- SISI BELAKANG: ISI PERTANYAAN & TIMER (STAGE 2) --- */
+    .card-back {
+      transform: rotateY(180deg);
+      background: #FFFFFF;
+    }
+
+    .card-back-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .tag-chip {
+      font-family: 'Fredoka', sans-serif;
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 10px;
+      border: 2px solid #292524;
+      box-shadow: 0 2px 0 #292524;
+    }
+
+    .tag-chip.type-truth { background: #DBEAFE; color: var(--blue-dark); }
+    .tag-chip.type-dare { background: #FCE7F3; color: var(--pink-dark); }
+    .tag-chip.love-lang { background: #FEF3C7; color: var(--amber-dark); }
+
+    /* Kotak Pertanyaan dengan Goresan Pensil */
+    .prompt-paper-box {
+      background: #FFFBEB;
+      border: 2.5px solid #292524;
+      border-radius: 20px;
+      padding: 20px 16px;
+      box-shadow: inset 0 2px 6px rgba(0,0,0,0.04);
+      position: relative;
+      text-align: center;
+      margin: 8px 0;
+    }
+
+    .prompt-text {
+      font-size: 1.12rem;
+      font-weight: 700;
+      line-height: 1.45;
+      color: #1C1917;
+    }
+
+    /* Countdown Timer 30s */
+    .timer-3d-box {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      background: #F5F5F4;
+      border: 2.5px solid #292524;
+      border-radius: 16px;
+      padding: 10px 16px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1.45rem;
+      font-weight: 700;
+      box-shadow: 0 4px 0 #292524;
+      transition: all 0.25s ease;
+    }
+
+    /* Efek Heartbeat saat < 10 detik */
+    .timer-3d-box.danger {
+      background: #FFE4E6;
+      color: #E11D48;
+      border-color: #E11D48;
+      animation: timerHeartbeat 0.6s infinite alternate;
+    }
+
+    @keyframes timerHeartbeat {
+      from { transform: scale(1); }
+      to { transform: scale(1.06); }
+    }
+
+    .card-back-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    .btn-skip-penalty {
+      flex: 1;
+      background: #F5F5F4;
+      color: #57534E;
+      padding: 12px;
+      font-size: 0.85rem;
+      box-shadow: 0 4px 0 #292524;
+    }
+
+    .btn-done-challenge {
+      flex: 1.5;
+      background: var(--emerald-ladder);
+      color: #FFFFFF;
+      padding: 12px;
+      font-size: 0.95rem;
+      box-shadow: 0 5px 0 var(--emerald-dark), 0 7px 0 #292524;
+    }
+
+    /* Floating Emoji Pop */
+    .floating-emoji {
+      position: fixed;
+      bottom: 120px;
+      left: 50%;
+      font-size: 2.5rem;
+      pointer-events: none;
+      z-index: 90;
+      animation: floatUpEmoji 1.6s ease-out forwards;
+    }
+
+    @keyframes floatUpEmoji {
+      0% { transform: translate(-50%, 0) scale(0.5); opacity: 1; }
+      100% { transform: translate(-50%, -180px) scale(1.4) rotate(12deg); opacity: 0; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- =========================================================
+       SVG FILTER & PENCIL ART DOODLE LAYER
+       ========================================================= -->
+  <svg width="0" height="0" style="position:absolute">
+    <filter id="pencil-texture">
+      <feTurbulence type="fractalNoise" baseFrequency="0.04" numOctaves="3" result="noise" />
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="2.5" />
+    </filter>
+  </svg>
+
+  <div class="doodle-layer">
+    <!-- Doodle Hati Sketsa Pensil (Kiri Atas) -->
+    <svg class="pencil-doodle rose" style="top: 8%; left: 5%; width: 70px; height: 70px;" viewBox="0 0 100 100">
+      <path d="M50 82 C20 60 10 38 25 22 C36 12 48 22 50 30 C52 22 64 12 75 22 C90 38 80 60 50 82 Z" />
+      <path d="M28 28 C23 35 25 45 32 52" stroke-dasharray="4 4" />
+    </svg>
+
+    <!-- Doodle Pesawat Kertas LDR (Kanan Atas) -->
+    <svg class="pencil-doodle" style="top: 12%; right: 6%; width: 85px; height: 85px;" viewBox="0 0 100 100">
+      <path d="M10 50 L90 15 L65 85 L45 58 Z" />
+      <path d="M90 15 L45 58 L45 80 L55 66" />
+      <path d="M5 75 Q 25 65, 35 78" stroke-dasharray="5 5" />
+    </svg>
+
+    <!-- Doodle Bintang & Spiral Sketsa (Kiri Bawah) -->
+    <svg class="pencil-doodle" style="bottom: 24%; left: 4%; width: 65px; height: 65px;" viewBox="0 0 100 100">
+      <path d="M50 10 L61 38 L90 38 L66 55 L75 85 L50 67 L25 85 L34 55 L10 38 L39 38 Z" />
+    </svg>
+  </div>
+
+  <!-- =========================================================
+       1. STICKY TOP BAR (PLAYER STATUS)
+       ========================================================= -->
+  <header class="sticky-topbar">
+    <div class="topbar-card">
+      <div class="player-pill active" id="p1-pill">
+        <span class="player-avatar">👦</span>
+        <div class="player-info">
+          <h4>Mas Ganteng</h4>
+          <span>Kotak <b id="p1-pos">14</b> • 🛡️1</span>
+        </div>
+      </div>
+
+      <span class="vs-badge">vs</span>
+
+      <div class="player-pill" id="p2-pill">
+        <span class="player-avatar">🧕</span>
+        <div class="player-info">
+          <h4>Ayang Cantik</h4>
+          <span>Kotak <b id="p2-pos">21</b> • 🛡️1</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- =========================================================
+       2. 3D BOARD SHOWCASE + PENCIL ANNOTATION
+       ========================================================= -->
+  <main class="board-wrapper">
+    <div class="doodle-header-tag">
+      <span class="handwritten-note">✨ Klik petak mana aja atau lempar dadu buat ngetes kartu 3D! 👇</span>
+    </div>
+
+    <div class="board-3d-frame">
+      <div class="board-grid">
+        <!-- Baris Simulasi Petak 11 - 25 -->
+        <div class="tile-3d" onclick="openChallengeModal(21, true)">
+          <span>21</span>
+          <span class="tile-icon">🎬</span>
+        </div>
+        <div class="tile-3d" onclick="openChallengeModal(22, false)">22</div>
+        <div class="tile-3d ladder" onclick="openChallengeModal(23, false)">
+          <span>23</span>
+          <span class="tile-icon">🪜</span>
+        </div>
+        <div class="tile-3d" onclick="openChallengeModal(24, false)">24</div>
+        <div class="tile-3d destiny" onclick="openChallengeModal(57, true)">
+          <span>57</span>
+          <span class="tile-icon">📞</span>
+        </div>
+
+        <div class="tile-3d" onclick="openChallengeModal(16, false)">16</div>
+        <div class="tile-3d" onclick="openChallengeModal(17, false)">17</div>
+        <div class="tile-3d" onclick="openChallengeModal(18, false)">18</div>
+        <div class="tile-3d" onclick="openChallengeModal(19, false)">19</div>
+        <div class="tile-3d" onclick="openChallengeModal(20, false)">20</div>
+
+        <div class="tile-3d" onclick="openChallengeModal(11, false)">11</div>
+        <div class="tile-3d" onclick="openChallengeModal(12, false)">12</div>
+        <div class="tile-3d" onclick="openChallengeModal(13, false)">13</div>
+        <div class="tile-3d" onclick="openChallengeModal(14, false)">
+          <span>14</span>
+          <!-- Pion Aktif 3D -->
+          <div class="pawn-3d" title="Mas Ganteng">👦</div>
+        </div>
+        <div class="tile-3d" onclick="openChallengeModal(15, false)">15</div>
+      </div>
+    </div>
+  </main>
+
+  <!-- =========================================================
+       3. MOBILE BOTTOM SHEET (COLLAPSIBLE THUMB CONTROL)
+       ========================================================= -->
+  <div class="bottom-sheet-backdrop" id="sheetBackdrop" onclick="toggleBottomSheet(false)"></div>
+
+  <section class="bottom-sheet" id="bottomSheet">
+    <!-- Drag Handle -->
+    <div class="sheet-drag-handle" onclick="toggleBottomSheet()">
+      <div class="handle-pill"></div>
+      <span class="handle-hint" id="sheetHint">▲ Tarik ke atas buat Skill & Emoji</span>
+    </div>
+
+    <!-- Primary Action Bar (Selalu di Jempol) -->
+    <div class="sheet-primary-bar">
+      <button class="btn-3d btn-roll-dice" onclick="simulateRollDice()">
+        <span>🎲</span> KOCOK DADU!
+      </button>
+      <button class="btn-3d btn-skill-toggle" onclick="toggleBottomSheet(true)" title="Pakai Skill Langkah Pasti">
+        ⚡ Skill
+      </button>
+    </div>
+
+    <!-- Drawer Tambahan Saat Di-Expand -->
+    <div class="sheet-drawer-content">
+      <div>
+        <div class="drawer-section-title">
+          <span>⚡ Skill Langkah Pasti (Pilih Angka Dadu):</span>
+          <span style="color: var(--rose-main);">Sisa: 1x</span>
+        </div>
+        <div class="deterministic-dice-grid">
+          <button class="btn-step-num" onclick="useDeterministicStep(1)">⚀ 1</button>
+          <button class="btn-step-num" onclick="useDeterministicStep(2)">⚁ 2</button>
+          <button class="btn-step-num" onclick="useDeterministicStep(3)">⚂ 3</button>
+          <button class="btn-step-num" onclick="useDeterministicStep(4)">⚃ 4</button>
+          <button class="btn-step-num" onclick="useDeterministicStep(5)">⚄ 5</button>
+          <button class="btn-step-num" onclick="useDeterministicStep(6)">⚅ 6</button>
+        </div>
+      </div>
+
+      <div>
+        <div class="drawer-section-title">
+          <span>💌 Kirim Reaksi Cepat ke Pasangan:</span>
+        </div>
+        <div class="emoji-bar">
+          <button class="emoji-btn" onclick="spawnEmoji('❤️')">❤️</button>
+          <button class="emoji-btn" onclick="spawnEmoji('😘')">😘</button>
+          <button class="emoji-btn" onclick="spawnEmoji('🫣')">🫣</button>
+          <button class="emoji-btn" onclick="spawnEmoji('😂')">😂</button>
+          <button class="emoji-btn" onclick="spawnEmoji('🔥')">🔥</button>
+          <button class="emoji-btn" onclick="spawnEmoji('🥺')">🥺</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================
+       4. 2-STAGE 3D CARD FLIP MODAL (TRUTH / DARE / DESTINY)
+       ========================================================= -->
+  <div class="modal-overlay" id="challengeModal">
+    <div class="card-3d-scene">
+      <div class="card-3d-inner" id="card3dInner">
+
+        <!-- SISI DEPAN (STAGE 1: PILIH JALUR) -->
+        <div class="card-face card-front">
+          <div>
+            <span class="tile-badge-pill" id="modalTileBadge">🎯 Kotak 15 Tercapai!</span>
+            <h3>Pilih Jalurmu!</h3>
+            <p class="handwritten-note" style="margin-top:4px;">Jujur-jujuran atau berani terima tantangan?</p>
+          </div>
+
+          <div class="choice-stack">
+            <button class="btn-3d btn-choice-3d btn-choice-truth" onclick="flipToQuestion('TRUTH')">
+              <span>💬 TRUTH (Deeptalk)</span>
+              <span>75 Kartu ➔</span>
+            </button>
+
+            <button class="btn-3d btn-choice-3d btn-choice-dare" onclick="flipToQuestion('DARE')">
+              <span>⚡ DARE (Aksi Seru)</span>
+              <span>75 Kartu ➔</span>
+            </button>
+
+            <button class="btn-3d btn-choice-3d btn-choice-random" onclick="flipToQuestion('RANDOM')">
+              <span>🎲 RANDOM (Terserah Takdir)</span>
+              <span>Acak ➔</span>
+            </button>
+          </div>
+
+          <p style="font-size: 0.78rem; color: #78716C;">
+            ✨ Kartu akan berputar secara 3D setelah kamu memilih!
+          </p>
+        </div>
+
+        <!-- SISI BELAKANG (STAGE 2: PERTANYAAN & TIMER 30 DETIK) -->
+        <div class="card-face card-back">
+          <div class="card-back-header">
+            <span class="tag-chip type-truth" id="cardTypeBadge">💬 TRUTH</span>
+            <span class="tag-chip love-lang" id="cardLoveLang">⏳ Quality Time</span>
+          </div>
+
+          <div class="prompt-paper-box">
+            <span class="handwritten-note" style="margin-bottom: 6px;">Pertanyaan buat kamu:</span>
+            <p class="prompt-text" id="cardPromptText">
+              "Hal kecil apa yang pernah dilakukan pasanganmu lewat video call yang diam-diam bikin kamu senyum-senyum sendiri seharian?"
+            </p>
+          </div>
+
+          <!-- Countdown Timer -->
+          <div class="timer-3d-box" id="timerBox">
+            <span>⏱️</span>
+            <span id="timerDisplay">00:30</span>
+          </div>
+
+          <!-- Tombol Aksi Selesai / Skip Penalti -->
+          <div class="card-back-actions">
+            <button class="btn-3d btn-skip-penalty" onclick="closeChallengeModal()">
+              🏳️ Skip (-3 Kotak)
+            </button>
+            <button class="btn-3d btn-done-challenge" onclick="closeChallengeModal()">
+              ✅ Selesai Dijawab!
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================
+       JAVASCRIPT LOGIC (INTERAKSI 3D FLIP, TIMER, & BOTTOM SHEET)
+       ========================================================= -->
+  <script>
+    const bottomSheet = document.getElementById('bottomSheet');
+    const sheetBackdrop = document.getElementById('sheetBackdrop');
+    const sheetHint = document.getElementById('sheetHint');
+    const challengeModal = document.getElementById('challengeModal');
+    const card3dInner = document.getElementById('card3dInner');
+    const timerDisplay = document.getElementById('timerDisplay');
+    const timerBox = document.getElementById('timerBox');
+
+    let timerInterval = null;
+    let timeLeft = 30;
+
+    const samplePrompts = {
+      TRUTH: [
+        { lang: "💬 Words of Affirmation", text: "\"Kapan terakhir kali kamu ngerasa sangat disayang sama pasanganmu hanya lewat kalimat sederhana?\"" },
+        { lang: "⏳ Quality Time", text: "\"Momen kencan atau video call mana yang paling pengen kamu ulang lagi minggu ini?\"" }
+      ],
+      DARE: [
+        { lang: "📹 Video Call Action", text: "\"Tatap mata pasanganmu di kamera selama 20 detik sambil bilang 3 hal yang bikin kamu kangen berat hari ini!\"" },
+        { lang: "🎁 Sweet Gesture", text: "\"Kirim voice note nyanyiin potongan lagu yang paling ngingetin kamu sama dia sekarang juga!\"" }
+      ],
+      DESTINY: [
+        { lang: "🔮 Petak Takdir Rahasia", text: "\"Siapa yang paling suka bikin janji 'nanti telpon' tapi kadang ketiduran duluan? Jujur barengan dalam hitungan 3!\"" }
+      ]
+    };
+
+    // 1. Toggle Mobile Bottom Sheet
+    function toggleBottomSheet(forceState) {
+      const isExpanded = typeof forceState === 'boolean' 
+        ? forceState 
+        : !bottomSheet.classList.contains('expanded');
+
+      bottomSheet.classList.toggle('expanded', isExpanded);
+      sheetBackdrop.classList.toggle('open', isExpanded);
+      sheetHint.textContent = isExpanded 
+        ? '▼ Tutup laci kontrol' 
+        : '▲ Tarik ke atas buat Skill & Emoji';
+    }
+
+    // 2. Simulasi Kocok Dadu -> Buka Modal 3D
+    function simulateRollDice() {
+      const roll = Math.floor(Math.random() * 6) + 1;
+      const currentPos = parseInt(document.getElementById('p1-pos').textContent, 10);
+      const nextPos = Math.min(100, currentPos + roll);
+      document.getElementById('p1-pos').textContent = nextPos;
+      openChallengeModal(nextPos, nextPos === 21 || nextPos === 57);
+    }
+
+    function useDeterministicStep(step) {
+      toggleBottomSheet(false);
+      const currentPos = parseInt(document.getElementById('p1-pos').textContent, 10);
+      const nextPos = Math.min(100, currentPos + step);
+      document.getElementById('p1-pos').textContent = nextPos;
+      openChallengeModal(nextPos, nextPos === 21 || nextPos === 57);
+    }
+
+    // 3. Buka Modal Tantangan (Stage 1 atau langsung Flip jika Petak Takdir 21/57)
+    function openChallengeModal(tileNum, isDestiny) {
+      clearInterval(timerInterval);
+      document.getElementById('modalTileBadge').textContent = `🎯 Kotak ${tileNum} Tercapai!`;
+      card3dInner.classList.remove('is-flipped');
+      challengeModal.classList.add('active');
+
+      // Jika mendarat di Petak Takdir (21 atau 57), otomatis flip tanpa pilih
+      if (isDestiny) {
+        setTimeout(() => flipToQuestion('DESTINY'), 350);
+      }
+    }
+
+    // 4. Putar Kartu 180 Derajat (Stage 2) + Mulai Timer 30s
+    function flipToQuestion(choice) {
+      const actualType = choice === 'RANDOM' ? (Math.random() > 0.5 ? 'TRUTH' : 'DARE') : choice;
+      const pool = samplePrompts[actualType];
+      const picked = pool[Math.floor(Math.random() * pool.length)];
+
+      const typeBadge = document.getElementById('cardTypeBadge');
+      typeBadge.textContent = actualType === 'DESTINY' ? '🔮 TAKDIR MUTLAK' : `✨ ${actualType}`;
+      typeBadge.className = `tag-chip ${actualType === 'DARE' ? 'type-dare' : 'type-truth'}`;
+
+      document.getElementById('cardLoveLang').textContent = picked.lang;
+      document.getElementById('cardPromptText').textContent = picked.text;
+
+      // Trigger 3D CSS Rotation
+      card3dInner.classList.add('is-flipped');
+      startCountdown(30);
+    }
+
+    function startCountdown(seconds) {
+      clearInterval(timerInterval);
+      timeLeft = seconds;
+      updateTimerUI();
+
+      timerInterval = setInterval(() => {
+        timeLeft--;
+        updateTimerUI();
+        if (timeLeft <= 0) {
+          clearInterval(timerInterval);
+        }
+      }, 1000);
+    }
+
+    function updateTimerUI() {
+      const formatted = `00:${String(timeLeft).padStart(2, '0')}`;
+      timerDisplay.textContent = formatted;
+      if (timeLeft <= 10) {
+        timerBox.classList.add('danger');
+      } else {
+        timerBox.classList.remove('danger');
+      }
+    }
+
+    function closeChallengeModal() {
+      clearInterval(timerInterval);
+      challengeModal.classList.remove('active');
+      setTimeout(() => card3dInner.classList.remove('is-flipped'), 300);
+    }
+
+    // 5. Animasi Kirim Emoji Melayang
+    function spawnEmoji(emoji) {
+      const el = document.createElement('div');
+      el.className = 'floating-emoji';
+      el.textContent = emoji;
+      document.body.appendChild(el);
+      setTimeout(() => el.remove(), 1600);
+    }
+  </script>
+</body>
+</html>

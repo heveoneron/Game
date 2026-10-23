@@ -578,6 +578,9 @@
       <a href="/" style="text-decoration:none;" class="qr-nav-btn">
         <span>🎲 Ular Tangga Pasangan</span>
       </a>
+      <button class="qr-nav-btn" style="background:#fef3c7; color:#92400e; font-weight:800; border:2px solid #f59e0b;" onclick="openRaporKaptenModal()">
+        <span>📊 Rapor Belajar</span>
+      </button>
       <button id="sound-toggle-btn" class="qr-nav-btn" style="background:#dcfce7;" onclick="toggleAudio()">
         <span>🔊 Suara: ON</span>
       </button>
@@ -1981,7 +1984,9 @@
 
     let currentPlayerIdx = 0;
     let isSpinningOrMoving = false;
-    let spinnerAngularVel = 0;
+    let spinnerTargetRotY = null;
+    let spinnerStartRotY = 0;
+    let spinnerProgress = 0;
     let pendingSpinSteps = 0;
 
     function createPiratePawnMesh(coatColor) {
@@ -2075,7 +2080,35 @@
 
       // Pilih hasil langkah 1, 2, atau 3 secara acak
       pendingSpinSteps = Math.floor(Math.random() * 3) + 1;
-      spinnerAngularVel = 0.45 + Math.random() * 0.18;
+
+      // Hitung sudut target agar jarum berhenti tepat di tengah sektor:
+      // Sektor 1: -120 deg (-2*PI/3 rad) -> Hijau "Maju 1 Langkah"
+      // Sektor 2: -240 deg (-4*PI/3 rad) -> Kuning "Maju 2 Langkah"
+      // Sektor 3: 0 deg (0 rad)          -> Merah "Maju 3 Langkah"
+      const baseAngles = {
+        1: -(2 * Math.PI / 3),
+        2: -(4 * Math.PI / 3),
+        3: 0
+      };
+
+      const baseTarget = baseAngles[pendingSpinSteps];
+      // Berikan variasi jitter kecil +- 0.18 rad (~10 derajat) agar terasa alami dan selalu di dalam sektor
+      const jitter = (Math.random() - 0.5) * 0.35;
+      const targetInOneTurn = baseTarget + jitter;
+
+      // Putar minimal 4 hingga 6 putaran penuh ke arah negatif Y (searah jarum jam visual)
+      const currentRot = spinnerArrowPivot.rotation.y;
+      const extraSpins = (Math.floor(Math.random() * 3) + 4) * (2 * Math.PI);
+      
+      // Hitung target rotasi mutlak berikutnya yang lebih negatif dari currentRot
+      let targetRot = currentRot - extraSpins;
+      // Selaraskan sisa modulo agar mendarat persis pada targetInOneTurn
+      const diffMod = ((targetRot - targetInOneTurn) % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI);
+      targetRot -= diffMod;
+
+      spinnerStartRotY = currentRot;
+      spinnerTargetRotY = targetRot;
+      spinnerProgress = 0;
 
       const p = players[currentPlayerIdx];
       setStatus("MEMUTAR SPINNER", `${p.name} sedang memutar roda Spinner...`);
@@ -2250,6 +2283,68 @@
       drawSimulatedQRCode(qrCanvas, data.codeUrl, data.qrColor);
     }
 
+
+    // --- LEARNING REPORT & HINT SYSTEM ---
+    let learningReport = {
+      total: 0,
+      correctDirect: 0,
+      correctWithHint: 0,
+      wrong: 0,
+      coinsEarned: 0
+    };
+
+    try {
+      const savedReport = localStorage.getItem('harta_karun_learning_report_v1');
+      if (savedReport) learningReport = JSON.parse(savedReport);
+    } catch(e) {}
+
+    function saveLearningReport() {
+      try {
+        localStorage.setItem('harta_karun_learning_report_v1', JSON.stringify(learningReport));
+      } catch(e) {}
+    }
+
+    function openRaporKaptenModal() {
+      const modal = document.getElementById('rapor-kapten-modal');
+      if (!modal) return;
+      document.getElementById('stat-total-soal').textContent = learningReport.total;
+      const acc = learningReport.total > 0 ? Math.round(((learningReport.correctDirect + learningReport.correctWithHint) / learningReport.total) * 100) : 0;
+      document.getElementById('stat-akurasi').textContent = acc + '%';
+      document.getElementById('stat-benar-first').textContent = learningReport.correctDirect;
+      document.getElementById('stat-benar-hint').textContent = learningReport.correctWithHint;
+      document.getElementById('stat-salah').textContent = learningReport.wrong;
+      document.getElementById('stat-koin').textContent = '🪙 ' + (players[activePlayerIndex]?.score || 0);
+      modal.style.display = 'flex';
+    }
+
+    function closeRaporKaptenModal() {
+      const modal = document.getElementById('rapor-kapten-modal');
+      if (modal) modal.style.display = 'none';
+    }
+
+    function resetLearningReport() {
+      if (!confirm('Reset seluruh statistik laporan belajar?')) return;
+      learningReport = { total: 0, correctDirect: 0, correctWithHint: 0, wrong: 0, coinsEarned: 0 };
+      saveLearningReport();
+      openRaporKaptenModal();
+    }
+
+    let isHintUsedCurrentQuestion = false;
+
+    window.toggleHintView = function() {
+      const hintBox = document.getElementById('quiz-hint-box');
+      const hintBtn = document.getElementById('quiz-hint-toggle-btn');
+      if (!hintBox) return;
+      if (hintBox.style.display === 'none') {
+        hintBox.style.display = 'block';
+        isHintUsedCurrentQuestion = true;
+        if (hintBtn) hintBtn.textContent = '🙈 Tutup Petunjuk';
+      } else {
+        hintBox.style.display = 'none';
+        if (hintBtn) hintBtn.textContent = '🔭 Buka Teropong Petunjuk';
+      }
+    };
+
     function triggerCardModal(cardType, isPreviewOnly) {
       playSfx('card');
       const p = players[currentPlayerIdx];
@@ -2280,9 +2375,18 @@
       };
       modalTitle.textContent = titleMap[cardType] || "Kartu Matematika";
 
+      isHintUsedCurrentQuestion = false;
       modalBody.innerHTML = `
-        <div style="background:#fff;border:2px solid #2b2118;padding:12px;border-radius:12px;font-weight:600;">
+        <div style="background:#fff;border:2px solid #2b2118;padding:12px;border-radius:12px;font-weight:600;font-size:1.05rem;line-height:1.4;">
           ${quiz.q}
+        </div>
+        <div style="margin:10px 0 6px;display:flex;justify-content:flex-end;">
+          <button id="quiz-hint-toggle-btn" onclick="toggleHintView()" style="background:#fef3c7;border:2px solid #f59e0b;color:#92400e;padding:6px 12px;border-radius:8px;font-weight:bold;font-size:12px;cursor:pointer;">
+            🔭 Buka Teropong Petunjuk (Hint)
+          </button>
+        </div>
+        <div id="quiz-hint-box" style="display:none;background:#fffbeb;border:1px dashed #f59e0b;border-radius:8px;padding:10px;margin-bottom:10px;font-size:12px;color:#78350f;">
+          <b>💡 Petunjuk Menghitung:</b> ${quiz.exp || 'Perhatikan kembali pertanyaan dan rumus pecahan/bangun ruang dengan cermat!'}
         </div>
         <div class="quiz-options" id="quiz-options-box">
           ${quiz.opts.map((opt, idx) => `
@@ -2310,12 +2414,29 @@
       const isCorrect = selectedIdx === correctIdx;
       const p = players[currentPlayerIdx];
 
+      // Update Rapor Belajar
+      if (!isPreviewOnly) {
+        learningReport.total++;
+        if (isCorrect) {
+          if (isHintUsedCurrentQuestion) {
+            learningReport.correctWithHint++;
+          } else {
+            learningReport.correctDirect++;
+          }
+          learningReport.coinsEarned += 30;
+        } else {
+          learningReport.wrong++;
+        }
+        saveLearningReport();
+      }
+
       if (isCorrect) {
         playSfx('correct');
         if (!isPreviewOnly) p.score += 30;
+        const starReward = isHintUsedCurrentQuestion ? '⭐⭐ (Dibantu Teropong)' : '⭐⭐⭐ (Sempurna!)';
         fb.innerHTML = `
-          <b style="color:#15803d;">✅ Jawaban Benar! (+30 Koin Emas & Bonus Maju ${rewardSteps} Langkah)</b><br/>
-          <span><b>Pembahasan:</b> ${window.currentQuizExplanation}</span>
+          <b style="color:#15803d;">✅ Jawaban Benar! ${starReward} (+30 🪙 & Maju ${rewardSteps} Langkah)</b><br/>
+          <span><b>Pembahasan Lengkap:</b> ${window.currentQuizExplanation}</span>
           <button class="spin-action-btn" style="margin-top:10px;" onclick="finishQuizTurn(${rewardSteps}, ${isPreviewOnly})">
             ${isPreviewOnly ? 'Selesai & Tutup' : `Maju ${rewardSteps} Langkah Ekstra ▸`}
           </button>
@@ -2522,17 +2643,23 @@
       ship2.rotation.z = Math.cos(elapsed * 1.8) * 0.05;
       ship3.rotation.z = Math.sin(elapsed * 2.2 + 1) * 0.05;
 
-      // Putaran fisika Jarum Spinner 3D
-      if (spinnerAngularVel > 0.002) {
-        spinnerArrowPivot.rotation.y -= spinnerAngularVel;
-        spinnerAngularVel *= 0.965;
-        if (spinnerAngularVel <= 0.0025) {
-          spinnerAngularVel = 0;
+      // Putaran presisi Jarum Spinner 3D dengan kurva ease-out cubic
+      if (spinnerTargetRotY !== null) {
+        spinnerProgress += 0.007;
+        if (spinnerProgress >= 1) {
+          spinnerProgress = 1;
+          spinnerArrowPivot.rotation.y = spinnerTargetRotY;
+          spinnerTargetRotY = null;
+
           const p = players[currentPlayerIdx];
           setStatus(`HASIL SPINNER: MAJU ${pendingSpinSteps} LANGKAH`, `${p.name} melangkah maju ${pendingSpinSteps} petak!`);
           movePawnSteps(currentPlayerIdx, pendingSpinSteps, () => {
             evaluateTileLanding();
           });
+        } else {
+          // Easing cubic out: 1 - Math.pow(1 - t, 3)
+          const easeOut = 1 - Math.pow(1 - spinnerProgress, 3);
+          spinnerArrowPivot.rotation.y = spinnerStartRotY + (spinnerTargetRotY - spinnerStartRotY) * easeOut;
         }
       }
 
@@ -2642,6 +2769,64 @@
           <span id="deck-total-count-badge" style="background:#e2e8f0; padding:2px 8px; border-radius:12px; font-size:12px;">0 Kartu</span>
         </h4>
         <div id="deck-card-list-container" style="display:flex; flex-direction:column; gap:8px;"></div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- MODAL RAPOR PETUALANG (PARENT / TEACHER LEARNING REPORT) -->
+  <div class="modal-backdrop" id="rapor-kapten-modal" style="display:none;">
+    <div class="modal-box" style="max-width:600px; max-height:85vh; display:flex; flex-direction:column;">
+      <div class="modal-header" style="background:#b45309; border-bottom:3px solid #78350f;">
+        <h2 style="color:#fff; font-size:18px; margin:0;">📊 Rapor Petualang Kapten Cilik</h2>
+        <button class="close-modal" onclick="closeRaporKaptenModal()" style="color:#fff; background:rgba(255,255,255,0.2);">✕</button>
+      </div>
+      <div class="modal-body" style="flex:1; overflow-y:auto; padding:18px;">
+        <div style="background:#fef3c7; border:2px solid #f59e0b; border-radius:12px; padding:12px; margin-bottom:16px; text-align:center;">
+          <div style="font-size:2rem; margin-bottom:4px;">🧭⭐🪙</div>
+          <h3 style="margin:0 0 4px; color:#78350f; font-size:16px; font-family:'Fredoka',sans-serif;">Ringkasan Belajar Matematika SD</h3>
+          <p style="margin:0; font-size:12px; color:#92400e;">Catatan interaktif ketepatan menjawab kuis dan pemahaman materi pecahan & bangun ruang.</p>
+        </div>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px;">
+          <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:12px; text-align:center;">
+            <div style="font-size:11px; color:#64748b; font-weight:bold;">Total Soal Dikerjakan</div>
+            <div id="stat-total-soal" style="font-size:24px; font-weight:900; color:#0f172a; margin-top:4px;">0</div>
+          </div>
+          <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:12px; text-align:center;">
+            <div style="font-size:11px; color:#64748b; font-weight:bold;">Akurasi Jawaban Benar</div>
+            <div id="stat-akurasi" style="font-size:24px; font-weight:900; color:#16a34a; margin-top:4px;">0%</div>
+          </div>
+        </div>
+
+        <div style="background:#fff; border:1px solid #e2e8f0; border-radius:10px; padding:14px; margin-bottom:16px;">
+          <h4 style="margin:0 0 10px; font-size:13px; color:#334155;">Detail Riwayat Sesi:</h4>
+          <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:6px; color:#475569;">
+            <span>Jawaban Benar Tanpa Hint:</span>
+            <span id="stat-benar-first" style="font-weight:bold; color:#16a34a;">0</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:6px; color:#475569;">
+            <span>Jawaban Benar Dibantu Teropong:</span>
+            <span id="stat-benar-hint" style="font-weight:bold; color:#d97706;">0</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:6px; color:#475569;">
+            <span>Jawaban Belum Tepat:</span>
+            <span id="stat-salah" style="font-weight:bold; color:#dc2626;">0</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; font-size:12px; color:#475569;">
+            <span>Koin Emas Dikumpulkan:</span>
+            <span id="stat-koin" style="font-weight:bold; color:#b45309;">🪙 0</span>
+          </div>
+        </div>
+
+        <div style="display:flex; gap:10px;">
+          <button onclick="resetLearningReport()" style="flex:1; padding:10px; background:#fee2e2; color:#b91c1c; border:1px solid #f87171; border-radius:8px; font-weight:bold; font-size:12px; cursor:pointer;">
+            🔄 Reset Riwayat Belajar
+          </button>
+          <button onclick="window.print()" style="flex:1; padding:10px; background:#0284c7; color:white; border:none; border-radius:8px; font-weight:bold; font-size:12px; cursor:pointer;">
+            🖨️ Cetak / Simpan PDF
+          </button>
+        </div>
       </div>
     </div>
   </div>
