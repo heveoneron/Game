@@ -509,55 +509,562 @@
       font-size: 0.88rem;
     }
 
-    /* Responsive adjustments & Touch-Friendly UI */
-    @media (max-width: 900px) {
+    /* ================= ADVANCED RESPONSIVE & MOBILE ERGONOMIC UI ================= */
+    .mobile-only {
+      display: none !important;
+    }
+
+    /* Floating Camera Presets Dock (On 3D Canvas) */
+    .camera-floating-dock {
+      position: fixed;
+      top: 52px;
+      left: 12px;
+      display: flex;
+      gap: 6px;
+      z-index: 35;
+      pointer-events: auto;
+    }
+    .cam-chip {
+      background: rgba(255, 255, 255, 0.94);
+      border: 2px solid var(--ink);
+      border-radius: 20px;
+      padding: 4px 10px;
+      font-family: 'Fredoka', sans-serif;
+      font-size: 0.76rem;
+      font-weight: 700;
+      color: var(--ink);
+      box-shadow: 0 2px 0 var(--ink);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      backdrop-filter: blur(4px);
+      transition: all 0.12s ease;
+    }
+    .cam-chip:active, .cam-chip.active {
+      background: #fde047;
+      transform: translateY(1px);
+      box-shadow: 0 1px 0 var(--ink);
+    }
+
+    /* Active Player Spotlight Card */
+    .active-player-banner {
+      background: #fff;
+      border: 2.5px solid #ef4444;
+      border-radius: 14px;
+      padding: 8px 10px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 6px;
+      box-shadow: 0 3px 0 var(--ink);
+      transition: all 0.2s ease;
+    }
+    .active-player-avatar {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background: #ef4444;
+      color: #fff;
+      border: 2px solid var(--ink);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.25rem;
+      flex-shrink: 0;
+      box-shadow: 0 2px 0 var(--ink);
+    }
+    .active-player-info {
+      flex: 1;
+      min-width: 0;
+    }
+    .turn-subtitle {
+      font-size: 0.65rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: #6b7280;
+      line-height: 1;
+      margin-bottom: 2px;
+    }
+    .active-player-name {
+      font-family: 'Fredoka', cursive;
+      font-size: 1.08rem;
+      font-weight: 700;
+      line-height: 1.2;
+      color: var(--ink);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .active-player-meta {
+      font-size: 0.74rem;
+      font-weight: 600;
+      color: #4b5563;
+      display: flex;
+      gap: 8px;
+      margin-top: 2px;
+    }
+
+    /* Mini chips bar for other players */
+    .other-players-bar {
+      display: flex;
+      gap: 5px;
+      margin-bottom: 8px;
+      overflow-x: auto;
+      padding-bottom: 2px;
+    }
+    .mini-player-chip {
+      background: #fff;
+      border: 1.5px solid var(--ink);
+      border-radius: 8px;
+      padding: 2px 6px;
+      font-size: 0.68rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      white-space: nowrap;
+      color: #4b5563;
+    }
+    .mini-player-chip.active {
+      background: #fef08a;
+      border-color: #b45309;
+      color: #92400e;
+      box-shadow: 0 1px 0 var(--ink);
+    }
+
+    /* Real-time Action Instruction Banner */
+    .action-hint-box {
+      background: #eff6ff;
+      border: 2px dashed #3b82f6;
+      border-radius: 10px;
+      padding: 6px 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+      font-size: 0.78rem;
+      color: #1e40af;
+      line-height: 1.3;
+      font-weight: 600;
+      box-sizing: border-box;
+      transition: all 0.2s ease;
+    }
+    .action-hint-box.highlight {
+      background: #fef3c7;
+      border-color: #f59e0b;
+      color: #92400e;
+      animation: pulseHint 0.8s 2 alternate;
+    }
+    @keyframes pulseHint {
+      from { transform: scale(1); }
+      to { transform: scale(1.02); }
+    }
+    .hint-icon {
+      font-size: 1.1rem;
+      flex-shrink: 0;
+    }
+    .hint-text {
+      flex: 1;
+    }
+
+    /* Secondary Tools Bar */
+    .gameplay-tools-bar {
+      display: flex;
+      gap: 5px;
+    }
+    .tool-btn {
+      flex: 1;
+      background: #fff;
+      border: 2px solid var(--ink);
+      border-radius: 8px;
+      padding: 5px 6px;
+      font-family: 'Fredoka', sans-serif;
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--ink);
+      box-shadow: 0 2px 0 var(--ink);
+      cursor: pointer;
+      text-align: center;
+      white-space: nowrap;
+      transition: all 0.12s;
+    }
+    .tool-btn:active {
+      transform: translateY(1px);
+      box-shadow: 0 1px 0 var(--ink);
+    }
+
+    /* Drawer Backdrop */
+    .drawer-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(3px);
+      z-index: 110;
+      display: none;
+    }
+    .drawer-backdrop.active {
+      display: block;
+    }
+
+    .mobile-drawer-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 2px dashed #cbb68e;
+      padding-bottom: 8px;
+      margin-bottom: 12px;
+    }
+
+    .mobile-menu-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .menu-item-btn {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: #fff;
+      border: 2px solid var(--ink);
+      border-radius: 12px;
+      padding: 10px 14px;
+      font-family: 'Fredoka', sans-serif;
+      color: var(--ink);
+      cursor: pointer;
+      box-shadow: 0 3px 0 var(--ink);
+      text-align: left;
+      transition: all 0.12s;
+    }
+    .menu-item-btn:active {
+      transform: translateY(2px);
+      box-shadow: 0 1px 0 var(--ink);
+    }
+    .menu-item-btn .icon {
+      font-size: 1.4rem;
+      flex-shrink: 0;
+    }
+
+    /* ================= RESPONSIVE MEDIA QUERIES ================= */
+    @media (max-width: 960px) {
+      .desktop-only {
+        display: none !important;
+      }
+      .mobile-only {
+        display: flex !important;
+      }
+
       .top-hud {
-        top: 6px;
+        top: 0;
+        left: 0;
+        right: 0;
+        transform: none;
+        width: 100%;
+        margin: 0;
+        padding: 0;
+        z-index: 50;
+      }
+
+      .mobile-header-bar {
+        display: flex !important;
+        width: 100%;
+        height: 44px;
+        background: rgba(253, 246, 228, 0.98);
+        backdrop-filter: blur(8px);
+        border-bottom: 2.5px solid var(--ink);
+        padding: 4px 10px;
+        align-items: center;
+        justify-content: space-between;
+        box-shadow: 0 3px 0 var(--ink);
+        pointer-events: auto;
+        box-sizing: border-box;
+      }
+
+      .mobile-logo {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-family: 'Fredoka', cursive;
+        font-size: 0.92rem;
+        font-weight: 700;
+        color: #b45309;
+        white-space: nowrap;
+      }
+
+      .mobile-header-actions {
+        display: flex;
+        align-items: center;
         gap: 5px;
       }
-      .title-banner {
-        padding: 5px 14px;
-      }
-      .title-banner h1 {
-        font-size: 1rem;
-      }
-      .title-banner p {
-        font-size: 0.8rem;
-      }
-      .qr-menu-bar {
-        gap: 4px;
-      }
-      .qr-nav-btn {
+
+      .mobile-hdr-btn {
+        background: #fff;
+        border: 2px solid var(--ink);
+        border-radius: 8px;
         padding: 4px 8px;
-        font-size: 0.72rem;
+        font-family: 'Fredoka', sans-serif;
+        font-size: 0.74rem;
+        font-weight: 700;
+        color: var(--ink);
+        box-shadow: 0 2px 0 var(--ink);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        white-space: nowrap;
+        transition: all 0.12s;
       }
+      .mobile-hdr-btn.highlight {
+        background: #fef08a;
+        border-color: #b45309;
+        color: #92400e;
+      }
+      .mobile-hdr-btn:active {
+        transform: translateY(1px);
+        box-shadow: 0 1px 0 var(--ink);
+      }
+
+      /* Slide-Up Bottom Sheet Drawer for 3D Controls */
       .left-panel {
-        top: auto;
-        bottom: 64px;
-        left: 8px;
-        width: min(240px, 46vw);
-        max-height: 42vh;
-        overflow-y: auto;
+        position: fixed !important;
+        top: 0 !important;
+        bottom: 0 !important;
+        left: -360px !important;
+        width: 320px !important;
+        max-width: 86vw !important;
+        height: 100vh !important;
+        max-height: 100vh !important;
+        background: var(--paper-bg) !important;
+        z-index: 120 !important;
+        margin: 0 !important;
+        padding: 16px 14px !important;
+        overflow-y: auto !important;
+        box-shadow: 5px 0 25px rgba(0,0,0,0.3) !important;
+        border-right: 3px solid var(--ink) !important;
+        transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1) !important;
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 12px !important;
       }
+
+      .left-panel.drawer-open {
+        transform: translateX(360px) !important;
+      }
+    }
+
+    /* PORTRAIT MODE (HP TEGAK) */
+    @media (max-width: 960px) and (orientation: portrait) {
+      .mobile-header-bar {
+        height: 42px !important;
+        padding: 2px 8px !important;
+      }
+      .mobile-logo {
+        font-size: 0.88rem !important;
+        gap: 4px !important;
+      }
+      .mobile-header-actions {
+        gap: 4px !important;
+      }
+      .mobile-hdr-btn {
+        padding: 3px 6px !important;
+        font-size: 0.70rem !important;
+        border-radius: 6px !important;
+      }
+
+      .camera-floating-dock {
+        top: 48px !important;
+        left: 8px !important;
+        gap: 4px !important;
+      }
+      .cam-chip {
+        padding: 3px 8px !important;
+        font-size: 0.72rem !important;
+      }
+
       .right-panel {
-        top: auto;
-        bottom: 64px;
-        right: 8px;
-        width: min(250px, 48vw);
-        max-height: 42vh;
-        overflow-y: auto;
+        position: fixed !important;
+        left: 8px !important;
+        right: 8px !important;
+        bottom: 8px !important;
+        top: auto !important;
+        width: auto !important;
+        max-width: 480px !important;
+        margin: 0 auto !important;
+        z-index: 40 !important;
+        pointer-events: auto !important;
+        display: block !important;
       }
-      .bottom-log {
-        bottom: 8px;
-        padding: 5px 14px;
-        font-size: 0.88rem;
+
+      .right-panel .gameplay-card {
+        border-radius: 16px !important;
+        padding: 6px 8px !important;
+        background: rgba(253, 246, 228, 0.98) !important;
+        box-shadow: 0 4px 0 var(--ink), 0 8px 20px rgba(0,0,0,0.2) !important;
       }
-      .sketch-card {
-        padding: 8px 10px;
+
+      .active-player-banner {
+        padding: 4px 7px !important;
+        margin-bottom: 3px !important;
+        border-radius: 8px !important;
+        gap: 6px !important;
       }
+      .active-player-avatar {
+        width: 28px !important;
+        height: 28px !important;
+        font-size: 1.0rem !important;
+      }
+      .active-player-name {
+        font-size: 0.92rem !important;
+      }
+      .turn-subtitle {
+        font-size: 0.58rem !important;
+      }
+      .active-player-meta {
+        font-size: 0.68rem !important;
+        gap: 6px !important;
+      }
+
+      .other-players-bar {
+        margin-bottom: 3px !important;
+        gap: 3px !important;
+        flex-wrap: wrap !important;
+      }
+      .mini-player-chip {
+        padding: 1px 5px !important;
+        font-size: 0.64rem !important;
+        border-radius: 6px !important;
+      }
+
+      .action-hint-box {
+        padding: 3px 6px !important;
+        font-size: 0.70rem !important;
+        margin-bottom: 4px !important;
+        border-radius: 6px !important;
+      }
+
       .spin-action-btn {
-        padding: 8px 12px;
-        font-size: 0.85rem;
+        padding: 8px 10px !important;
+        font-size: 0.94rem !important;
+        margin-bottom: 4px !important;
+        border-radius: 8px !important;
+      }
+
+      .gameplay-tools-bar {
+        display: none !important;
+      }
+    }
+
+    /* LANDSCAPE MODE (HP MIRING) */
+    @media (max-width: 1024px) and (orientation: landscape) {
+      .desktop-only {
+        display: none !important;
+      }
+      .mobile-only {
+        display: flex !important;
+      }
+
+      .top-hud {
+        top: 0;
+        left: 0;
+        right: 0;
+        transform: none;
+        width: 100%;
+        margin: 0;
+        padding: 0;
+        z-index: 50;
+      }
+
+      .mobile-header-bar {
+        display: flex !important;
+        height: 36px !important;
+        padding: 2px 8px !important;
+      }
+      .mobile-logo {
+        font-size: 0.85rem !important;
+      }
+      .mobile-hdr-btn {
+        padding: 2px 6px !important;
+        font-size: 0.68rem !important;
+      }
+
+      .camera-floating-dock {
+        top: 42px !important;
+        left: 8px !important;
+        gap: 4px !important;
+      }
+      .cam-chip {
+        padding: 2px 7px !important;
+        font-size: 0.70rem !important;
+      }
+
+      .right-panel {
+        position: fixed !important;
+        top: 40px !important;
+        right: 8px !important;
+        bottom: 8px !important;
+        left: auto !important;
+        width: 300px !important;
+        max-width: 38vw !important;
+        z-index: 40 !important;
+        display: flex !important;
+        flex-direction: column !important;
+        pointer-events: auto !important;
+      }
+
+      .right-panel .gameplay-card {
+        height: 100% !important;
+        max-height: calc(100vh - 48px) !important;
+        overflow-y: auto !important;
+        border-radius: 14px !important;
+        padding: 7px 9px !important;
+        background: rgba(253, 246, 228, 0.98) !important;
+        box-shadow: 0 4px 0 var(--ink), 0 8px 20px rgba(0,0,0,0.2) !important;
+        box-sizing: border-box !important;
+      }
+
+      .active-player-banner {
+        padding: 5px 7px !important;
+        margin-bottom: 4px !important;
+        gap: 6px !important;
+      }
+      .active-player-avatar {
+        width: 28px !important;
+        height: 28px !important;
+        font-size: 1.0rem !important;
+      }
+      .active-player-name {
+        font-size: 0.92rem !important;
+      }
+      .active-player-meta {
+        font-size: 0.68rem !important;
+      }
+
+      .other-players-bar {
+        flex-wrap: wrap !important;
+        gap: 3px !important;
+        margin-bottom: 4px !important;
+      }
+      .mini-player-chip {
+        padding: 2px 5px !important;
+        font-size: 0.64rem !important;
+      }
+
+      .action-hint-box {
+        padding: 4px 6px !important;
+        font-size: 0.70rem !important;
+        margin-bottom: 5px !important;
+      }
+
+      .spin-action-btn {
+        padding: 8px 10px !important;
+        font-size: 0.92rem !important;
+        margin-bottom: 5px !important;
+      }
+
+      .tool-btn {
+        padding: 3px 5px !important;
+        font-size: 0.65rem !important;
       }
     }
   </style>
@@ -567,14 +1074,48 @@
   <!-- 3D VIEWPORT -->
   <div id="canvas-container"></div>
 
+  <!-- FLOATING CAMERA PRESETS (DIRECTLY ON CANVAS) -->
+  <div class="camera-floating-dock" id="cam-dock">
+    <button class="cam-chip active" id="chip-cam-iso" onclick="setCameraPreset('iso'); updateCamChip('iso');" title="Tampilan Papan Penuh">🗺️ Papan</button>
+    <button class="cam-chip" id="chip-cam-pawn" onclick="setCameraPreset('pawn'); updateCamChip('pawn');" title="Fokus Pion Bajak Laut">🏴‍☠️ Pion</button>
+    <button class="cam-chip" id="chip-cam-spinner" onclick="setCameraPreset('spinner'); updateCamChip('spinner');" title="Fokus Roda Spinner">🎡 Spinner</button>
+  </div>
+
   <!-- TOP HEADER & QR MENU -->
   <header class="top-hud">
-    <div class="title-banner">
+    <!-- Desktop Title Banner -->
+    <div class="title-banner desktop-only">
       <h1>🏴‍☠️ PETUALANGAN MENCARI HARTA KARUN 🏴‍☠️</h1>
       <p>Ayo Selesaikan Setiap Misinya! — Media Ular Tangga Matematika SD Kelas 5</p>
     </div>
 
-        <nav class="qr-menu-bar">
+    <!-- Mobile Top Navigation Bar -->
+    <div class="mobile-only mobile-header-bar">
+      <div class="mobile-logo">
+        <span>🏴‍☠️</span>
+        <span>Harta Karun SD</span>
+      </div>
+      <div class="mobile-header-actions">
+        <button class="mobile-hdr-btn highlight" onclick="openInfoModal('petunjuk')" title="Petunjuk Cara Main">
+          <span>📜 Cara Main</span>
+        </button>
+        <button class="mobile-hdr-btn" onclick="openRaporKaptenModal()" title="Rapor Belajar">
+          <span>📊 Rapor</span>
+        </button>
+        <button class="mobile-hdr-btn" id="mobile-sound-btn" onclick="toggleAudio()" title="Suara">
+          <span id="mobile-sound-icon">🔊</span>
+        </button>
+        <button class="mobile-hdr-btn" onclick="openMobile3DDrawer()" title="Kontrol 3D">
+          <span>🛠️ 3D</span>
+        </button>
+        <button class="mobile-hdr-btn" onclick="openMobileMenuModal()" title="Menu Lengkap">
+          <span>☰</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Desktop Menu Bar -->
+    <nav class="qr-menu-bar desktop-only">
       <a href="/" style="text-decoration:none;" class="qr-nav-btn">
         <span>🎲 Ular Tangga Pasangan</span>
       </a>
@@ -596,7 +1137,7 @@
         <span>📖 Materi Kelas 5</span>
         <div class="mini-qr" style="border-color:#16a34a"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
       </button>
-      <button class="qr-nav-btn" onclick="openInfoModal('petunjuk')">
+      <button class="qr-nav-btn" style="background:#fef08a; font-weight:800;" onclick="openInfoModal('petunjuk')">
         <span>📜 Petunjuk Permainan</span>
         <div class="mini-qr" style="border-color:#2563eb"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
       </button>
@@ -612,9 +1153,17 @@
   </header>
 
   <!-- LEFT PANEL: 3D INSPECTOR, EXPLODE, WIREFRAME, CAMERA -->
-  <aside class="left-panel">
+  <aside class="left-panel" id="left-3d-panel">
+    <div class="mobile-drawer-header mobile-only">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="font-size:1.2rem;">🛠️</span>
+        <h3 style="margin:0;font-size:1rem;color:#92400e;">Kontrol Visual & Struktur 3D</h3>
+      </div>
+      <button class="close-modal" onclick="closeMobile3DDrawer()">✕</button>
+    </div>
+
     <div class="sketch-card">
-      <h3>🛠️ Kontrol Visual & Struktur 3D</h3>
+      <h3 class="desktop-only">🛠️ Kontrol Visual & Struktur 3D</h3>
       <div class="btn-grid">
         <button id="btn-explode" class="ctrl-btn" onclick="toggleExplode()">💥 EXPLODE</button>
         <button id="btn-assemble" class="ctrl-btn active" onclick="toggleAssemble()">🧩 ASSEMBLE</button>
@@ -634,30 +1183,63 @@
     <div class="sketch-card">
       <h3>🎥 Sudut Kamera & Rotasi</h3>
       <div class="btn-grid">
-        <button class="ctrl-btn" onclick="setCameraPreset('iso')">📐 Isometrik</button>
-        <button class="ctrl-btn" onclick="setCameraPreset('top')">🗺️ Atas (2D/3D)</button>
-        <button class="ctrl-btn" onclick="setCameraPreset('pawn')">🏴‍☠️ Fokus Pion</button>
-        <button class="ctrl-btn" onclick="setCameraPreset('spinner')">🎡 Fokus Spinner</button>
+        <button class="ctrl-btn" onclick="setCameraPreset('iso'); if(isMobileView()) closeMobile3DDrawer();">📐 Isometrik</button>
+        <button class="ctrl-btn" onclick="setCameraPreset('top'); if(isMobileView()) closeMobile3DDrawer();">🗺️ Atas (2D/3D)</button>
+        <button class="ctrl-btn" onclick="setCameraPreset('pawn'); if(isMobileView()) closeMobile3DDrawer();">🏴‍☠️ Fokus Pion</button>
+        <button class="ctrl-btn" onclick="setCameraPreset('spinner'); if(isMobileView()) closeMobile3DDrawer();">🎡 Fokus Spinner</button>
         <button id="btn-autorotate" class="ctrl-btn full-width" onclick="toggleAutoRotate()">🔄 Putar Otomatis (Orbit)</button>
       </div>
     </div>
   </aside>
 
   <!-- RIGHT PANEL: GAMEPLAY, PLAYERS, SPINNER & CARD DECKS -->
-  <aside class="right-panel">
-    <div class="sketch-card">
-      <h3>⚓ Giliran Bajak Laut & Spinner</h3>
-      <div class="player-list" id="player-list-ui"></div>
+  <aside class="right-panel" id="right-game-panel">
+    <div class="sketch-card gameplay-card">
+      
+      <!-- SPOTLIGHT: ACTIVE TURN PLAYER (MOBILE & DESKTOP) -->
+      <div class="active-player-banner" id="active-player-spotlight">
+        <div class="active-player-avatar" id="spotlight-player-avatar">🏴‍☠️</div>
+        <div class="active-player-info">
+          <div class="turn-subtitle">GILIRAN MAIN SEKARANG</div>
+          <div class="active-player-name" id="spotlight-player-name">Kapten Merah</div>
+          <div class="active-player-meta" id="spotlight-player-meta">
+            <span>📍 Petak START</span>
+            <span>🪙 100 Koin</span>
+          </div>
+        </div>
+        <button class="tool-btn mobile-only" style="padding:4px 8px; font-size:0.75rem; flex:none;" onclick="openInfoModal('petunjuk')">❓ Bantuan</button>
+      </div>
+
+      <!-- MINI CHIPS FOR ALL PLAYERS -->
+      <div class="other-players-bar" id="mini-players-strip"></div>
+
+      <!-- DESKTOP FULL PLAYER LIST (SHOWN ON WIDE SCREEN) -->
+      <div class="player-list desktop-only" id="player-list-ui"></div>
+
+      <!-- INSTRUCTION / FEEDBACK BANNER (ALWAYS VISIBLE) -->
+      <div class="action-hint-box" id="action-hint-box">
+        <span id="status-badge" style="display:none;">SIAP BERMAIN</span>
+        <span class="hint-icon">💡</span>
+        <span class="hint-text" id="status-text">Giliran <b>Kapten Merah</b>! Tekan tombol <b>PUTAR SPINNER</b> untuk melangkah.</span>
+      </div>
+
+      <!-- BIG ACTION BUTTON -->
       <button id="spin-btn" class="spin-action-btn" onclick="spinWheel()">
-        🎡 PUTAR SPINNER (1 - 3 Langkah)
+        <span>🎡</span>
+        <span>PUTAR SPINNER (1 - 3)</span>
       </button>
-      <div style="display:flex;gap:6px;margin-top:6px;">
-        <button class="ctrl-btn" style="flex:1" onclick="manualStep(1)">+1 Petak</button>
-        <button class="ctrl-btn" style="flex:1" onclick="resetGame()">🔁 Reset Posisi</button>
+
+      <!-- SECONDARY TOOLS ROW -->
+      <div class="gameplay-tools-bar">
+        <button class="tool-btn" onclick="manualStep(1)">+1 Petak</button>
+        <button class="tool-btn" onclick="resetGame()">🔁 Reset</button>
+        <button class="tool-btn" onclick="openMobileCardsModal()">🃏 Dek Soal</button>
+        <button class="tool-btn desktop-only" onclick="openRaporKaptenModal()">📊 Rapor</button>
       </div>
     </div>
 
-    <div class="sketch-card">
+    <!-- DESKTOP CARD LEGEND CARD -->
+    <div class="sketch-card card-legend-card desktop-only">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
         <h3 style="margin:0;">🃏 Dek Kartu Interaktif</h3>
         <button onclick="openDeckManagerModal()" style="padding:4px 8px; font-size:11px; background:#4f46e5; color:white; border:none; border-radius:6px; cursor:pointer; font-weight:bold;">⚙️ Atur Soal</button>
@@ -672,7 +1254,7 @@
           <span>Buka ▸</span>
         </div>
         <div class="legend-item" style="background:#bae6fd" onclick="triggerCardModal('soal', true)">
-          <span>📄? <b>Kartu Soal</b> (Matematika)</span>
+          <span>📄 <b>Kartu Soal</b> (Matematika)</span>
           <span>Buka ▸</span>
         </div>
         <div class="legend-item" style="background:#fecaca" onclick="triggerCardModal('jebakan', true)">
@@ -687,12 +1269,105 @@
     </div>
   </aside>
 
-  <!-- BOTTOM STATUS LOG -->
-  <div class="bottom-log">
-    <span class="log-pill" id="status-badge">SIAP BERMAIN</span>
-    <span id="status-text">Klik tombol "PUTAR SPINNER" atau klik langsung roda Spinner 3D di kanan bawah papan!</span>
+  <!-- BACKDROP FOR MOBILE DRAWER -->
+  <div id="drawer-backdrop" class="drawer-backdrop" onclick="closeAllDrawers()"></div>
+
+  <!-- MODAL: MOBILE NAVIGATION MENU -->
+  <div class="modal-backdrop" id="mobile-menu-modal">
+    <div class="modal-box" style="max-width:380px; padding:18px 20px;">
+      <div class="modal-header">
+        <h2 style="font-size:1.15rem;margin:0;">📋 Menu Petualangan</h2>
+        <button class="close-modal" onclick="closeMobileMenuModal()">✕</button>
+      </div>
+      <div class="mobile-menu-grid">
+        <button class="menu-item-btn" onclick="closeMobileMenuModal(); openInfoModal('petunjuk');" style="background:#fef08a; border-color:#b45309;">
+          <span class="icon">📜</span>
+          <div class="text">
+            <strong>Petunjuk Cara Bermain</strong>
+            <small>Panduan lengkap langkah permainan</small>
+          </div>
+        </button>
+        <button class="menu-item-btn" onclick="closeMobileMenuModal(); openRaporKaptenModal();" style="background:#fef3c7; border-color:#f59e0b;">
+          <span class="icon">📊</span>
+          <div class="text">
+            <strong>Rapor Belajar</strong>
+            <small>Statistik akurasi & skor</small>
+          </div>
+        </button>
+        <button class="menu-item-btn" onclick="closeMobileMenuModal(); openDeckManagerModal();" style="background:#e0e7ff; border-color:#6366f1;">
+          <span class="icon">🃏</span>
+          <div class="text">
+            <strong>Kelola Dek Soal</strong>
+            <small>Tambah & edit soal kuis</small>
+          </div>
+        </button>
+        <button class="menu-item-btn" onclick="closeMobileMenuModal(); openInfoModal('tp');">
+          <span class="icon">🎯</span>
+          <div class="text">
+            <strong>Tujuan Pembelajaran</strong>
+            <small>Target materi kelas 5</small>
+          </div>
+        </button>
+        <button class="menu-item-btn" onclick="closeMobileMenuModal(); openInfoModal('cp');">
+          <span class="icon">🏆</span>
+          <div class="text">
+            <strong>Capaian Pembelajaran</strong>
+            <small>Kompetensi kurikulum</small>
+          </div>
+        </button>
+        <button class="menu-item-btn" onclick="closeMobileMenuModal(); openInfoModal('materi');">
+          <span class="icon">📖</span>
+          <div class="text">
+            <strong>Materi Kelas 5 SD</strong>
+            <small>Ringkasan pecahan, bangun, dll</small>
+          </div>
+        </button>
+        <a href="/" class="menu-item-btn" style="text-decoration:none; background:#fce7f3; border-color:#ec4899;">
+          <span class="icon">🎲</span>
+          <div class="text">
+            <strong>Ular Tangga Pasangan</strong>
+            <small>Kembali ke mode pasangan</small>
+          </div>
+        </a>
+      </div>
+    </div>
   </div>
 
+  <!-- MODAL: MOBILE CARDS LEGEND -->
+  <div class="modal-backdrop" id="mobile-cards-modal">
+    <div class="modal-box" style="max-width:420px; padding:18px 20px;">
+      <div class="modal-header">
+        <h2 style="font-size:1.15rem;margin:0;">🃏 Dek Kartu Interaktif</h2>
+        <button class="close-modal" onclick="closeMobileCardsModal()">✕</button>
+      </div>
+      <div style="margin-bottom:12px; display:flex; justify-content:space-between; align-items:center;">
+        <span style="font-size:0.84rem; color:var(--ink);">Pilih kartu untuk melihat contoh:</span>
+        <button onclick="closeMobileCardsModal(); openDeckManagerModal();" style="padding:4px 8px; font-size:11px; background:#4f46e5; color:white; border:none; border-radius:6px; cursor:pointer; font-weight:bold;">⚙️ Atur Soal</button>
+      </div>
+      <div class="card-legend-list">
+        <div class="legend-item" style="background:#f3e5ab" onclick="closeMobileCardsModal(); triggerCardModal('misi', true)">
+          <span>🔍 <b>Kartu Misi</b> (Problem Solving)</span>
+          <span>Buka ▸</span>
+        </div>
+        <div class="legend-item" style="background:#fef08a" onclick="closeMobileCardsModal(); triggerCardModal('bonus', true)">
+          <span>⭐ <b>Kartu Bonus</b> (Hadiah Langkah)</span>
+          <span>Buka ▸</span>
+        </div>
+        <div class="legend-item" style="background:#bae6fd" onclick="closeMobileCardsModal(); triggerCardModal('soal', true)">
+          <span>📄 <b>Kartu Soal</b> (Matematika)</span>
+          <span>Buka ▸</span>
+        </div>
+        <div class="legend-item" style="background:#fecaca" onclick="closeMobileCardsModal(); triggerCardModal('jebakan', true)">
+          <span>⚠️ <b>Kartu Jebakan</b> (Penalti)</span>
+          <span>Buka ▸</span>
+        </div>
+        <div class="legend-item" style="background:#fed7aa" onclick="closeMobileCardsModal(); triggerCardModal('tantangan', true)">
+          <span>⚡ <b>Kartu Tantangan</b> (Cepat Hitung)</span>
+          <span>Buka ▸</span>
+        </div>
+      </div>
+    </div>
+  </div>
   <!-- MODAL POPUP -->
   <div class="modal-backdrop" id="modal-backdrop">
     <div class="modal-box">
@@ -886,26 +1561,44 @@
         qrColor: "#2563eb",
         codeUrl: "https://pgsd-media.id/qr/petunjuk-permainan",
         html: `
-          <ol style="margin:8px 0 8px 20px; display:flex; flex-direction:column; gap:7px;">
-            <li>Tempatkan seluruh <b>Pion Bajak Laut</b> di petak <b>START</b> (pantai kiri bawah).</li>
-            <li>Pemain memutar <b>Spinner</b> untuk mendapatkan langkah (<b>Maju 1, 2, atau 3 Langkah</b>).</li>
-            <li>Pion bergerak mengikuti jalur berliku menuju pulau dan <b>Peti Harta Karun (FINISH)</b>.</li>
-            <li>Sesuaikan tindakan dengan ikon petak tempat pion berhenti:
-              <ul style="margin-left:18px;margin-top:4px;">
-                <li>🔍 <b>Lup (Kartu Misi):</b> Selesaikan soal cerita kontekstual (Benar = Maju 1 langkah).</li>
-                <li>⭐ <b>Bintang (Kartu Bonus):</b> Hadiah langsung maju 1–2 langkah!</li>
-                <li>📄? <b>Tanda Tanya (Kartu Soal):</b> Jawab soal konsep Matematika Kelas 5.</li>
-                <li>⚠️ <b>Segitiga Seru (Kartu Jebakan):</b> Awas! Mundur 1 langkah jika terkena badai laut.</li>
-                <li>⚡ <b>Petir (Kartu Tantangan):</b> Tantangan berhitung cepat bernilai poin emas ganda!</li>
-              </ul>
-            </li>
-            <li>Pemain pertama yang mencapai petak <b>FINISH</b> membuka Peti Harta Karun dan menjadi pemenang!</li>
-          </ol>
+          <div style="background:#fef3c7; border:2px solid #f59e0b; border-radius:12px; padding:10px 12px; margin-bottom:12px;">
+            <h4 style="margin:0 0 4px 0; color:#92400e; font-size:1rem;">🏴‍☠️ Cara Bermain Singkat & Mudah:</h4>
+            <p style="margin:0; font-size:0.85rem; color:#78350f;">
+              Capai <b>Peti Harta Karun (FINISH)</b> terlebih dahulu sambil mengumpulkan koin emas dan menjawab tantangan matematika kelas 5!
+            </p>
+          </div>
+
+          <div style="display:flex; flex-direction:column; gap:8px;">
+            <div style="display:flex; gap:10px; align-items:flex-start;">
+              <span style="background:#22c55e; color:white; font-weight:800; border-radius:50%; width:24px; height:24px; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:0.8rem;">1</span>
+              <div style="font-size:0.85rem;">
+                <b>Lihat Giliran:</b> Perhatikan nama bajak laut yang aktif di panel (Kapten Merah, Navigator Biru, atau Meriam Hijau).
+              </div>
+            </div>
+            <div style="display:flex; gap:10px; align-items:flex-start;">
+              <span style="background:#3b82f6; color:white; font-weight:800; border-radius:50%; width:24px; height:24px; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:0.8rem;">2</span>
+              <div style="font-size:0.85rem;">
+                <b>Tekan Tombol PUTAR SPINNER:</b> Jarum 3D akan berputar dan menentukan langkahmu (1, 2, atau 3 petak). Pion otomatis melompat.
+              </div>
+            </div>
+            <div style="display:flex; gap:10px; align-items:flex-start;">
+              <span style="background:#f59e0b; color:white; font-weight:800; border-radius:50%; width:24px; height:24px; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:0.8rem;">3</span>
+              <div style="font-size:0.85rem;">
+                <b>Tantangan Petak:</b> Jika mendarat di petak Soal/Misi/Tantangan, jawab soal matematika untuk bonus koin & langkah!
+              </div>
+            </div>
+            <div style="display:flex; gap:10px; align-items:flex-start;">
+              <span style="background:#ef4444; color:white; font-weight:800; border-radius:50%; width:24px; height:24px; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:0.8rem;">4</span>
+              <div style="font-size:0.85rem;">
+                <b>Kamera 3D:</b> Gunakan tombol <b>🗺️ Papan</b>, <b>🏴‍☠️ Pion</b>, atau <b>🎡 Spinner</b> di atas untuk mengubah sudut pandang.
+              </div>
+            </div>
+          </div>
         `
       }
     };
 
-    const DEFAULT_CARD_BANK = {
+        const DEFAULT_CARD_BANK = {
       soal: [
         {
           q: "Kapten Bajak Laut memiliki tali tambang sepanjang 3/4 meter, lalu disambung lagi dengan 1/2 meter. Berapa meter total panjang tali tambang sekarang?",
@@ -927,6 +1620,160 @@
           ans: 2,
           exp: "3/5 = 6/10 = 0,6.",
           rewardSteps: 1
+        },
+        {
+          q: "Hasil dari 2 ½ kg bubuk mesiu meriam terpakai ¾ kg saat latihan menembak. Sisa bubuk mesiu adalah...",
+          opts: ["A. 1 ½ kg", "B. 1 ¾ kg", "C. 2 kg", "D. 1 ¼ kg"],
+          ans: 1,
+          exp: "2 ½ = 5/2 = 10/4. Maka 10/4 - 3/4 = 7/4 = 1 ¾ kg.",
+          rewardSteps: 1
+        },
+        {
+          q: "Botol ramuan kesehatan terisi ¾ bagian. Jika diminum ⅔ dari isi botol tersebut, berapa bagian ramuan yang diminum?",
+          opts: ["A. ½ bagian", "B. 5/12 bagian", "C. 6/7 bagian", "D. 1/3 bagian"],
+          ans: 0,
+          exp: "Perkalian pecahan: ¾ × ⅔ = 6/12 = ½ bagian.",
+          rewardSteps: 1
+        },
+        {
+          q: "Sebuah peti perhiasan berbentuk kubus memiliki panjang rusuk 8 cm. Berapakah volume peti kubus tersebut?",
+          opts: ["A. 64 cm³", "B. 256 cm³", "C. 512 cm³", "D. 1.024 cm³"],
+          ans: 2,
+          exp: "Volume Kubus = s × s × s = 8 × 8 × 8 = 512 cm³.",
+          rewardSteps: 1
+        },
+        {
+          q: "Sebanyak 4 liter minyak zaitun dituangkan ke dalam botol-botol kecil berukuran ½ liter. Berapa banyak botol yang terisi penuh?",
+          opts: ["A. 2 botol", "B. 6 botol", "C. 8 botol", "D. 16 botol"],
+          ans: 2,
+          exp: "Pembagian pecahan: 4 ÷ ½ = 4 × 2/1 = 8 botol.",
+          rewardSteps: 1
+        },
+        {
+          q: "Bentuk pecahan biasa paling sederhana dari 75% adalah...",
+          opts: ["A. 7/10", "B. ¾", "C. 3/5", "D. 4/5"],
+          ans: 1,
+          exp: "75% = 75/100 = (75 ÷ 25) / (100 ÷ 25) = ¾.",
+          rewardSteps: 1
+        },
+        {
+          q: "Layar kapal sobek 4/5 bagian. Jika dinyatakan dalam bentuk persen, bagian yang sobek adalah...",
+          opts: ["A. 70%", "B. 75%", "C. 80%", "D. 85%"],
+          ans: 2,
+          exp: "4/5 × 100% = 400% / 5 = 80%.",
+          rewardSteps: 1
+        },
+        {
+          q: "Peti kubus kayu jati berukuran rusuk 5 dm. Berapakah luas permukaan total seluruh sisi peti tersebut?",
+          opts: ["A. 125 dm²", "B. 150 dm²", "C. 100 dm²", "D. 175 dm²"],
+          ans: 1,
+          exp: "Luas permukaan kubus = 6 × s² = 6 × (5 × 5) = 6 × 25 = 150 dm².",
+          rewardSteps: 1
+        },
+        {
+          q: "Tenda bivak di pantai berbentuk prisma segitiga dengan alas segitiga (alas = 6 m, tinggi = 4 m) dan panjang tenda 10 m. Volume tenda adalah...",
+          opts: ["A. 120 m³", "B. 240 m³", "C. 80 m³", "D. 160 m³"],
+          ans: 0,
+          exp: "Volume Prisma = Luas Alas × Panjang = (½ × 6 × 4) × 10 = 12 × 10 = 120 m³.",
+          rewardSteps: 1
+        },
+        {
+          q: "Kru kapal menimbang dua bongkahan emas murni: 2,75 kg dan 1,45 kg. Berapakah total berat kedua bongkahan tersebut?",
+          opts: ["A. 4,10 kg", "B. 4,15 kg", "C. 4,20 kg", "D. 4,25 kg"],
+          ans: 2,
+          exp: "Penjumlahan desimal lurus: 2,75 + 1,45 = 4,20 kg.",
+          rewardSteps: 1
+        },
+        {
+          q: "Gentong air tawar mula-mula berisi 15,5 liter. Setelah diminum para pelaut sebanyak 6,75 liter, sisa air adalah...",
+          opts: ["A. 8,25 liter", "B. 8,75 liter", "C. 9,25 liter", "D. 9,75 liter"],
+          ans: 1,
+          exp: "Pengurangan desimal: 15,50 - 6,75 = 8,75 liter.",
+          rewardSteps: 1
+        },
+        {
+          q: "Perbandingan jumlah koin emas dan koin perak di dalam peti adalah 3 : 5. Jika koin emas ada 15 keping, berapa jumlah koin perak?",
+          opts: ["A. 20 keping", "B. 25 keping", "C. 30 keping", "D. 35 keping"],
+          ans: 1,
+          exp: "Perak = (5/3) × 15 = 25 keping.",
+          rewardSteps: 1
+        },
+        {
+          q: "Sebuah peta harta karun memiliki skala 1 : 200. Jika panjang kapal pada peta adalah 12 cm, berapakah panjang kapal sebenarnya?",
+          opts: ["A. 24 meter", "B. 12 meter", "C. 240 meter", "D. 2,4 meter"],
+          ans: 0,
+          exp: "Panjang asli = 12 cm × 200 = 2.400 cm = 24 meter.",
+          rewardSteps: 1
+        },
+        {
+          q: "Hasil tangkapan ikan pelaut selama 3 hari berturut-turut adalah 12 kg, 15 kg, dan 18 kg. Rata-rata tangkapan per hari adalah...",
+          opts: ["A. 14 kg", "B. 15 kg", "C. 16 kg", "D. 17 kg"],
+          ans: 1,
+          exp: "Rata-rata = (12 + 15 + 18) / 3 = 45 / 3 = 15 kg.",
+          rewardSteps: 1
+        },
+        {
+          q: "Berapa mililiter (ml) volume air kelapa jika diukur setara dengan 3 liter?",
+          opts: ["A. 30 ml", "B. 300 ml", "C. 3.000 ml", "D. 30.000 ml"],
+          ans: 2,
+          exp: "1 liter = 1.000 ml, maka 3 liter = 3.000 ml.",
+          rewardSteps: 1
+        },
+        {
+          q: "Berapakah jumlah rusuk pada peti harta karun berbentuk balok?",
+          opts: ["A. 8 rusuk", "B. 10 rusuk", "C. 12 rusuk", "D. 14 rusuk"],
+          ans: 2,
+          exp: "Balok memiliki 12 rusuk (4 panjang, 4 lebar, 4 tinggi).",
+          rewardSteps: 1
+        },
+        {
+          q: "Berapakah banyak titik sudut pada bangun ruang kubus?",
+          opts: ["A. 6 titik", "B. 8 titik", "C. 12 titik", "D. 16 titik"],
+          ans: 1,
+          exp: "Kubus memiliki 8 titik sudut (4 di atas, 4 di bawah).",
+          rewardSteps: 1
+        },
+        {
+          q: "Hasil perkalian desimal 0,5 × 0,4 adalah...",
+          opts: ["A. 2,0", "B. 0,20", "C. 0,02", "D. 0,002"],
+          ans: 1,
+          exp: "5 × 4 = 20, dengan 2 angka di belakang koma maka hasilnya 0,20 atau 0,2.",
+          rewardSteps: 1
+        },
+        {
+          q: "Pecahan berikut yang senilai dengan 2/7 adalah...",
+          opts: ["A. 4/12", "B. 6/21", "C. 8/24", "D. 5/14"],
+          ans: 1,
+          exp: "Kalikan pembilang dan penyebut dengan 3: (2 × 3) / (7 × 3) = 6/21.",
+          rewardSteps: 1
+        },
+        {
+          q: "Hasil dari 5/6 liter minyak zaitun tumpah 1/3 liter di geladak. Berapa sisa minyak zaitun sekarang?",
+          opts: ["A. 2/6 liter (1/3 liter)", "B. 3/6 liter (½ liter)", "C. 4/6 liter", "D. 1/6 liter"],
+          ans: 1,
+          exp: "5/6 - 2/6 = 3/6 = ½ liter.",
+          rewardSteps: 1
+        },
+        {
+          q: "Sebuah peti memiliki alas berbentuk persegi dengan panjang sisi 15 cm. Keliling alas peti tersebut adalah...",
+          opts: ["A. 30 cm", "B. 45 cm", "C. 60 cm", "D. 225 cm"],
+          ans: 2,
+          exp: "Keliling persegi = 4 × sisi = 4 × 15 cm = 60 cm.",
+          rewardSteps: 1
+        },
+        {
+          q: "Hasil dari operasi hitung campur ½ + 0,25 - 10% dalam bentuk desimal adalah...",
+          opts: ["A. 0,55", "B. 0,60", "C. 0,65", "D. 0,70"],
+          ans: 2,
+          exp: "½ = 0,50; 10% = 0,10. Maka 0,50 + 0,25 - 0,10 = 0,65.",
+          rewardSteps: 1
+        },
+        {
+          q: "Sebuah drum minyak berbentuk tabung memiliki jari-jari 7 dm dan tinggi 10 dm. Berapa liter volume drum tersebut? (π = 22/7)",
+          opts: ["A. 1.540 liter", "B. 1.450 liter", "C. 770 liter", "D. 2.200 liter"],
+          ans: 0,
+          exp: "Volume Tabung = π × r² × t = (22/7) × 7 × 7 × 10 = 1.540 dm³ = 1.540 liter.",
+          rewardSteps: 1
         }
       ],
       misi: [
@@ -942,6 +1789,97 @@
           opts: ["A. 0,6 km", "B. 6 km", "C. 60 km", "D. 600 km"],
           ans: 1,
           exp: "Jarak sebenarnya = 6 × 100.000 cm = 600.000 cm = 6 km.",
+          rewardSteps: 2
+        },
+        {
+          q: "🔍 MISI POMPA AIR PALKA: Pompa penguras kapal mampu mengeluarkan air sebanyak 20 liter per menit. Jika pompa beroperasi selama 15 menit, berapa total air yang terbuang?",
+          opts: ["A. 200 liter", "B. 250 liter", "C. 300 liter", "D. 350 liter"],
+          ans: 2,
+          exp: "Debit = Volume / Waktu -> Volume = Debit × Waktu = 20 × 15 = 300 liter.",
+          rewardSteps: 2
+        },
+        {
+          q: "🔍 MISI WAKTU BERLAYAR: Jarak antara dua pulau karang adalah 150 km. Jika kapal berlayar konstan dengan kecepatan 50 km/jam, berapa lama waktu tempuhnya?",
+          opts: ["A. 2 jam", "B. 2,5 jam", "C. 3 jam", "D. 4 jam"],
+          ans: 2,
+          exp: "Waktu = Jarak / Kecepatan = 150 / 50 = 3 jam.",
+          rewardSteps: 2
+        },
+        {
+          q: "🔍 MISI KECEPATAN ANGIN: Kapal menempuh rute 90 km dalam waktu 1,5 jam berkat dorongan angin kencang. Berapakah kecepatan rata-rata kapal tersebut?",
+          opts: ["A. 50 km/jam", "B. 60 km/jam", "C. 70 km/jam", "D. 80 km/jam"],
+          ans: 1,
+          exp: "Kecepatan = Jarak / Waktu = 90 / 1,5 = 60 km/jam.",
+          rewardSteps: 2
+        },
+        {
+          q: "🔍 MISI PERBANDINGAN UMUR: Perbandingan umur Kapten dan Mualim adalah 4 : 3. Jika umur Kapten adalah 40 tahun, berapakah umur Mualim?",
+          opts: ["A. 25 tahun", "B. 30 tahun", "C. 32 tahun", "D. 35 tahun"],
+          ans: 1,
+          exp: "Umur Mualim = (3/4) × 40 = 30 tahun.",
+          rewardSteps: 2
+        },
+        {
+          q: "🔍 MISI SKALA PULAU KARANG: Jarak sebenarnya antara dua karang laut adalah 8 km (800.000 cm). Jika digambar pada peta dengan skala 1 : 200.000, berapa cm jarak pada peta?",
+          opts: ["A. 2 cm", "B. 4 cm", "C. 8 cm", "D. 16 cm"],
+          ans: 1,
+          exp: "Jarak pada peta = 800.000 / 200.000 = 4 cm.",
+          rewardSteps: 2
+        },
+        {
+          q: "🔍 MISI BAK AIR TAWAR: Bak penampung air di kapal berukuran panjang 5 m, lebar 2 m, dan terisi air setinggi 1,5 m. Berapakah volume air tawar tersebut dalam liter?",
+          opts: ["A. 10.000 liter", "B. 12.500 liter", "C. 15.000 liter", "D. 20.000 liter"],
+          ans: 2,
+          exp: "Volume = 5 × 2 × 1,5 = 15 m³ = 15.000 dm³ = 15.000 liter.",
+          rewardSteps: 2
+        },
+        {
+          q: "🔍 MISI TANGGA TIANG UTAMA: Tiang layar utama setinggi 12 meter (1.200 cm). Tiap anak tangga berjarak 40 cm. Berapa banyak anak tangga tali yang harus dipanjat pelaut?",
+          opts: ["A. 25 anak tangga", "B. 30 anak tangga", "C. 35 anak tangga", "D. 40 anak tangga"],
+          ans: 1,
+          exp: "Banyak anak tangga = 1.200 cm / 40 cm = 30 anak tangga.",
+          rewardSteps: 2
+        },
+        {
+          q: "🔍 MISI LOGISTIK BERAS: Sekarung beras 50 kg dikonsumsi kru kapal sebanyak 2,5 kg setiap hari. Beras tersebut akan habis dalam berapa hari?",
+          opts: ["A. 15 hari", "B. 20 hari", "C. 25 hari", "D. 30 hari"],
+          ans: 1,
+          exp: "Hari = 50 ÷ 2,5 = 20 hari.",
+          rewardSteps: 2
+        },
+        {
+          q: "🔍 MISI NAVIGASI KOMPAS: Jarum kompas berputar searah jarum jam dari arah Utara menuju arah Timur. Berapakah besar sudut putaran tersebut?",
+          opts: ["A. 45°", "B. 90° (Siku-siku)", "C. 180° (Lurus)", "D. 270°"],
+          ans: 1,
+          exp: "Arah Utara ke Timur membentuk sudut seperempat lingkaran yaitu 90° (sudut siku-siku).",
+          rewardSteps: 2
+        },
+        {
+          q: "🔍 MISI BAHAN BAKAR: Kapal motor patroli membutuhkan 5 liter solar untuk menempuh jarak 20 km. Berapa liter solar yang dibutuhkan untuk menempuh 100 km?",
+          opts: ["A. 15 liter", "B. 20 liter", "C. 25 liter", "D. 30 liter"],
+          ans: 2,
+          exp: "Solar = (100 / 20) × 5 = 5 × 5 = 25 liter.",
+          rewardSteps: 2
+        },
+        {
+          q: "🔍 MISI WAKTU TIBA DI DERMAGA: Kapal berlayar dari pelabuhan pukul 06.30 pagi dan membutuhkan waktu 2 jam 45 menit. Pukul berapa kapal tiba?",
+          opts: ["A. 08.45", "B. 09.00", "C. 09.15", "D. 09.30"],
+          ans: 2,
+          exp: "06.30 + 2 jam 45 menit = 08.75 = 09.15.",
+          rewardSteps: 2
+        },
+        {
+          q: "🔍 MISI DRUM AIR CADANGAN: Drum air mula-mula terisi 7/8 bagian. Kru mengambil 3/8 bagian untuk memasak sop laut. Sisa air di dalam drum adalah...",
+          opts: ["A. 2/8 bagian", "B. 4/8 bagian (½ drum)", "C. 5/8 bagian", "D. 1/8 bagian"],
+          ans: 1,
+          exp: "7/8 - 3/8 = 4/8 = ½ drum.",
+          rewardSteps: 2
+        },
+        {
+          q: "🔍 MISI PEMBAGIAN KELAPA: Kapten mengumpulkan 60 butir kelapa muda. 1/3 bagian dibagikan ke regu dayung dan 2/5 bagian ke regu layar. Berapa butir kelapa yang tersisa untuk kapten?",
+          opts: ["A. 14 butir", "B. 16 butir", "C. 18 butir", "D. 20 butir"],
+          ans: 1,
+          exp: "Regu dayung = 60 × 1/3 = 20. Regu layar = 60 × 2/5 = 24. Sisa = 60 - (20 + 24) = 16 butir.",
           rewardSteps: 2
         }
       ],
@@ -959,6 +1897,97 @@
           ans: 1,
           exp: "25% = 0,25. Maka 0,25 + 0,45 = 0,70.",
           rewardSteps: 2
+        },
+        {
+          q: "⚡ TANTANGAN KILAT: Hasil dari 12² + 5² adalah...",
+          opts: ["A. 144", "B. 169", "C. 196", "D. 225"],
+          ans: 1,
+          exp: "12² = 144, 5² = 25. 144 + 25 = 169.",
+          rewardSteps: 2
+        },
+        {
+          q: "⚡ TANTANGAN KILAT: Berapakah akar pangkat tiga dari 1.000 (∛1.000)?",
+          opts: ["A. 10", "B. 100", "C. 20", "D. 50"],
+          ans: 0,
+          exp: "10 × 10 × 10 = 1.000, maka ∛1.000 = 10.",
+          rewardSteps: 2
+        },
+        {
+          q: "⚡ TANTANGAN KILAT: Berapakah akar pangkat tiga dari 216 (∛216)?",
+          opts: ["A. 4", "B. 5", "C. 6", "D. 8"],
+          ans: 2,
+          exp: "6 × 6 × 6 = 216, maka ∛216 = 6.",
+          rewardSteps: 2
+        },
+        {
+          q: "⚡ TANTANGAN KILAT: Bentuk persen dari 3/8 adalah...",
+          opts: ["A. 35%", "B. 37,5%", "C. 40%", "D. 42,5%"],
+          ans: 1,
+          exp: "3/8 × 100% = 300% / 8 = 37,5%.",
+          rewardSteps: 2
+        },
+        {
+          q: "⚡ TANTANGAN KILAT: Hasil dari 1,25 × 4 adalah...",
+          opts: ["A. 4,5", "B. 5,0", "C. 5,5", "D. 6,0"],
+          ans: 1,
+          exp: "1,25 × 4 = 5,0.",
+          rewardSteps: 2
+        },
+        {
+          q: "⚡ TANTANGAN KILAT: Rumus untuk menghitung volume bangun balok adalah...",
+          opts: ["A. s × s × s", "B. p × l × t", "C. ½ × a × t", "D. 2 × (p + l)"],
+          ans: 1,
+          exp: "Rumus volume balok adalah panjang × lebar × tinggi (p × l × t).",
+          rewardSteps: 2
+        },
+        {
+          q: "⚡ TANTANGAN KILAT: Sebuah kubus memiliki volume 343 cm³. Panjang rusuk kubus tersebut adalah...",
+          opts: ["A. 6 cm", "B. 7 cm", "C. 8 cm", "D. 9 cm"],
+          ans: 1,
+          exp: "∛343 = 7 karena 7 × 7 × 7 = 343 cm³.",
+          rewardSteps: 2
+        },
+        {
+          q: "⚡ TANTANGAN KILAT: Balok bervolume 120 cm³ memiliki panjang 6 cm dan lebar 4 cm. Berapakah tinggi balok tersebut?",
+          opts: ["A. 4 cm", "B. 5 cm", "C. 6 cm", "D. 8 cm"],
+          ans: 1,
+          exp: "t = Volume / (p × l) = 120 / (6 × 4) = 120 / 24 = 5 cm.",
+          rewardSteps: 2
+        },
+        {
+          q: "⚡ TANTANGAN KILAT: Bentuk pecahan campuran dari 17/5 adalah...",
+          opts: ["A. 2 ⅗", "B. 3 ⅖", "C. 3 ⅗", "D. 4 ⅕"],
+          ans: 1,
+          exp: "17 ÷ 5 = 3 sisa 2, maka menjadi 3 ⅖.",
+          rewardSteps: 2
+        },
+        {
+          q: "⚡ TANTANGAN KILAT: Hasil dari 4,8 ÷ 0,6 adalah...",
+          opts: ["A. 6", "B. 7", "C. 8", "D. 9"],
+          ans: 2,
+          exp: "48 ÷ 6 = 8.",
+          rewardSteps: 2
+        },
+        {
+          q: "⚡ TANTANGAN KILAT: Berapakah 3/4 dari 400 keping koin emas?",
+          opts: ["A. 250 koin", "B. 300 koin", "C. 320 koin", "D. 350 koin"],
+          ans: 1,
+          exp: "¾ × 400 = 3 × 100 = 300 keping koin.",
+          rewardSteps: 2
+        },
+        {
+          q: "⚡ TANTANGAN KILAT: Berapakah 15% dari 200 kg bubuk mesiu?",
+          opts: ["A. 25 kg", "B. 30 kg", "C. 35 kg", "D. 40 kg"],
+          ans: 1,
+          exp: "15/100 × 200 = 15 × 2 = 30 kg.",
+          rewardSteps: 2
+        },
+        {
+          q: "⚡ TANTANGAN KILAT: Hasil operasi hitung 2/3 + 1/6 dalam bentuk paling sederhana adalah...",
+          opts: ["A. 3/9", "B. 4/6", "C. 5/6", "D. 1"],
+          ans: 2,
+          exp: "Samakan penyebut ke 6: 4/6 + 1/6 = 5/6.",
+          rewardSteps: 2
         }
       ],
       bonus: [
@@ -970,9 +1999,45 @@
         },
         {
           title: "⭐ KARTU BONUS PETA PINTAS!",
-          desc: "Kamu menemukan terowongan rahasia di dekat pohon kelapa! Pionmu berhak <b>Maju 1 Langkah</b> ekstra!",
+          desc: "Kamu menemukan terowongan rahasia di dekat pohon kelapa! Pionmu berhak <b>Maju 1 Langkah</b> ekstra serta +30 Koin!",
           steps: 1,
           coins: 30
+        },
+        {
+          title: "⭐ KARTU BONUS KOMPAS EMAS!",
+          desc: "Mendapat petunjuk navigasi dari formasi bintang laut selatan! Kapalmu meluncur mulus <b>Maju 2 Langkah</b> dan dapat +40 Koin!",
+          steps: 2,
+          coins: 40
+        },
+        {
+          title: "⭐ KARTU BONUS LUMBA-LUMBA PENOLONG!",
+          desc: "Kawanan lumba-lumba ramah mendorong rakit petualangmu melompati ombak! <b>Maju 3 Langkah</b> & +60 Koin!",
+          steps: 3,
+          coins: 60
+        },
+        {
+          title: "⭐ KARTU BONUS KOTAK RAHASIA KARANG!",
+          desc: "Menemukan peti kecil berlapis mutiara di balik gundukan pasir karang! Mendapatkan kejutan <b>+100 Koin Emas</b> murni!",
+          steps: 0,
+          coins: 100
+        },
+        {
+          title: "⭐ KARTU BONUS ANGIN BURITAN!",
+          desc: "Layar kapal terkembang sempurna ditiup angin muson barat! <b>Maju 1 Langkah</b> dan dapat tambahan perbekalan +25 Koin!",
+          steps: 1,
+          coins: 25
+        },
+        {
+          title: "⭐ KARTU BONUS TEROPONG KAPTEN!",
+          desc: "Melalui lensa teropong ajaib, kamu melihat jalur aman tanpa rintangan! <b>Maju 2 Langkah</b> & +35 Koin!",
+          steps: 2,
+          coins: 35
+        },
+        {
+          title: "⭐ KARTU BONUS DAYUNG KILAT!",
+          desc: "Kru pendayung penuh semangat setelah makan kelapa manis! Pion melaju cepat <b>Maju 1 Langkah</b> & +45 Koin!",
+          steps: 1,
+          coins: 45
         }
       ],
       jebakan: [
@@ -982,8 +2047,38 @@
           steps: -1
         },
         {
-          title: "⚠️ KARTU JEBAKAN: KABUT TEBAL PULAU TENGGKORAK!",
-          desc: "Pandangan tertutup kabut tebal! Kamu harus memeriksa ulang rumus matematikamu dan <b>Mundur 1 Langkah</b>.",
+          title: "⚠️ KARTU JEBAKAN: KABUT TEBAL PULAU TENGKORAK!",
+          desc: "Pandangan tertutup kabut tebal! Kamu harus memeriksa ulang kompas navigasi dan <b>Mundur 1 Langkah</b>.",
+          steps: -1
+        },
+        {
+          title: "⚠️ KARTU JEBAKAN: JANGKAR TERSANGKUT KARANG!",
+          desc: "Rantai jangkar terlilit terumbu karang tajam saat ombak pasang! Kru harus mundur sejenak, <b>Mundur 2 Langkah</b>!",
+          steps: -2
+        },
+        {
+          title: "⚠️ KARTU JEBAKAN: PASIR HISAP PANTAI!",
+          desc: "Kaki pion terperosok ke dalam pasir hisap basah di tepi pulau! Harus melangkah hati-hati, <b>Mundur 1 Langkah</b>.",
+          steps: -1
+        },
+        {
+          title: "⚠️ KARTU JEBAKAN: MERIAM AIR MACET!",
+          desc: "Percikan ombak membasahi sumbu mesiu meriam! Kapal harus berputar haluan dan <b>Mundur 1 Langkah</b>.",
+          steps: -1
+        },
+        {
+          title: "⚠️ KARTU JEBAKAN: ANGIN PUTING BELIUNG MINI!",
+          desc: "Pusaran angin mini meniup kapal berputar arah ke belakang! <b>Mundur 2 Langkah</b>!",
+          steps: -2
+        },
+        {
+          title: "⚠️ KARTU JEBAKAN: TENTAKEL GURITA RAKSASA!",
+          desc: "Seekor gurita raksasa menyemburkan tinta hitam pekat menghadang haluan kapal! <b>Mundur 1 Langkah</b>.",
+          steps: -1
+        },
+        {
+          title: "⚠️ KARTU JEBAKAN: KARANG DANGKAL TERSEMBUNYI!",
+          desc: "Lambung kapal menggesek karang dangkal! Harus berhati-hati mundur sedikit, <b>Mundur 1 Langkah</b>.",
           steps: -1
         }
       ]
@@ -1032,12 +2127,50 @@
     // ============================================================================
     const container = document.getElementById('canvas-container');
 
-    // --- DECK STORAGE & MANAGEMENT SYSTEM ---
+        // --- DECK STORAGE & MANAGEMENT SYSTEM ---
     let CARD_BANK = null;
+
+    // --- SMART NON-REPEATING SHUFFLE DECK POOLS ---
+    const DECK_DRAW_POOLS = {
+      soal: [],
+      misi: [],
+      tantangan: [],
+      bonus: [],
+      jebakan: []
+    };
+    let lastDrawnIndices = {};
+
+    function getNextCardFromDeck(cardType) {
+      if (!CARD_BANK || !CARD_BANK[cardType] || CARD_BANK[cardType].length === 0) {
+        return DEFAULT_CARD_BANK[cardType][0];
+      }
+      const list = CARD_BANK[cardType];
+      if (list.length === 1) return list[0];
+
+      if (!DECK_DRAW_POOLS[cardType] || DECK_DRAW_POOLS[cardType].length === 0) {
+        // Buat urutan indeks kartu [0, 1, ..., N-1]
+        const pool = Array.from({ length: list.length }, (_, i) => i);
+        // Fisher-Yates Shuffle yang adil dan benar-benar acak
+        for (let i = pool.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [pool[i], pool[j]] = [pool[j], pool[i]];
+        }
+        // Hindari kartu pertama yang baru sama dengan kartu terakhir putaran sebelumnya
+        if (lastDrawnIndices[cardType] !== undefined && pool[0] === lastDrawnIndices[cardType] && pool.length > 1) {
+          const swapIdx = 1 + Math.floor(Math.random() * (pool.length - 1));
+          [pool[0], pool[swapIdx]] = [pool[swapIdx], pool[0]];
+        }
+        DECK_DRAW_POOLS[cardType] = pool;
+      }
+
+      const nextIdx = DECK_DRAW_POOLS[cardType].shift();
+      lastDrawnIndices[cardType] = nextIdx;
+      return list[nextIdx] || list[0];
+    }
 
     function initDeckBank() {
       try {
-        const stored = localStorage.getItem('harta_karun_deck_cards_v1');
+        const stored = localStorage.getItem('harta_karun_deck_cards_v2');
         if (stored) {
           CARD_BANK = JSON.parse(stored);
         } else {
@@ -1048,11 +2181,13 @@
         console.warn('Storage read error, using defaults', e);
         CARD_BANK = JSON.parse(JSON.stringify(DEFAULT_CARD_BANK));
       }
+      // Reset deck draw pools saat init
+      Object.keys(DECK_DRAW_POOLS).forEach(k => { DECK_DRAW_POOLS[k] = []; });
     }
 
     function saveDeckBankToStorage() {
       try {
-        localStorage.setItem('harta_karun_deck_cards_v1', JSON.stringify(CARD_BANK));
+        localStorage.setItem('harta_karun_deck_cards_v2', JSON.stringify(CARD_BANK));
       } catch (e) {
         console.error('Storage write error', e);
       }
@@ -1977,9 +3112,9 @@
     scene.add(pawnsGroup);
 
     const players = [
-      { id: 0, name: "Kapten Merah", color: 0xef4444, hex: "#ef4444", tileIndex: 0, score: 100, mesh: null, offset: new THREE.Vector3(-0.32, 0, -0.25) },
-      { id: 1, name: "Navigator Biru", color: 0x3b82f6, hex: "#3b82f6", tileIndex: 0, score: 100, mesh: null, offset: new THREE.Vector3(0.32, 0, -0.25) },
-      { id: 2, name: "Meriam Hijau", color: 0x22c55e, hex: "#22c55e", tileIndex: 0, score: 100, mesh: null, offset: new THREE.Vector3(0, 0, 0.32) }
+      { id: 0, name: "Kapten Merah", color: 0xef4444, hex: "#ef4444", tileIndex: 0, score: 100, mesh: null, offset: new THREE.Vector3(-0.46, 0, -0.32) },
+      { id: 1, name: "Navigator Biru", color: 0x3b82f6, hex: "#3b82f6", tileIndex: 0, score: 100, mesh: null, offset: new THREE.Vector3(0.46, 0, -0.32) },
+      { id: 2, name: "Meriam Hijau", color: 0x22c55e, hex: "#22c55e", tileIndex: 0, score: 100, mesh: null, offset: new THREE.Vector3(0, 0, 0.44) }
     ];
 
     let currentPlayerIdx = 0;
@@ -2049,24 +3184,77 @@
 
     registerExplodable(pawnsGroup, 0, 5.5, 0);
 
-    // Render daftar pemain di panel kanan
+    // Render daftar pemain di panel kanan & mobile spotlight
+    function updateCamChip(name) {
+      document.querySelectorAll('.cam-chip').forEach(c => c.classList.remove('active'));
+      const btn = document.getElementById('chip-cam-' + name);
+      if (btn) btn.classList.add('active');
+    }
+
     function updatePlayerListUI() {
       const containerUI = document.getElementById('player-list-ui');
-      containerUI.innerHTML = players.map((p, idx) => `
-        <div class="player-item ${idx === currentPlayerIdx ? 'current-turn' : ''}">
-          <div class="player-badge">
-            <span class="dot" style="background:${p.hex}"></span>
-            <span>${p.name}</span>
+      if (containerUI) {
+        containerUI.innerHTML = players.map((p, idx) => `
+          <div class="player-item ${idx === currentPlayerIdx ? 'current-turn' : ''}">
+            <div class="player-badge">
+              <span class="dot" style="background:${p.hex}"></span>
+              <span>${p.name}</span>
+            </div>
+            <span>Petak <b>${p.tileIndex === 0 ? 'START' : (p.tileIndex === totalTiles - 1 ? 'FINISH' : p.tileIndex)}</b> • 🪙${p.score}</span>
           </div>
-          <span>Petak <b>${p.tileIndex === 0 ? 'START' : (p.tileIndex === totalTiles - 1 ? 'FINISH' : p.tileIndex)}</b> • 🪙${p.score}</span>
-        </div>
-      `).join('');
+        `).join('');
+      }
+
+      // Update spotlight active player
+      const cur = players[currentPlayerIdx];
+      const spotlightName = document.getElementById('spotlight-player-name');
+      const spotlightMeta = document.getElementById('spotlight-player-meta');
+      const spotlightAvatar = document.getElementById('spotlight-player-avatar');
+      const spotlightBanner = document.getElementById('active-player-spotlight');
+
+      if (spotlightName && cur) {
+        spotlightName.textContent = cur.name;
+        spotlightName.style.color = cur.hex;
+        const tileLabel = cur.tileIndex === 0 ? 'Petak START' : (cur.tileIndex === totalTiles - 1 ? '🏆 FINISH' : `Petak #${cur.tileIndex}`);
+        if (spotlightMeta) {
+          spotlightMeta.innerHTML = `<span>📍 ${tileLabel}</span><span>🪙 ${cur.score} Koin</span>`;
+        }
+        if (spotlightAvatar) {
+          spotlightAvatar.style.background = cur.hex;
+          spotlightAvatar.style.color = '#fff';
+        }
+        if (spotlightBanner) {
+          spotlightBanner.style.borderColor = cur.hex;
+        }
+      }
+
+      // Update mini chips for all players
+      const miniStrip = document.getElementById('mini-players-strip');
+      if (miniStrip) {
+        miniStrip.innerHTML = players.map((p, idx) => `
+          <div class="mini-player-chip ${idx === currentPlayerIdx ? 'active' : ''}">
+            <span class="dot" style="background:${p.hex}; width:7px; height:7px; border-radius:50%; display:inline-block;"></span>
+            <span>${p.name.split(' ')[0]} (Pt.${p.tileIndex === 0 ? '0' : (p.tileIndex === totalTiles - 1 ? 'F' : p.tileIndex)})</span>
+          </div>
+        `).join('');
+      }
     }
     updatePlayerListUI();
 
     function setStatus(badge, text) {
-      document.getElementById('status-badge').textContent = badge;
-      document.getElementById('status-text').textContent = text;
+      const badgeEl = document.getElementById('status-badge');
+      const textEl = document.getElementById('status-text');
+      const hintBox = document.getElementById('action-hint-box');
+
+      if (badgeEl) badgeEl.textContent = badge;
+      if (textEl) textEl.innerHTML = text;
+
+      if (hintBox) {
+        if (badge.includes('MAJU') || badge.includes('HASIL') || badge.includes('MENANG') || badge.includes('HARTA')) {
+          hintBox.classList.add('highlight');
+          setTimeout(() => hintBox.classList.remove('highlight'), 2200);
+        }
+      }
     }
 
     // ============================================================================
@@ -2076,7 +3264,11 @@
       playSfx('spin');
       if (isSpinningOrMoving) return;
       isSpinningOrMoving = true;
-      document.getElementById('spin-btn').disabled = true;
+      const spinBtn = document.getElementById('spin-btn');
+      if (spinBtn) {
+        spinBtn.disabled = true;
+        spinBtn.innerHTML = '<span>⏳</span> <span>Memutar Roda...</span>';
+      }
 
       // Pilih hasil langkah 1, 2, atau 3 secara acak
       pendingSpinSteps = Math.floor(Math.random() * 3) + 1;
@@ -2190,8 +3382,13 @@
       currentPlayerIdx = (currentPlayerIdx + 1) % players.length;
       updatePlayerListUI();
       isSpinningOrMoving = false;
-      document.getElementById('spin-btn').disabled = false;
-      setStatus("GILIRAN BERIKUTNYA", `Sekarang giliran ${players[currentPlayerIdx].name}. Putar Spinner untuk melangkah!`);
+      const spinBtn = document.getElementById('spin-btn');
+      if (spinBtn) {
+        spinBtn.disabled = false;
+        spinBtn.innerHTML = '<span>🎡</span> <span>PUTAR SPINNER (1 - 3)</span>';
+      }
+      const nextP = players[currentPlayerIdx];
+      setStatus('GILIRAN ' + nextP.name.toUpperCase(), `Giliran <b>${nextP.name}</b>! Tekan <b>PUTAR SPINNER</b> untuk melangkah.`);
     }
 
     function manualStep(steps) {
@@ -2204,7 +3401,11 @@
 
     function resetGame() {
       isSpinningOrMoving = false;
-      document.getElementById('spin-btn').disabled = false;
+      const spinBtn = document.getElementById('spin-btn');
+      if (spinBtn) {
+        spinBtn.disabled = false;
+        spinBtn.innerHTML = '<span>🎡</span> <span>PUTAR SPINNER (1 - 3)</span>';
+      }
       currentPlayerIdx = 0;
       players.forEach(p => {
         p.tileIndex = 0;
@@ -2352,8 +3553,7 @@
       const modalBody = document.getElementById('modal-body');
 
       if (cardType === 'bonus' || cardType === 'jebakan') {
-        const list = CARD_BANK[cardType];
-        const item = list[Math.floor(Math.random() * list.length)];
+        const item = getNextCardFromDeck(cardType);
         modalTitle.textContent = item.title;
         modalBody.innerHTML = `
           <p style="font-size:1rem;margin-bottom:16px;">${item.desc}</p>
@@ -2365,11 +3565,10 @@
         return;
       }
 
-      // Kartu Kuis (Soal, Misi, Tantangan)
-      const list = CARD_BANK[cardType];
-      const quiz = list[Math.floor(Math.random() * list.length)];
+      // Kartu Kuis (Soal, Misi, Tantangan) dengan Non-Repeating Shuffle Deck
+      const quiz = getNextCardFromDeck(cardType);
       const titleMap = {
-        soal: "📄? KARTU SOAL MATEMATIKA KELAS 5",
+        soal: "📘 KARTU SOAL MATEMATIKA KELAS 5",
         misi: "🔍 KARTU MISI PEMECAHAN MASALAH",
         tantangan: "⚡ KARTU TANTANGAN KILAT"
       };
@@ -2386,7 +3585,7 @@
           </button>
         </div>
         <div id="quiz-hint-box" style="display:none;background:#fffbeb;border:1px dashed #f59e0b;border-radius:8px;padding:10px;margin-bottom:10px;font-size:12px;color:#78350f;">
-          <b>💡 Petunjuk Menghitung:</b> ${quiz.exp || 'Perhatikan kembali pertanyaan dan rumus pecahan/bangun ruang dengan cermat!'}
+          <b>💡 Petunjuk Menghitung:</b> ${quiz.exp || 'Perhatikan kembali pertanyaan dan rumus matematika dengan cermat!'}
         </div>
         <div class="quiz-options" id="quiz-options-box">
           ${quiz.opts.map((opt, idx) => `
@@ -2501,6 +3700,40 @@
       document.getElementById('modal-backdrop').classList.remove('open');
     }
 
+    function openMobileMenuModal() {
+      const m = document.getElementById('mobile-menu-modal');
+      if (m) m.classList.add('open');
+    }
+
+    function closeMobileMenuModal() {
+      const m = document.getElementById('mobile-menu-modal');
+      if (m) m.classList.remove('open');
+    }
+
+    function openMobileCardsModal() {
+      const m = document.getElementById('mobile-cards-modal');
+      if (m) m.classList.add('open');
+    }
+
+    function closeMobileCardsModal() {
+      const m = document.getElementById('mobile-cards-modal');
+      if (m) m.classList.remove('open');
+    }
+
+    function openMobile3DDrawer() {
+      const drawer = document.getElementById('left-drawer');
+      const backdrop = document.getElementById('drawer-backdrop');
+      if (drawer) drawer.classList.toggle('open');
+      if (backdrop) backdrop.classList.toggle('open');
+    }
+
+    function closeAllDrawers() {
+      const drawer = document.getElementById('left-drawer');
+      const backdrop = document.getElementById('drawer-backdrop');
+      if (drawer) drawer.classList.remove('open');
+      if (backdrop) backdrop.classList.remove('open');
+    }
+
     // ============================================================================
     // 13. KONTROL UI: EXPLODE, ASSEMBLE, WIREFRAME, INK OUTLINE & KAMERA PRESET
     // ============================================================================
@@ -2556,20 +3789,36 @@
     let controlsTargetLook = null;
 
     function setCameraPreset(preset) {
+      const isLandscape = window.innerWidth > window.innerHeight && window.innerWidth <= 1024;
+      const isPortrait = window.innerHeight >= window.innerWidth && window.innerWidth <= 960;
+      
       if (preset === 'iso') {
-        cameraTargetPos = new THREE.Vector3(0, 25, 25);
-        controlsTargetLook = new THREE.Vector3(0, 0.5, 0);
+        if (isPortrait) {
+          cameraTargetPos = new THREE.Vector3(0, 24, 20);
+          controlsTargetLook = new THREE.Vector3(0, 0, 1.2);
+        } else if (isLandscape) {
+          cameraTargetPos = new THREE.Vector3(-1.0, 18, 18);
+          controlsTargetLook = new THREE.Vector3(-1.0, 0, 0.4);
+        } else {
+          cameraTargetPos = new THREE.Vector3(0, 25, 25);
+          controlsTargetLook = new THREE.Vector3(0, 0.5, 0);
+        }
       } else if (preset === 'top') {
-        cameraTargetPos = new THREE.Vector3(0, 34, 0.01);
-        controlsTargetLook = new THREE.Vector3(0, 0, 0);
+        const tx = isLandscape ? -1.0 : 0;
+        const tz = isPortrait ? 1.0 : 0;
+        cameraTargetPos = new THREE.Vector3(tx, 29, tz + 0.01);
+        controlsTargetLook = new THREE.Vector3(tx, 0, tz);
       } else if (preset === 'pawn') {
         const p = players[currentPlayerIdx].mesh.position;
-        cameraTargetPos = new THREE.Vector3(p.x + 4, p.y + 7, p.z + 7);
+        cameraTargetPos = new THREE.Vector3(p.x + 2.8, p.y + 5.5, p.z + 5.5);
         controlsTargetLook = p.clone();
       } else if (preset === 'spinner') {
-        cameraTargetPos = new THREE.Vector3(8.8, 9.5, 11.5);
+        cameraTargetPos = new THREE.Vector3(8.8, 9.2, 11.0);
         controlsTargetLook = new THREE.Vector3(8.8, 0.4, 5.2);
       }
+
+      updateCamChip(preset);
+
       setTimeout(() => {
         cameraTargetPos = null;
         controlsTargetLook = null;
@@ -2578,6 +3827,9 @@
 
     function focusBoardAndPlay() {
       setCameraPreset('iso');
+      if (isMobileView()) {
+        closeAllDrawers();
+      }
       setStatus("MARI BERMAIN!", `Giliran ${players[currentPlayerIdx].name} — Klik tombol Putar Spinner untuk memulai petualangan!`);
     }
 
@@ -2675,11 +3927,41 @@
 
     animate();
 
-    window.addEventListener('resize', () => {
-      camera.aspect = window.innerWidth / window.innerHeight;
+    function updateCameraForViewport() {
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+      const aspect = w / h;
+      camera.aspect = aspect;
+
+      if (w <= 960 && h >= w) {
+        // Mobile Portrait: frame 3D board in the visible canvas above bottom dock (Target Z=1.2 shifts board UP)
+        camera.fov = 46;
+        if (!cameraTargetPos) {
+          camera.position.set(0, 24, 20);
+          controls.target.set(0, 0, 1.2);
+        }
+      } else if (w <= 1024 && w > h) {
+        // Mobile Landscape: shift target slightly left so board is centered in the 65% visible canvas
+        camera.fov = 40;
+        if (!cameraTargetPos) {
+          camera.position.set(-1.0, 18, 18);
+          controls.target.set(-1.0, 0, 0.4);
+        }
+      } else {
+        // Desktop Wide
+        camera.fov = 42;
+        if (!cameraTargetPos) {
+          camera.position.set(0, 25, 25);
+          controls.target.set(0, 0.5, 0);
+        }
+      }
+
       camera.updateProjectionMatrix();
-      renderer.setSize(window.innerWidth, window.innerHeight);
-    });
+      renderer.setSize(w, h);
+    }
+
+    window.addEventListener('resize', updateCameraForViewport);
+    updateCameraForViewport();
   </script>
 
   <!-- MODAL DECK MANAGER INTERAKTIF -->

@@ -1,0 +1,5 @@
+*.bak
+*.bak.*
+UlarTangga/server
+UlarTangga/ulartangga.exe
+/tmp/

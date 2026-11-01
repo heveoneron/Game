@@ -106,12 +106,12 @@ func (rm *RoomManager) GetOrCreateRoom(code string) *Room {
 		P1Pos: 1,
 		P2Pos: 1,
 		P1Info: models.PlayerInfo{
-			Name:   "Pemain 1 (Cowok)",
+			Name:   "Ayang Ganteng 💙",
 			Avatar: "👦",
 			Color:  "#38BDF8",
 		},
 		P2Info: models.PlayerInfo{
-			Name:   "Pemain 2 (Cewek)",
+			Name:   "Ayang Cantik 💖",
 			Avatar: "🧕",
 			Color:  "#FB923C",
 		},

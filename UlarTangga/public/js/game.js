@@ -5,6 +5,8 @@ const snakesAndLadders = {
     4: 25, 13: 46, 33: 49, 42: 63, 50: 69, 62: 81, 74: 92, // Tangga 🪜 (Naik)
     27: 5, 40: 3, 43: 18, 54: 31, 66: 45, 76: 58, 89: 53, 99: 41  // Ular 🐍 (Turun)
 };
+window.snakesAndLadders = snakesAndLadders;
+
 
 // State Utama Permainan
 let customCards = JSON.parse(localStorage.getItem('couple_ut_custom_cards') || '[]');
@@ -16,8 +18,8 @@ let gameState = {
     p2Pos: 1,
     turn: 1,
     lastDice: 1,
-    p1Info: { name: "Pemain 1 (Cowok)", avatar: "👦", color: "#38BDF8" },
-    p2Info: { name: "Pemain 2 (Cewek)", avatar: "🧕", color: "#FB923C" },
+    p1Info: { name: "Ayang Ganteng 💙", avatar: "👦", color: "#38BDF8" },
+    p2Info: { name: "Ayang Cantik 💖", avatar: "🧕", color: "#FB923C" },
     selectedDecks: JSON.parse(localStorage.getItem('couple_ut_selected_decks') || 'null') || [
         'WORDS_OF_AFFIRMATION', 'QUALITY_TIME', 'RECEIVING_GIFTS', 'ACTS_OF_SERVICE', 'PHYSICAL_TOUCH'
     ],
@@ -27,6 +29,82 @@ let gameState = {
     isGameOver: false,
     winnerNum: 0
 };
+window.gameState = gameState;
+
+
+
+// ================= CONTROLS & DICE DISPLAY SYNC HELPERS =================
+function setRollDiceButtonsState(disabled, titleText) {
+    const rollBtn = document.getElementById('rollDiceBtn');
+    if (rollBtn) rollBtn.disabled = disabled;
+    
+    const mobBtn = document.getElementById('mobileRollDiceBtn');
+    if (mobBtn) {
+        mobBtn.disabled = disabled;
+        if (disabled) {
+            mobBtn.classList.add('opacity-80');
+        } else {
+            mobBtn.classList.remove('opacity-80');
+        }
+        if (titleText) {
+            const titleEl = mobBtn.querySelector('.mobile-roll-title');
+            if (titleEl) titleEl.innerText = titleText;
+        }
+    }
+}
+window.setRollDiceButtonsState = setRollDiceButtonsState;
+
+function updateDiceDisplay(diceValue, isRollingAnimation = false) {
+    const diceFaces = ['⚀', '⚁', '⚂', '⚃', '⚄', '⚅'];
+    const diceFace = document.getElementById('diceFace');
+    const diceBigNumber = document.getElementById('diceBigNumber');
+    const diceSubtext = document.getElementById('diceSubtext');
+    const mobFace = document.getElementById('mobileDiceFace');
+    const mobRes = document.getElementById('mobileDiceResult');
+
+    if (isRollingAnimation) {
+        const randFace = diceFaces[(diceValue || 1) - 1];
+        if (diceFace) diceFace.innerText = randFace;
+        if (diceBigNumber) diceBigNumber.innerText = diceValue;
+        if (mobFace) mobFace.innerText = randFace;
+        if (mobRes) mobRes.innerHTML = `Mata: <b class="text-amber-300 font-black">${diceValue}</b>`;
+        return;
+    }
+
+    if (diceValue && diceValue >= 1 && diceValue <= 6) {
+        const face = diceFaces[diceValue - 1];
+        if (diceFace) {
+            diceFace.classList.remove('dice-rolling');
+            diceFace.innerText = face;
+            diceFace.classList.add('dice-revealed');
+        }
+        if (diceBigNumber) diceBigNumber.innerText = diceValue;
+        if (diceSubtext) diceSubtext.innerText = `Dadu ${diceValue}`;
+        if (mobFace) {
+            mobFace.classList.remove('dice-rolling');
+            mobFace.innerText = face;
+            mobFace.classList.add('dice-revealed');
+        }
+        if (mobRes) {
+            mobRes.innerHTML = `Mata: <b class="text-amber-300 font-black">${diceValue}</b>`;
+        }
+    } else {
+        if (diceFace) {
+            diceFace.classList.remove('dice-rolling', 'dice-revealed');
+            diceFace.innerText = '🎲';
+        }
+        if (diceBigNumber) diceBigNumber.innerText = '?';
+        if (diceSubtext) diceSubtext.innerText = 'Dadu';
+        if (mobFace) {
+            mobFace.classList.remove('dice-rolling', 'dice-revealed');
+            mobFace.innerText = '🎲';
+        }
+        if (mobRes) {
+            mobRes.innerHTML = 'Mata: <b class="text-amber-300 font-black">?</b>';
+        }
+    }
+}
+window.updateDiceDisplay = updateDiceDisplay;
 
 // ================= MODE PERMAINAN (ONLINE / LDR vs OFFLINE KETEMU LANGSUNG) =================
 function onPlayModeChange(mode) {
@@ -66,31 +144,73 @@ function updatePlayModeUI() {
     const headerIcon = document.getElementById('playModeHeaderIcon');
     const headerText = document.getElementById('playModeHeaderText');
     const statusBadge = document.getElementById('playModeStatusBadge');
+    const mobBtn = document.getElementById('mobilePlayModeBtn');
+    const mobIcon = document.getElementById('mobilePlayModeIcon');
+    const mobText = document.getElementById('mobilePlayModeText');
+    const headerBadge = document.getElementById('headerModeBadge');
+    const menuIcon = document.getElementById('mobileMenuModeIcon');
+    const menuText = document.getElementById('mobileMenuModeText');
 
-    if (headerBtn) {
-        if (mode === 'ONLINE') {
-            headerBtn.className = "wood-btn bg-purple-100 hover:bg-purple-200 text-purple-900 px-3 py-1.5 rounded-xl text-xs font-black flex items-center gap-1.5 shadow-xs";
+    if (mode === 'ONLINE') {
+        if (headerBtn) {
+            headerBtn.className = "wood-btn bg-purple-100 hover:bg-purple-200 text-purple-900 px-3 py-1.5 rounded-xl text-xs font-black flex items-center gap-1.5 shadow-xs border border-purple-300";
             if (headerIcon) headerIcon.innerText = "📹";
-            if (headerText) headerText.innerText = "Mode: Video Call";
-        } else if (mode === 'OFFLINE') {
-            headerBtn.className = "wood-btn bg-rose-100 hover:bg-rose-200 text-rose-900 px-3 py-1.5 rounded-xl text-xs font-black flex items-center gap-1.5 shadow-xs";
+            if (headerText) headerText.innerText = "Mode: Video Call / LDR";
+        }
+        if (mobBtn) {
+            mobBtn.className = "wood-btn bg-purple-100 hover:bg-purple-200 text-purple-900 px-2.5 py-1.5 rounded-xl text-xs font-black flex items-center gap-1 shadow-xs border border-purple-300 transition-colors";
+            if (mobIcon) mobIcon.innerText = "📹";
+            if (mobText) mobText.innerText = "LDR";
+        }
+        if (headerBadge) {
+            headerBadge.innerText = "📹 LDR (Online)";
+            headerBadge.className = "bg-purple-600 text-white text-[9px] md:text-xs font-bold px-1.5 py-0.5 rounded-full uppercase tracking-wider shadow-xs";
+        }
+        if (menuIcon) menuIcon.innerText = "📹";
+        if (menuText) menuText.innerText = "LDR (Online)";
+        if (statusBadge) {
+            statusBadge.className = "text-[10px] bg-purple-200 text-purple-900 px-2 py-0.5 rounded-full font-bold";
+            statusBadge.innerText = "📹 Video Call / LDR (Aktif)";
+        }
+    } else if (mode === 'OFFLINE') {
+        if (headerBtn) {
+            headerBtn.className = "wood-btn bg-rose-100 hover:bg-rose-200 text-rose-900 px-3 py-1.5 rounded-xl text-xs font-black flex items-center gap-1.5 shadow-xs border border-rose-300";
             if (headerIcon) headerIcon.innerText = "💑";
             if (headerText) headerText.innerText = "Mode: Ketemu Langsung";
-        } else {
-            headerBtn.className = "wood-btn bg-emerald-100 hover:bg-emerald-200 text-emerald-900 px-3 py-1.5 rounded-xl text-xs font-black flex items-center gap-1.5 shadow-xs";
+        }
+        if (mobBtn) {
+            mobBtn.className = "wood-btn bg-rose-100 hover:bg-rose-200 text-rose-900 px-2.5 py-1.5 rounded-xl text-xs font-black flex items-center gap-1 shadow-xs border border-rose-300 transition-colors";
+            if (mobIcon) mobIcon.innerText = "💑";
+            if (mobText) mobText.innerText = "Dating";
+        }
+        if (headerBadge) {
+            headerBadge.innerText = "💑 Ketemu Langsung";
+            headerBadge.className = "bg-rose-600 text-white text-[9px] md:text-xs font-bold px-1.5 py-0.5 rounded-full uppercase tracking-wider shadow-xs";
+        }
+        if (menuIcon) menuIcon.innerText = "💑";
+        if (menuText) menuText.innerText = "Ketemu Langsung";
+        if (statusBadge) {
+            statusBadge.className = "text-[10px] bg-rose-200 text-rose-900 px-2 py-0.5 rounded-full font-bold";
+            statusBadge.innerText = "💑 Ketemu Langsung (Aktif)";
+        }
+    } else { // 'ALL'
+        if (headerBtn) {
+            headerBtn.className = "wood-btn bg-emerald-100 hover:bg-emerald-200 text-emerald-900 px-3 py-1.5 rounded-xl text-xs font-black flex items-center gap-1.5 shadow-xs border border-emerald-300";
             if (headerIcon) headerIcon.innerText = "🔄";
             if (headerText) headerText.innerText = "Mode: Semua Mode";
         }
-    }
-
-    if (statusBadge) {
-        if (mode === 'ONLINE') {
-            statusBadge.className = "text-[10px] bg-purple-200 text-purple-900 px-2 py-0.5 rounded-full font-bold";
-            statusBadge.innerText = "📹 Video Call (Aktif)";
-        } else if (mode === 'OFFLINE') {
-            statusBadge.className = "text-[10px] bg-rose-200 text-rose-900 px-2 py-0.5 rounded-full font-bold";
-            statusBadge.innerText = "💑 Ketemu Langsung (Aktif)";
-        } else {
+        if (mobBtn) {
+            mobBtn.className = "wood-btn bg-emerald-100 hover:bg-emerald-200 text-emerald-900 px-2.5 py-1.5 rounded-xl text-xs font-black flex items-center gap-1 shadow-xs border border-emerald-300 transition-colors";
+            if (mobIcon) mobIcon.innerText = "🔄";
+            if (mobText) mobText.innerText = "Semua";
+        }
+        if (headerBadge) {
+            headerBadge.innerText = "🔄 Semua Mode";
+            headerBadge.className = "bg-emerald-600 text-white text-[9px] md:text-xs font-bold px-1.5 py-0.5 rounded-full uppercase tracking-wider shadow-xs";
+        }
+        if (menuIcon) menuIcon.innerText = "🔄";
+        if (menuText) menuText.innerText = "Semua Mode";
+        if (statusBadge) {
             statusBadge.className = "text-[10px] bg-emerald-200 text-emerald-900 px-2 py-0.5 rounded-full font-bold";
             statusBadge.innerText = "🔄 Semua Mode (Aktif)";
         }
@@ -110,6 +230,7 @@ function updatePlayModeUI() {
         }
     });
 }
+window.updatePlayModeUI = updatePlayModeUI;
 
 // 20 Petak Takdir Rahasia (Forced Random) - Tampilannya sama persis seperti petak lain di papan
 function generateOfflineMysteryTiles() {
@@ -154,8 +275,20 @@ function isForcedRandomTile(tileNum) {
 
 const savedP1 = localStorage.getItem('couple_ut_p1');
 const savedP2 = localStorage.getItem('couple_ut_p2');
-if (savedP1) gameState.p1Info = JSON.parse(savedP1);
-if (savedP2) gameState.p2Info = JSON.parse(savedP2);
+if (savedP1) {
+    try {
+        const p1 = JSON.parse(savedP1);
+        if (!p1.name || p1.name === "Pemain 1" || p1.name === "Pemain 1 (Cowok)") p1.name = "Ayang Ganteng 💙";
+        gameState.p1Info = p1;
+    } catch(e) {}
+}
+if (savedP2) {
+    try {
+        const p2 = JSON.parse(savedP2);
+        if (!p2.name || p2.name === "Pemain 2" || p2.name === "Pemain 2 (Cewek)") p2.name = "Ayang Cantik 💖";
+        gameState.p2Info = p2;
+    } catch(e) {}
+}
 
 let isRolling = false;
 let didInitiateRoll = false;
@@ -488,7 +621,7 @@ function renderBoardUI() {
                 <div id="tile-${num}" onclick="handleTileClick(${num})" class="tile ${isRed ? 'tile-red' : 'tile-cream'}">
                     ${jumpTag}
                     ${centerContent}
-                    <span class="absolute bottom-1 right-1.5 text-[10px] md:text-[11px] font-black opacity-60">${num}</span>
+                    <span class="tile-number-badge absolute bottom-0.5 right-1">${num}</span>
                     <div id="pawn-container-${num}" class="absolute inset-0 flex items-center justify-center gap-1 pointer-events-none z-30"></div>
                 </div>
             `;
@@ -583,8 +716,12 @@ function drawSnakesAndLaddersSVG() {
 
 // UPDATE POSISI PION & STATUS
 function updatePawnsUI(hoppingPawnNum = 0) {
-    if (typeof window.sync3DPawns === 'function') {
-        window.sync3DPawns(hoppingPawnNum);
+    try {
+        if (typeof window.sync3DPawns === 'function') {
+            window.sync3DPawns(hoppingPawnNum);
+        }
+    } catch (e) {
+        console.warn("sync3DPawns error handled in updatePawnsUI:", e);
     }
     document.querySelectorAll('[id^="pawn-container-"]').forEach(el => el.innerHTML = '');
 
@@ -617,6 +754,38 @@ function updatePawnsUI(hoppingPawnNum = 0) {
     // Highlight petak aktif
     document.querySelectorAll('.tile-active-highlight').forEach(el => el.classList.remove('tile-active-highlight'));
     const activeTileNum = gameState.turn === 1 ? gameState.p1Pos : gameState.p2Pos;
+    
+    // Sync Mobile Bottom Bar UI
+    const mAvatar = document.getElementById("mobileTurnAvatar");
+    const mName = document.getElementById("mobileTurnName");
+    const mPos = document.getElementById("mobileCurrentPos");
+    const mPill = document.getElementById("mobileTurnPill");
+    if (mAvatar && mName && mPos) {
+        const curInfo = gameState.turn === 1 ? gameState.p1Info : gameState.p2Info;
+        mAvatar.innerText = curInfo.avatar;
+        mName.innerText = curInfo.name;
+        mPos.innerText = activeTileNum;
+        if (mPill) {
+            mPill.className = gameState.turn === 1 
+                ? "mobile-turn-pill bg-sky-900/80 border-sky-400 text-sky-100" 
+                : "mobile-turn-pill bg-rose-900/80 border-rose-400 text-rose-100";
+        }
+    }
+    const mSkillCount = document.getElementById("mobileSkillCount");
+    if (mSkillCount) {
+        const curSkills = gameState.turn === 1 ? p1Skills : p2Skills;
+        let totalUses = 0;
+        if (curSkills && curSkills.uses) {
+            Object.values(curSkills.uses).forEach(v => { if (typeof v === "number") totalUses += v; });
+        }
+        mSkillCount.innerText = totalUses;
+    }
+
+    // Sinkronkan status dadu di mobile bar jika ada dadu terakhir dan sedang tidak memutar
+    if (!isRolling && gameState.lastDice && gameState.lastDice >= 1 && gameState.lastDice <= 6) {
+        updateDiceDisplay(gameState.lastDice, false);
+    }
+
     const currentTileEl = document.getElementById(`tile-${activeTileNum}`);
     if (currentTileEl) currentTileEl.classList.add('tile-active-highlight');
 
@@ -705,16 +874,20 @@ async function rollDice() {
     if (isRolling) return;
     didInitiateRoll = true;
     isRolling = true;
-    const rollBtn = document.getElementById('rollDiceBtn');
-    if (rollBtn) rollBtn.disabled = true;
+    setRollDiceButtonsState(true, "MEMUTAR...");
+    const mobFaceInit = document.getElementById('mobileDiceFace');
+    if (mobFaceInit) {
+        mobFaceInit.classList.add('dice-rolling');
+        mobFaceInit.classList.remove('dice-revealed');
+    }
 
     // Safety watchdog: cegah tombol macet permanen jika jaringan/server bermasalah (15 detik)
     setTimeout(() => {
         if (isRolling) {
             console.warn("Watchdog: Membuka kunci tombol dadu setelah timeout.");
             isRolling = false;
-            const btn = document.getElementById('rollDiceBtn');
-            if (btn && !gameState.isGameOver) btn.disabled = false;
+            didInitiateRoll = false;
+            if (!gameState.isGameOver) setRollDiceButtonsState(false, "KOCOK DADU!");
         }
     }, 15000);
 
@@ -741,6 +914,13 @@ async function rollDice() {
         renderSkillsUI();
     } else {
         const dice = Math.floor(Math.random() * 6) + 1;
+        const mDiceRes = document.getElementById("mobileDiceResult");
+        if (mDiceRes) mDiceRes.innerHTML = 'Mata: <b class="text-amber-300">' + dice + '</b>';
+        const mDiceFace = document.getElementById("mobileDiceFace");
+        if (mDiceFace) {
+            const diceEmojis = ['⚀','⚁','⚂','⚃','⚄','⚅'];
+            mDiceFace.innerText = diceEmojis[dice - 1] || '🎲';
+        }
         const fromPos = pNum === 1 ? gameState.p1Pos : gameState.p2Pos;
         const nextPos = Math.min(100, fromPos + dice);
         let jumpDest = snakesAndLadders[nextPos] || 0;
@@ -795,13 +975,16 @@ async function rollDice() {
 
 async function handleDiceRollSequence(data) {
     try {
+        setRollDiceButtonsState(true, "MEMUTAR...");
         const diceFace = document.getElementById('diceFace');
-        const diceBigNumber = document.getElementById('diceBigNumber');
-        const diceSubtext = document.getElementById('diceSubtext');
-        const diceFaces = ['⚀', '⚁', '⚂', '⚃', '⚄', '⚅'];
+        const mobFace = document.getElementById('mobileDiceFace');
         if (diceFace) {
             diceFace.classList.add('dice-rolling');
             diceFace.classList.remove('dice-revealed');
+        }
+        if (mobFace) {
+            mobFace.classList.add('dice-rolling');
+            mobFace.classList.remove('dice-revealed');
         }
         playSynthSound('dice');
 
@@ -809,23 +992,15 @@ async function handleDiceRollSequence(data) {
         // Kocokan dadu berputar ~1.1 detik (14 pergantian tiap 80ms)
         const rollInterval = setInterval(() => {
             const randVal = Math.floor(Math.random() * 6) + 1;
-            if (diceFace) diceFace.innerText = diceFaces[randVal - 1];
-            if (diceBigNumber) diceBigNumber.innerText = randVal;
+            updateDiceDisplay(randVal, true);
             count++;
             if (count >= 14) {
                 clearInterval(rollInterval);
-                if (diceFace) {
-                    diceFace.classList.remove('dice-rolling');
-                    diceFace.innerText = diceFaces[(data.dice || 1) - 1];
-                    diceFace.classList.add('dice-revealed');
-                }
-                if (diceBigNumber) {
-                    diceBigNumber.innerText = data.dice || 1;
-                }
-                if (diceSubtext) {
-                    diceSubtext.innerText = `Dadu ${data.dice || 1}`;
-                }
-                
+                const finalDice = data.dice || 1;
+                gameState.lastDice = finalDice;
+                updateDiceDisplay(finalDice, false);
+                setRollDiceButtonsState(true, `DAPAT ${finalDice}!`);
+
                 // Jeda 650ms agar pemain dapat melihat jelas angka dadu sebelum pion mulai melangkah
                 setTimeout(() => {
                     executePawnHopping(data);
@@ -835,8 +1010,8 @@ async function handleDiceRollSequence(data) {
     } catch (e) {
         console.error("Gagal menjalankan sequence animasi dadu:", e);
         isRolling = false;
-        const rollBtn = document.getElementById('rollDiceBtn');
-        if (rollBtn && !gameState.isGameOver) rollBtn.disabled = false;
+        didInitiateRoll = false;
+        if (!gameState.isGameOver) setRollDiceButtonsState(false, "KOCOK DADU!");
     }
 }
 
@@ -947,8 +1122,7 @@ async function executePawnHopping(data) {
         console.error("Error selama animasi langkah pion:", e);
     } finally {
         isRolling = false;
-        const rollBtn = document.getElementById('rollDiceBtn');
-        if (rollBtn && !gameState.isGameOver) rollBtn.disabled = false;
+        if (!gameState.isGameOver) setRollDiceButtonsState(false, "KOCOK DADU!");
     }
 }
 
@@ -959,13 +1133,16 @@ function triggerGameFinish(winnerNum) {
     isRolling = false;
 
     const winner = winnerNum === 1 ? gameState.p1Info : gameState.p2Info;
-    const rollBtn = document.getElementById('rollDiceBtn');
-    if (rollBtn) rollBtn.disabled = true;
+    setRollDiceButtonsState(true, "SELESAI!");
 
     const diceBigNumber = document.getElementById('diceBigNumber');
     if (diceBigNumber) diceBigNumber.innerText = '🏆';
     const diceSubtext = document.getElementById('diceSubtext');
     if (diceSubtext) diceSubtext.innerText = 'Juara!';
+    const mobFaceFin = document.getElementById('mobileDiceFace');
+    const mobResFin = document.getElementById('mobileDiceResult');
+    if (mobFaceFin) mobFaceFin.innerText = '🏆';
+    if (mobResFin) mobResFin.innerHTML = 'Mata: <b class="text-amber-300 font-black">JUARA!</b>';
 
     const statusEl = document.getElementById('statusMessage');
     if (statusEl) {
@@ -1017,12 +1194,17 @@ function openChoiceModal(tileNum, targetPNum) {
 
     const modal = document.getElementById('choiceModal');
     if (!modal) return;
-    document.getElementById('choiceModalTileNum').innerText = tileNum;
+    const tileNumEl = document.getElementById('choiceModalTileNum');
+    if (tileNumEl) tileNumEl.innerText = tileNum;
     const targetPlayer = targetPNum === 1 ? gameState.p1Info : gameState.p2Info;
-    document.getElementById('choiceModalTargetPlayer').innerText = `Tantangan untuk: ${targetPlayer.name} ${targetPlayer.avatar}`;
+    const targetEl = document.getElementById('choiceModalTargetPlayer');
+    if (targetEl && targetPlayer) {
+        targetEl.innerText = `Tantangan untuk: ${targetPlayer.name} ${targetPlayer.avatar}`;
+    }
 
     modal.classList.remove('hidden');
     modal.classList.add('flex');
+    modal.style.display = 'flex';
     playSynthSound('card');
 }
 
@@ -1031,7 +1213,14 @@ function closeChoiceModal(syncWithServer = false) {
     if (modal) {
         modal.classList.add('hidden');
         modal.classList.remove('flex');
+        modal.style.display = 'none';
     }
+    isRolling = false;
+    didInitiateRoll = false;
+    if (typeof gameState !== 'undefined' && gameState) {
+        gameState.isMoving = false;
+    }
+    if (!gameState.isGameOver) setRollDiceButtonsState(false, "KOCOK DADU!");
     if (syncWithServer && ws && ws.readyState === WebSocket.OPEN) {
         ws.send(JSON.stringify({ type: "CLOSE_MODAL" }));
     }
@@ -1207,8 +1396,22 @@ function displayCardModal(card, tileNum, isForced = false) {
         }
     }
 
-    if (badgeNum) badgeNum.innerText = tileNum || 1;
-    if (typeTitle) typeTitle.innerText = card.type || 'TANTANGAN';
+    if (badgeNum) {
+        badgeNum.innerText = tileNum || 1;
+        if (card.type === 'DARE') {
+            badgeNum.className = "w-11 h-11 rounded-2xl bg-gradient-to-br from-rose-500 to-pink-600 border-2 border-rose-300 flex items-center justify-center text-lg font-black text-white shadow-sm flex-shrink-0";
+        } else {
+            badgeNum.className = "w-11 h-11 rounded-2xl bg-gradient-to-br from-teal-500 to-emerald-600 border-2 border-teal-300 flex items-center justify-center text-lg font-black text-white shadow-sm flex-shrink-0";
+        }
+    }
+    if (typeTitle) {
+        typeTitle.innerText = card.type || 'TANTANGAN';
+        if (card.type === 'DARE') {
+            typeTitle.className = "text-xl md:text-2xl font-black tracking-wider text-rose-600";
+        } else {
+            typeTitle.className = "text-xl md:text-2xl font-black tracking-wider text-teal-600";
+        }
+    }
     if (categoryBadge) categoryBadge.innerText = card.category || 'Spesial';
     if (promptText) promptText.innerText = `"${card.prompt || ''}"`;
 
@@ -1301,18 +1504,19 @@ function displayCardModal(card, tileNum, isForced = false) {
     }
 
     if (card.type === 'TRUTH') {
-        badgeNum.className = "w-12 h-12 rounded-2xl bg-teal-500 border-3 border-[#3D2216] flex items-center justify-center text-xl font-extrabold text-white shadow-md";
-        typeTitle.className = "text-2xl font-black tracking-wider text-teal-600";
+        badgeNum.className = "w-11 h-11 rounded-2xl bg-gradient-to-br from-teal-500 to-emerald-600 border-2 border-teal-300 flex items-center justify-center text-lg font-black text-white shadow-sm flex-shrink-0";
+        typeTitle.className = "text-xl md:text-2xl font-black tracking-wider text-teal-600";
     } else if (card.type === 'DARE') {
-        badgeNum.className = "w-12 h-12 rounded-2xl bg-rose-500 border-3 border-[#3D2216] flex items-center justify-center text-xl font-extrabold text-white shadow-md";
-        typeTitle.className = "text-2xl font-black tracking-wider text-rose-600";
+        badgeNum.className = "w-11 h-11 rounded-2xl bg-gradient-to-br from-rose-500 to-pink-600 border-2 border-rose-300 flex items-center justify-center text-lg font-black text-white shadow-sm flex-shrink-0";
+        typeTitle.className = "text-xl md:text-2xl font-black tracking-wider text-rose-600";
     } else {
-        badgeNum.className = "w-12 h-12 rounded-2xl bg-amber-500 border-3 border-[#3D2216] flex items-center justify-center text-xl font-extrabold text-white shadow-md";
-        typeTitle.className = "text-2xl font-black tracking-wider text-amber-600";
+        badgeNum.className = "w-11 h-11 rounded-2xl bg-gradient-to-br from-amber-500 to-yellow-600 border-2 border-amber-300 flex items-center justify-center text-lg font-black text-white shadow-sm flex-shrink-0";
+        typeTitle.className = "text-xl md:text-2xl font-black tracking-wider text-amber-600";
     }
 
     modal.classList.remove('hidden');
     modal.classList.add('flex');
+    modal.style.display = 'flex';
     playSynthSound('card');
 
     if (tileNum === 100) {
@@ -1324,9 +1528,19 @@ function closeCardModal() {
     closeChoiceModal(false);
     resetDareTimer();
     const modal = document.getElementById('cardModal');
-    if (!modal) return;
-    modal.classList.add('hidden');
-    modal.classList.remove('flex');
+    if (modal) {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+        modal.style.display = 'none';
+    }
+
+    // Pastikan status rolling dan moving ter-reset sepenuhnya untuk giliran berikutnya
+    isRolling = false;
+    didInitiateRoll = false;
+    if (typeof gameState !== 'undefined' && gameState) {
+        gameState.isMoving = false;
+    }
+    if (!gameState.isGameOver) setRollDiceButtonsState(false, "KOCOK DADU!");
 
     if (ws && ws.readyState === WebSocket.OPEN) {
         ws.send(JSON.stringify({ type: "CLOSE_MODAL" }));
@@ -1338,7 +1552,8 @@ function skipCurrentChallenge() {
     if (!confirm('Apakah kamu ingin melewati tantangan ini dengan konsekuensi penalti mundur 3 petak?')) return;
     
     closeCardModal();
-    const pNum = gameState.turn;
+    // Gunakan pemain yang baru saja mendarat di petak tantangan
+    const pNum = (typeof currentMoveContext !== 'undefined' && currentMoveContext.player) ? currentMoveContext.player : (gameState.turn === 2 ? 1 : 2);
     const currentPos = pNum === 1 ? gameState.p1Pos : gameState.p2Pos;
     const targetPos = Math.max(1, currentPos - 3);
 
@@ -1346,7 +1561,7 @@ function skipCurrentChallenge() {
     else gameState.p2Pos = targetPos;
 
     updatePawnsUI();
-    playSfx('snake');
+    playSynthSound('snake');
 
     const pName = pNum === 1 ? gameState.p1Info.name : gameState.p2Info.name;
     const logEl = document.getElementById('gameLog');
@@ -1884,12 +2099,9 @@ function promptResetGame(force = false) {
             gameOverModal.classList.remove('flex');
         }
 
-        const rollBtn = document.getElementById('rollDiceBtn');
-        if (rollBtn) rollBtn.disabled = false;
-        const diceBigNumber = document.getElementById('diceBigNumber');
-        const diceSubtext = document.getElementById('diceSubtext');
-        if (diceBigNumber) diceBigNumber.innerText = '?';
-        if (diceSubtext) diceSubtext.innerText = 'Dadu';
+        gameState.lastDice = null;
+        updateDiceDisplay(null, false);
+        setRollDiceButtonsState(false, "KOCOK DADU!");
         isRolling = false;
 
         updatePawnsUI();
@@ -2080,8 +2292,18 @@ function connectWebSocket() {
                 gameState.p2Pos = data.state.p2Pos;
                 gameState.turn = data.state.turn;
                 gameState.lastDice = data.state.lastDice;
-                if (data.state.p1Info) gameState.p1Info = data.state.p1Info;
-                if (data.state.p2Info) gameState.p2Info = data.state.p2Info;
+                if (data.state.p1Info) {
+                    if (data.state.p1Info.name === "Pemain 1" || data.state.p1Info.name === "Pemain 1 (Cowok)") {
+                        data.state.p1Info.name = "Ayang Ganteng 💙";
+                    }
+                    gameState.p1Info = data.state.p1Info;
+                }
+                if (data.state.p2Info) {
+                    if (data.state.p2Info.name === "Pemain 2" || data.state.p2Info.name === "Pemain 2 (Cewek)") {
+                        data.state.p2Info.name = "Ayang Cantik 💖";
+                    }
+                    gameState.p2Info = data.state.p2Info;
+                }
                 if (data.state.p1Skills) p1Skills = data.state.p1Skills;
                 if (data.state.p2Skills) p2Skills = data.state.p2Skills;
                 if (data.state.mysteryTiles && data.state.mysteryTiles.length > 0) {
@@ -2175,6 +2397,11 @@ function connectWebSocket() {
                 if (modal) {
                     modal.classList.add('hidden');
                     modal.classList.remove('flex');
+                    modal.style.display = 'none';
+                }
+                isRolling = false;
+                if (typeof gameState !== 'undefined' && gameState) {
+                    gameState.isMoving = false;
                 }
             } else if (data.type === "SUIT_RESULT") {
                 handleSuitResult(data.result);
@@ -2193,3 +2420,106 @@ function connectWebSocket() {
 }
 
 window.addEventListener('DOMContentLoaded', initGame);
+
+// ================= COUPLE MOBILE & ROMANTIC HELPERS =================
+function openMobileMenu() {
+    const modal = document.getElementById("mobileMenuModal");
+    if (modal) {
+        modal.classList.remove("hidden");
+        modal.classList.add("flex");
+        const rEl = document.getElementById("mobileMenuRoom");
+        if (rEl) rEl.innerText = (typeof currentRoom !== "undefined" ? currentRoom : "PUBLIC");
+        const dEl = document.getElementById("mobileMenuDeck");
+        if (dEl) dEl.innerText = (typeof getActiveDeckCardCount === "function" ? getActiveDeckCardCount() : 150) + " Kartu";
+        const hEl = document.getElementById("mobileMenuHistory");
+        if (hEl) hEl.innerText = (typeof gameHistory !== "undefined" ? gameHistory.length : 0) + " Langkah";
+    }
+}
+
+function closeMobileMenu() {
+    const modal = document.getElementById("mobileMenuModal");
+    if (modal) {
+        modal.classList.add("hidden");
+        modal.classList.remove("flex");
+    }
+}
+
+function openMobileSkillsModal() {
+    const modal = document.getElementById("mobileSkillsModal");
+    if (modal) {
+        modal.classList.remove("hidden");
+        modal.classList.add("flex");
+        renderMobileSkillsList();
+    }
+}
+
+function closeMobileSkillsModal() {
+    const modal = document.getElementById("mobileSkillsModal");
+    if (modal) {
+        modal.classList.add("hidden");
+        modal.classList.remove("flex");
+    }
+}
+
+function renderMobileSkillsList() {
+    const container = document.getElementById("mobileSkillsContent");
+    if (!container) return;
+    const curPNum = gameState.turn;
+    const curInfo = curPNum === 1 ? gameState.p1Info : gameState.p2Info;
+    const curSkills = curPNum === 1 ? (typeof p1Skills !== "undefined" ? p1Skills : null) : (typeof p2Skills !== "undefined" ? p2Skills : null);
+    
+    let html = '<div class="p-2 mb-2 rounded-xl bg-rose-50 border border-rose-200 text-xs font-bold text-rose-900 flex items-center justify-between">' +
+        '<span>' + curInfo.avatar + ' Skill Siap Pakai: ' + curInfo.name + '</span>' +
+    '</div>';
+
+    if (typeof SKILL_CATALOG !== "undefined" && curSkills && curSkills.uses) {
+        html += '<div class="space-y-2">';
+        Object.keys(SKILL_CATALOG).forEach(sId => {
+            const skill = SKILL_CATALOG[sId];
+            const uses = curSkills.uses[sId] ?? 0;
+            const canUse = uses > 0 && !gameState.isGameOver;
+            html += '<div class="p-3 bg-white rounded-2xl border ' + (canUse ? 'border-amber-300 shadow-sm' : 'border-stone-200 opacity-60') + ' flex items-center justify-between gap-2">' +
+                '<div class="flex items-center gap-2.5">' +
+                    '<span class="text-2xl">' + skill.icon + '</span>' +
+                    '<div>' +
+                        '<div class="font-black text-xs text-slate-800">' + skill.name + '</div>' +
+                        '<div class="text-[10px] text-slate-500 leading-tight">' + skill.desc + '</div>' +
+                    '</div>' +
+                '</div>' +
+                '<button onclick="useSkillDirectly(\"' + sId + '\")" ' + (!canUse ? 'disabled' : '') + ' class="px-3 py-1.5 rounded-xl text-xs font-black ' + (canUse ? 'bg-amber-400 hover:bg-amber-300 text-stone-900 shadow-xs' : 'bg-stone-200 text-stone-400') + '">' +
+                    'Pakai (' + uses + ')' +
+                '</button>' +
+            '</div>';
+        });
+        html += '</div>';
+    }
+    container.innerHTML = html;
+}
+
+function useSkillDirectly(skillId) {
+    closeMobileSkillsModal();
+    if (typeof activateSkill === "function") {
+        activateSkill(skillId);
+    } else {
+        if (typeof showToast === "function") showToast("Skill siap digunakan! ⚡");
+    }
+}
+
+function sendQuickCoupleHeart() {
+    sendReaction("❤️");
+    if (typeof confetti === "function") {
+        confetti({
+            particleCount: 25,
+            spread: 70,
+            origin: { y: 0.85 },
+            colors: ["#ff4d6d", "#ff758f", "#ff85a1", "#fbb1bd", "#ffffff"]
+        });
+    }
+}
+
+window.openMobileMenu = openMobileMenu;
+window.closeMobileMenu = closeMobileMenu;
+window.openMobileSkillsModal = openMobileSkillsModal;
+window.closeMobileSkillsModal = closeMobileSkillsModal;
+window.useSkillDirectly = useSkillDirectly;
+window.sendQuickCoupleHeart = sendQuickCoupleHeart;
