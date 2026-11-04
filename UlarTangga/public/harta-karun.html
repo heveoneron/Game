@@ -8,9 +8,10 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Patrick+Hand&family=Plus+Jakarta+Sans:wght@500;600;700&display=swap" rel="stylesheet">
-  <!-- Three.js & OrbitControls CDN -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+  <!-- Local High-Speed Scripts: Three.js, OrbitControls, and QRCode Library -->
+  <script src="js/three.min.js"></script>
+  <script src="js/OrbitControls.js"></script>
+  <script src="js/qrcode.min.js"></script>
 
   <style>
     :root {
@@ -38,6 +39,8 @@
       width: 100vw;
       height: 100vh;
       overflow: hidden;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
       font-family: 'Plus Jakarta Sans', sans-serif;
       background: radial-gradient(circle at center, #fdf6e4 0%, #e5d2ad 100%);
       color: var(--ink);
@@ -54,25 +57,25 @@
     /* ================= HEADER & TOP NAVIGATION ================= */
     .top-hud {
       position: absolute;
-      top: 12px;
+      top: 10px;
       left: 50%;
       transform: translateX(-50%);
-      z-index: 10;
+      z-index: 20;
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 8px;
-      width: min(96vw, 1180px);
+      gap: 6px;
+      width: min(880px, calc(100vw - 570px));
       pointer-events: none;
     }
 
     .title-banner {
       pointer-events: auto;
       background: linear-gradient(180deg, #fffbeb 0%, #fde68a 100%);
-      border: 3px solid var(--ink);
-      border-radius: 18px;
-      padding: 8px 28px;
-      box-shadow: 0 6px 0 var(--ink), 0 10px 20px rgba(0,0,0,0.18);
+      border: 2.5px solid var(--ink);
+      border-radius: 14px;
+      padding: 5px 22px;
+      box-shadow: 0 4px 0 var(--ink), 0 8px 16px rgba(0,0,0,0.15);
       text-align: center;
       position: relative;
     }
@@ -105,17 +108,17 @@
     .qr-nav-btn {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 5px;
       background: #f5e6c8;
-      border: 2.5px solid var(--ink);
-      border-radius: 12px;
-      padding: 6px 12px;
+      border: 2px solid var(--ink);
+      border-radius: 9px;
+      padding: 4px 10px;
       cursor: pointer;
       font-family: 'Fredoka', sans-serif;
-      font-size: 0.82rem;
+      font-size: 0.74rem;
       font-weight: 600;
       color: var(--ink);
-      box-shadow: 0 4px 0 var(--ink);
+      box-shadow: 0 3px 0 var(--ink);
       transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.15s;
     }
 
@@ -150,14 +153,17 @@
     /* ================= LEFT PANEL: 3D CONTROLS & EXPLODE ================= */
     .left-panel {
       position: absolute;
-      left: 16px;
-      top: 145px;
-      z-index: 10;
-      width: 265px;
+      left: 14px;
+      top: 12px;
+      z-index: 15;
+      width: 235px;
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 8px;
       pointer-events: none;
+      max-height: calc(100vh - 24px);
+      overflow-y: auto;
+      scrollbar-width: none;
     }
 
     .sketch-card {
@@ -238,14 +244,15 @@
     /* ================= RIGHT PANEL: GAMEPLAY & SPINNER HUD ================= */
     .right-panel {
       position: absolute;
-      right: 16px;
-      top: 145px;
-      z-index: 10;
+      right: 14px;
+      top: 10px;
+      z-index: 15;
       width: 280px;
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 5px;
       pointer-events: none;
+      overflow: visible;
     }
 
     .player-list {
@@ -258,11 +265,11 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 6px 10px;
-      border-radius: 10px;
-      border: 2px solid var(--ink);
+      padding: 4px 8px;
+      border-radius: 8px;
+      border: 1.5px solid var(--ink);
       background: #fff;
-      font-size: 0.8rem;
+      font-size: 0.76rem;
       font-weight: 600;
       transition: transform 0.15s, background 0.15s;
     }
@@ -519,7 +526,7 @@
       position: fixed;
       top: 52px;
       left: 12px;
-      display: flex;
+      display: none; /* Tersembunyi di Desktop, Kamera sudah ada di Panel Kiri */
       gap: 6px;
       z-index: 35;
       pointer-events: auto;
@@ -748,6 +755,7 @@
 
     /* ================= RESPONSIVE MEDIA QUERIES ================= */
     @media (max-width: 960px) {
+      .other-players-bar { display: flex !important; }
       .desktop-only {
         display: none !important;
       }
@@ -1067,6 +1075,197 @@
         font-size: 0.65rem !important;
       }
     }
+  
+    /* ================= RESEARCH GRADE UI ENHANCEMENTS ================= */
+    .right-panel {
+      position: absolute;
+      right: 14px;
+      top: 12px !important;
+      z-index: 15;
+      width: 285px !important;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      pointer-events: none;
+      overflow: visible;
+    }
+
+    .gameplay-tools-bar {
+      display: grid !important;
+      grid-template-columns: 1fr 1fr !important;
+      gap: 6px !important;
+      margin-top: 8px !important;
+    }
+
+    .gameplay-tools-bar .tool-btn {
+      flex: none !important;
+      width: 100% !important;
+      padding: 8px 6px !important;
+      font-size: 0.76rem !important;
+      font-weight: 700 !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      gap: 4px !important;
+    }
+
+    /* Student Alias Badges & Tags */
+    .active-student-alias {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: #eff6ff;
+      border: 1.5px solid #3b82f6;
+      color: #1d4ed8;
+      font-size: 0.74rem;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 6px;
+      margin-top: 4px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .active-student-alias:hover {
+      background: #dbeafe;
+      border-color: #2563eb;
+      transform: translateY(-1px);
+    }
+    .player-alias-sub {
+      font-size: 0.72rem;
+      color: #475569;
+      font-weight: 700;
+      margin-top: 2px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    /* Header Navigation Clean Pill Styles */
+    .qr-menu-bar {
+      pointer-events: auto;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: center;
+      gap: 6px !important;
+      max-width: 1120px;
+    }
+    .qr-nav-btn {
+      display: inline-flex !important;
+      align-items: center !important;
+      gap: 6px !important;
+      background: #fff !important;
+      border: 2px solid var(--ink) !important;
+      border-radius: 10px !important;
+      padding: 5px 11px !important;
+      cursor: pointer !important;
+      font-family: 'Fredoka', sans-serif !important;
+      font-size: 0.78rem !important;
+      font-weight: 700 !important;
+      color: var(--ink) !important;
+      box-shadow: 0 3px 0 var(--ink) !important;
+      transition: all 0.12s ease !important;
+    }
+    .qr-nav-btn:hover {
+      transform: translateY(-2px) !important;
+      box-shadow: 0 5px 0 var(--ink) !important;
+    }
+    .qr-nav-btn:active {
+      transform: translateY(1px) !important;
+      box-shadow: 0 1px 0 var(--ink) !important;
+    }
+
+    /* Print Stylesheet for Formal Assessment Sheet / Skripsi */
+    @media print {
+      body * {
+        visibility: hidden !important;
+      }
+      #rapor-kapten-modal, #rapor-kapten-modal * {
+        visibility: visible !important;
+      }
+      #rapor-kapten-modal {
+        position: absolute !important;
+        left: 0 !important;
+        top: 0 !important;
+        width: 100% !important;
+        height: auto !important;
+        background: #ffffff !important;
+        display: block !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        z-index: 999999 !important;
+      }
+      #rapor-kapten-modal .modal-box {
+        box-shadow: none !important;
+        border: 2px solid #000 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        max-height: none !important;
+        border-radius: 0 !important;
+      }
+      #rapor-kapten-modal .modal-header {
+        background: #1e293b !important;
+        color: #fff !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+      .no-print, .close-modal, #rapor-kapten-modal button:not(.print-allow) {
+        display: none !important;
+      }
+    }
+
+
+    /* Desktop: sembunyikan baris chip kecil karena sudah ada daftar 3 pemain lengkap */
+    @media (min-width: 961px) {
+      .other-players-bar {
+        display: none !important;
+      }
+      .right-panel .gameplay-card {
+        padding: 8px 10px !important;
+      }
+      .active-player-banner {
+        padding: 6px 8px !important;
+        margin-bottom: 4px !important;
+      }
+      .active-player-avatar {
+        width: 32px !important;
+        height: 32px !important;
+        font-size: 1.1rem !important;
+      }
+      .active-player-name {
+        font-size: 0.98rem !important;
+      }
+      .active-player-meta {
+        font-size: 0.70rem !important;
+        margin-top: 1px !important;
+      }
+      .player-list {
+        gap: 4px !important;
+      }
+      .player-item {
+        padding: 3px 6px !important;
+        font-size: 0.72rem !important;
+      }
+      .action-hint-box {
+        padding: 4px 8px !important;
+        margin-bottom: 4px !important;
+        font-size: 0.72rem !important;
+      }
+      .spin-action-btn {
+        margin-top: 4px !important;
+        padding: 8px 12px !important;
+        font-size: 0.88rem !important;
+      }
+      .gameplay-tools-bar {
+        margin-top: 5px !important;
+        gap: 4px !important;
+      }
+      .gameplay-tools-bar .tool-btn {
+        padding: 5px 4px !important;
+        font-size: 0.70rem !important;
+      }
+    }
+
   </style>
 </head>
 <body>
@@ -1116,38 +1315,38 @@
 
     <!-- Desktop Menu Bar -->
     <nav class="qr-menu-bar desktop-only">
-      <a href="/" style="text-decoration:none;" class="qr-nav-btn">
-        <span>🎲 Ular Tangga Pasangan</span>
+      <a href="/" style="text-decoration:none;" class="qr-nav-btn" title="Kembali ke Mode Ular Tangga Pasangan">
+        <span>🎲 Mode Pasangan</span>
       </a>
-      <button class="qr-nav-btn" style="background:#fef3c7; color:#92400e; font-weight:800; border:2px solid #f59e0b;" onclick="openRaporKaptenModal()">
-        <span>📊 Rapor Belajar</span>
+      <button class="qr-nav-btn" style="background:#fef3c7 !important; color:#92400e !important; border-color:#f59e0b !important;" onclick="openRaporKaptenModal()">
+        <span>📊 Raport Belajar Siswa</span>
       </button>
-      <button id="sound-toggle-btn" class="qr-nav-btn" style="background:#dcfce7;" onclick="toggleAudio()">
+      <button class="qr-nav-btn" style="background:#eff6ff !important; color:#1e40af !important; border-color:#3b82f6 !important;" onclick="openPlayerIdentityModal()">
+        <span>👥 Identitas Siswa</span>
+      </button>
+      <button class="qr-nav-btn" style="background:#ecfdf5 !important; color:#065f46 !important; border-color:#10b981 !important;" onclick="openQRAccessModal()">
+        <span>📱 QR Akses Game</span>
+      </button>
+      <button class="qr-nav-btn" style="background:#f3e8ff !important; color:#6b21a8 !important; border-color:#a855f7 !important;" onclick="openQRScannerModal()">
+        <span>📷 Pindai QR Soal</span>
+      </button>
+      <button id="sound-toggle-btn" class="qr-nav-btn" style="background:#f8fafc !important;" onclick="toggleAudio()">
         <span>🔊 Suara: ON</span>
       </button>
       <button class="qr-nav-btn" onclick="openInfoModal('tp')">
-        <span>🎯 Tujuan Pembelajaran</span>
-        <div class="mini-qr" style="border-color:#dc2626"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+        <span>🎯 Tujuan Pembelajaran (TP)</span>
       </button>
       <button class="qr-nav-btn" onclick="openInfoModal('cp')">
-        <span>🏆 Capaian Pembelajaran</span>
-        <div class="mini-qr" style="border-color:#d97706"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+        <span>🏆 Capaian (CP)</span>
       </button>
       <button class="qr-nav-btn" onclick="openInfoModal('materi')">
-        <span>📖 Materi Kelas 5</span>
-        <div class="mini-qr" style="border-color:#16a34a"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+        <span>📖 Materi Matematika</span>
       </button>
-      <button class="qr-nav-btn" style="background:#fef08a; font-weight:800;" onclick="openInfoModal('petunjuk')">
+      <button class="qr-nav-btn" onclick="openInfoModal('petunjuk')">
         <span>📜 Petunjuk Permainan</span>
-        <div class="mini-qr" style="border-color:#2563eb"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
       </button>
-      <button class="qr-nav-btn" style="background:#e0e7ff; color:#3730a3; font-weight:800; border:2px solid #6366f1;" onclick="openDeckManagerModal()">
-        <div class="mini-qr"><span></span><span></span><span></span></div>
-        🃏 Kelola Dek Soal
-      </button>
-      <button class="qr-nav-btn" onclick="focusBoardAndPlay()">
-        <span>🎲 Mari Bermain</span>
-        <div class="mini-qr" style="border-color:#9333ea"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+      <button class="qr-nav-btn" onclick="openDeckManagerModal()">
+        <span>🃏 Kelola Soal</span>
       </button>
     </nav>
   </header>
@@ -1202,7 +1401,10 @@
         <div class="active-player-info">
           <div class="turn-subtitle">GILIRAN MAIN SEKARANG</div>
           <div class="active-player-name" id="spotlight-player-name">Kapten Merah</div>
-          <div class="active-player-meta" id="spotlight-player-meta">
+          <div class="active-student-alias" id="spotlight-student-alias" onclick="openPlayerIdentityModal()" title="Klik untuk mengubah nama/identitas siswa">
+            👦 <span id="spotlight-alias-text">Siswa 1 (Merah)</span> <span style="font-size:10px;opacity:0.8;">✏️ Ganti</span>
+          </div>
+          <div class="active-player-meta" id="spotlight-player-meta" style="margin-top:4px;">
             <span>📍 Petak START</span>
             <span>🪙 100 Koin</span>
           </div>
@@ -1229,44 +1431,31 @@
         <span>PUTAR SPINNER (1 - 3)</span>
       </button>
 
-      <!-- SECONDARY TOOLS ROW -->
+      <!-- SECONDARY TOOLS ROW (BALANCED 2X2 GRID) -->
       <div class="gameplay-tools-bar">
-        <button class="tool-btn" onclick="manualStep(1)">+1 Petak</button>
-        <button class="tool-btn" onclick="resetGame()">🔁 Reset</button>
-        <button class="tool-btn" onclick="openMobileCardsModal()">🃏 Dek Soal</button>
-        <button class="tool-btn desktop-only" onclick="openRaporKaptenModal()">📊 Rapor</button>
+        <button class="tool-btn" onclick="manualStep(1)" title="Maju 1 Petak secara manual">➕ +1 Petak</button>
+        <button class="tool-btn" onclick="resetGame()" title="Kembalikan semua pion ke START">🔁 Reset Posisi</button>
+        <button class="tool-btn" onclick="openMobileCardsModal()" title="Buka dek kartu soal interaktif">🃏 Dek Kartu Soal</button>
+        <button class="tool-btn" style="background:#fef3c7; color:#92400e; font-weight:800; border-color:#f59e0b;" onclick="openRaporKaptenModal()" title="Lihat Raport Belajar Siswa">📊 Raport Belajar</button>
+        <button class="tool-btn" style="grid-column: span 2; background:#eff6ff; color:#1e40af; border-color:#3b82f6;" onclick="openPlayerIdentityModal()" title="Ubah Nama 3 Siswa & Kelas">👥 Atur Identitas 3 Siswa</button>
+      </div>
+      <!-- COMPACT DEK KARTU CHIPS (5 KATEGORI SOAL) -->
+      <div style="margin-top:6px; padding-top:6px; border-top:1.5px dashed #cbd5e1;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px; font-size:10px; font-weight:800; color:#64748b;">
+          <span>🃏 5 DEK KARTU MATEMATIKA:</span>
+          <span onclick="openDeckManagerModal()" style="cursor:pointer; color:#4f46e5; text-decoration:underline;">⚙️ Kelola</span>
+        </div>
+        <div style="display:flex; gap:4px; justify-content:space-between;">
+          <button onclick="triggerCardModal('misi', true)" style="flex:1; padding:3px 2px; font-size:10px; font-weight:700; background:#fef3c7; border:1px solid #f59e0b; border-radius:6px; cursor:pointer;" title="Kartu Misi (Problem Solving)">🔍 Misi</button>
+          <button onclick="triggerCardModal('bonus', true)" style="flex:1; padding:3px 2px; font-size:10px; font-weight:700; background:#fef9c3; border:1px solid #eab308; border-radius:6px; cursor:pointer;" title="Kartu Bonus (Langkah)">⭐ Bonus</button>
+          <button onclick="triggerCardModal('soal', true)" style="flex:1; padding:3px 2px; font-size:10px; font-weight:700; background:#e0f2fe; border:1px solid #0284c7; border-radius:6px; cursor:pointer;" title="Kartu Soal Matematika">📄 Soal</button>
+          <button onclick="triggerCardModal('jebakan', true)" style="flex:1; padding:3px 2px; font-size:10px; font-weight:700; background:#fee2e2; border:1px solid #ef4444; border-radius:6px; cursor:pointer;" title="Kartu Jebakan / Penalti">⚠️ Jebakan</button>
+          <button onclick="triggerCardModal('tantangan', true)" style="flex:1; padding:3px 2px; font-size:10px; font-weight:700; background:#ffedd5; border:1px solid #f97316; border-radius:6px; cursor:pointer;" title="Kartu Hitung Cepat">⚡ Cepat</button>
+        </div>
       </div>
     </div>
 
-    <!-- DESKTOP CARD LEGEND CARD -->
-    <div class="sketch-card card-legend-card desktop-only">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-        <h3 style="margin:0;">🃏 Dek Kartu Interaktif</h3>
-        <button onclick="openDeckManagerModal()" style="padding:4px 8px; font-size:11px; background:#4f46e5; color:white; border:none; border-radius:6px; cursor:pointer; font-weight:bold;">⚙️ Atur Soal</button>
-      </div>
-      <div class="card-legend-list">
-        <div class="legend-item" style="background:#f3e5ab" onclick="triggerCardModal('misi', true)">
-          <span>🔍 <b>Kartu Misi</b> (Problem Solving)</span>
-          <span>Buka ▸</span>
-        </div>
-        <div class="legend-item" style="background:#fef08a" onclick="triggerCardModal('bonus', true)">
-          <span>⭐ <b>Kartu Bonus</b> (Hadiah Langkah)</span>
-          <span>Buka ▸</span>
-        </div>
-        <div class="legend-item" style="background:#bae6fd" onclick="triggerCardModal('soal', true)">
-          <span>📄 <b>Kartu Soal</b> (Matematika)</span>
-          <span>Buka ▸</span>
-        </div>
-        <div class="legend-item" style="background:#fecaca" onclick="triggerCardModal('jebakan', true)">
-          <span>⚠️ <b>Kartu Jebakan</b> (Penalti)</span>
-          <span>Buka ▸</span>
-        </div>
-        <div class="legend-item" style="background:#fed7aa" onclick="triggerCardModal('tantangan', true)">
-          <span>⚡ <b>Kartu Tantangan</b> (Cepat Hitung)</span>
-          <span>Buka ▸</span>
-        </div>
-      </div>
-    </div>
+
   </aside>
 
   <!-- BACKDROP FOR MOBILE DRAWER -->
@@ -3111,11 +3300,78 @@
     const pawnsGroup = new THREE.Group();
     scene.add(pawnsGroup);
 
+    // ============================================================================
+    // SISTEM IDENTITAS SISWA (RESEARCH INSTRUMENT KELAS V SD)
+    // ============================================================================
+    const DEFAULT_STUDENT_IDENTITIES = {
+      kelas: "Kelas V SD (Fase C)",
+      kelompok: "Kelompok Bajak Laut Matematika",
+      sekolah: "SD Negeri Cerdas Ceria",
+      players: [
+        { id: 0, alias: "Ahmad Dahlan", absen: "01" },
+        { id: 1, alias: "Siti Rahma", absen: "02" },
+        { id: 2, alias: "Budi Pratama", absen: "03" }
+      ]
+    };
+
+    let studentIdentities = DEFAULT_STUDENT_IDENTITIES;
+    try {
+      const savedIdentities = localStorage.getItem('harta_karun_student_identities_v2');
+      if (savedIdentities) {
+        studentIdentities = JSON.parse(savedIdentities);
+      }
+    } catch(e) {}
+
     const players = [
-      { id: 0, name: "Kapten Merah", color: 0xef4444, hex: "#ef4444", tileIndex: 0, score: 100, mesh: null, offset: new THREE.Vector3(-0.46, 0, -0.32) },
-      { id: 1, name: "Navigator Biru", color: 0x3b82f6, hex: "#3b82f6", tileIndex: 0, score: 100, mesh: null, offset: new THREE.Vector3(0.46, 0, -0.32) },
-      { id: 2, name: "Meriam Hijau", color: 0x22c55e, hex: "#22c55e", tileIndex: 0, score: 100, mesh: null, offset: new THREE.Vector3(0, 0, 0.44) }
+      { id: 0, name: "Kapten Merah", alias: studentIdentities.players?.[0]?.alias || "Ahmad Dahlan", absen: studentIdentities.players?.[0]?.absen || "01", color: 0xef4444, hex: "#ef4444", tileIndex: 0, score: 100, mesh: null, offset: new THREE.Vector3(-0.46, 0, -0.32) },
+      { id: 1, name: "Navigator Biru", alias: studentIdentities.players?.[1]?.alias || "Siti Rahma", absen: studentIdentities.players?.[1]?.absen || "02", color: 0x3b82f6, hex: "#3b82f6", tileIndex: 0, score: 100, mesh: null, offset: new THREE.Vector3(0.46, 0, -0.32) },
+      { id: 2, name: "Meriam Hijau", alias: studentIdentities.players?.[2]?.alias || "Budi Pratama", absen: studentIdentities.players?.[2]?.absen || "03", color: 0x22c55e, hex: "#22c55e", tileIndex: 0, score: 100, mesh: null, offset: new THREE.Vector3(0, 0, 0.44) }
     ];
+
+    window.openPlayerIdentityModal = function() {
+      const modal = document.getElementById('student-identity-modal');
+      if (!modal) return;
+      document.getElementById('input-kelas').value = studentIdentities.kelas || "Kelas V SD (Fase C)";
+      document.getElementById('input-kelompok').value = studentIdentities.kelompok || "Kelompok Bajak Laut Matematika";
+      document.getElementById('input-alias-0').value = players[0].alias || "Ahmad Dahlan";
+      document.getElementById('input-absen-0').value = players[0].absen || "01";
+      document.getElementById('input-alias-1').value = players[1].alias || "Siti Rahma";
+      document.getElementById('input-absen-1').value = players[1].absen || "02";
+      document.getElementById('input-alias-2').value = players[2].alias || "Budi Pratama";
+      document.getElementById('input-absen-2').value = players[2].absen || "03";
+      modal.style.display = 'flex';
+    };
+
+    window.closePlayerIdentityModal = function() {
+      const modal = document.getElementById('student-identity-modal');
+      if (modal) modal.style.display = 'none';
+    };
+
+    window.savePlayerIdentities = function() {
+      studentIdentities.kelas = document.getElementById('input-kelas').value.trim() || "Kelas V SD";
+      studentIdentities.kelompok = document.getElementById('input-kelompok').value.trim() || "Kelompok Belajar";
+      
+      players[0].alias = document.getElementById('input-alias-0').value.trim() || "Siswa 1 (Merah)";
+      players[0].absen = document.getElementById('input-absen-0').value.trim() || "01";
+      players[1].alias = document.getElementById('input-alias-1').value.trim() || "Siswa 2 (Biru)";
+      players[1].absen = document.getElementById('input-absen-1').value.trim() || "02";
+      players[2].alias = document.getElementById('input-alias-2').value.trim() || "Siswa 3 (Hijau)";
+      players[2].absen = document.getElementById('input-absen-2').value.trim() || "03";
+
+      studentIdentities.players = [
+        { id: 0, alias: players[0].alias, absen: players[0].absen },
+        { id: 1, alias: players[1].alias, absen: players[1].absen },
+        { id: 2, alias: players[2].alias, absen: players[2].absen }
+      ];
+
+      try {
+        localStorage.setItem('harta_karun_student_identities_v2', JSON.stringify(studentIdentities));
+      } catch(e) {}
+
+      updatePlayerListUI();
+      closePlayerIdentityModal();
+      setStatus("IDENTITAS", "Identitas 3 Siswa & Kelompok berhasil diperbarui!");
+    };
 
     let currentPlayerIdx = 0;
     let isSpinningOrMoving = false;
@@ -3195,12 +3451,18 @@
       const containerUI = document.getElementById('player-list-ui');
       if (containerUI) {
         containerUI.innerHTML = players.map((p, idx) => `
-          <div class="player-item ${idx === currentPlayerIdx ? 'current-turn' : ''}">
+          <div class="player-item ${idx === currentPlayerIdx ? 'current-turn' : ''}" onclick="openPlayerIdentityModal()" style="cursor:pointer;" title="Klik untuk ubah identitas siswa">
             <div class="player-badge">
               <span class="dot" style="background:${p.hex}"></span>
-              <span>${p.name}</span>
+              <div>
+                <div style="font-weight:700; font-size:12px;">${p.name}</div>
+                <div class="player-alias-sub">👦 ${p.alias || ('Siswa ' + (idx + 1))} ${p.absen ? `(Absen ${p.absen})` : ''}</div>
+              </div>
             </div>
-            <span>Petak <b>${p.tileIndex === 0 ? 'START' : (p.tileIndex === totalTiles - 1 ? 'FINISH' : p.tileIndex)}</b> • 🪙${p.score}</span>
+            <div style="text-align:right;">
+              <span style="font-size:11px; font-weight:700;">Petak <b>${p.tileIndex === 0 ? 'START' : (p.tileIndex === totalTiles - 1 ? 'FINISH' : p.tileIndex)}</b></span><br/>
+              <span style="font-size:11px; color:#d97706; font-weight:700;">🪙 ${p.score}</span>
+            </div>
           </div>
         `).join('');
       }
@@ -3208,6 +3470,7 @@
       // Update spotlight active player
       const cur = players[currentPlayerIdx];
       const spotlightName = document.getElementById('spotlight-player-name');
+      const spotlightAlias = document.getElementById('spotlight-alias-text');
       const spotlightMeta = document.getElementById('spotlight-player-meta');
       const spotlightAvatar = document.getElementById('spotlight-player-avatar');
       const spotlightBanner = document.getElementById('active-player-spotlight');
@@ -3215,6 +3478,9 @@
       if (spotlightName && cur) {
         spotlightName.textContent = cur.name;
         spotlightName.style.color = cur.hex;
+        if (spotlightAlias) {
+          spotlightAlias.textContent = (cur.alias || `Siswa ${cur.id + 1}`) + (cur.absen ? ` (Absen ${cur.absen})` : '');
+        }
         const tileLabel = cur.tileIndex === 0 ? 'Petak START' : (cur.tileIndex === totalTiles - 1 ? '🏆 FINISH' : `Petak #${cur.tileIndex}`);
         if (spotlightMeta) {
           spotlightMeta.innerHTML = `<span>📍 ${tileLabel}</span><span>🪙 ${cur.score} Koin</span>`;
@@ -3232,12 +3498,20 @@
       const miniStrip = document.getElementById('mini-players-strip');
       if (miniStrip) {
         miniStrip.innerHTML = players.map((p, idx) => `
-          <div class="mini-player-chip ${idx === currentPlayerIdx ? 'active' : ''}">
+          <div class="mini-player-chip ${idx === currentPlayerIdx ? 'active' : ''}" onclick="setTurnToPlayer(${idx})">
             <span class="dot" style="background:${p.hex}; width:7px; height:7px; border-radius:50%; display:inline-block;"></span>
-            <span>${p.name.split(' ')[0]} (Pt.${p.tileIndex === 0 ? '0' : (p.tileIndex === totalTiles - 1 ? 'F' : p.tileIndex)})</span>
+            <span>${(p.alias || p.name).split(' ')[0]} (Pt.${p.tileIndex === 0 ? '0' : (p.tileIndex === totalTiles - 1 ? 'F' : p.tileIndex)})</span>
           </div>
         `).join('');
       }
+
+      // Update Rapor Tab Label Aliases
+      const tabA0 = document.querySelector('.tab-alias-0');
+      const tabA1 = document.querySelector('.tab-alias-1');
+      const tabA2 = document.querySelector('.tab-alias-2');
+      if (tabA0) tabA0.textContent = players[0].alias || 'Kapten Merah';
+      if (tabA1) tabA1.textContent = players[1].alias || 'Navigator Biru';
+      if (tabA2) tabA2.textContent = players[2].alias || 'Meriam Hijau';
     }
     updatePlayerListUI();
 
@@ -3486,35 +3760,351 @@
 
 
     // --- LEARNING REPORT & HINT SYSTEM ---
+    // ============================================================================
+    // SISTEM RAPORT BELAJAR SISWA & INDIKATOR KREATIVITAS (PROPOSAL PENELITIAN)
+    // ============================================================================
     let learningReport = {
-      total: 0,
-      correctDirect: 0,
-      correctWithHint: 0,
-      wrong: 0,
-      coinsEarned: 0
+      collective: { total: 0, correctDirect: 0, correctWithHint: 0, wrong: 0, coinsEarned: 0 },
+      players: {
+        0: { total: 0, correctDirect: 0, correctWithHint: 0, wrong: 0, coinsEarned: 0, fluencyScore: 0, flexibilityScore: 0, elaborationScore: 0, history: [] },
+        1: { total: 0, correctDirect: 0, correctWithHint: 0, wrong: 0, coinsEarned: 0, fluencyScore: 0, flexibilityScore: 0, elaborationScore: 0, history: [] },
+        2: { total: 0, correctDirect: 0, correctWithHint: 0, wrong: 0, coinsEarned: 0, fluencyScore: 0, flexibilityScore: 0, elaborationScore: 0, history: [] }
+      }
     };
 
     try {
-      const savedReport = localStorage.getItem('harta_karun_learning_report_v1');
-      if (savedReport) learningReport = JSON.parse(savedReport);
+      const savedReport = localStorage.getItem('harta_karun_learning_report_v2');
+      if (savedReport) {
+        const parsed = JSON.parse(savedReport);
+        if (parsed.players) learningReport = parsed;
+      }
     } catch(e) {}
 
     function saveLearningReport() {
       try {
-        localStorage.setItem('harta_karun_learning_report_v1', JSON.stringify(learningReport));
+        localStorage.setItem('harta_karun_learning_report_v2', JSON.stringify(learningReport));
       } catch(e) {}
+    }
+
+    let activeRaporTab = 'all';
+
+    window.switchRaporTab = function(tab) {
+      activeRaporTab = tab;
+      document.querySelectorAll('.rapor-tab-btn').forEach(b => {
+        b.style.background = '#fff';
+        b.style.color = '#334155';
+        b.style.borderColor = '#cbd5e1';
+      });
+      const curBtn = document.getElementById(`tab-rapor-${tab}`);
+      if (curBtn) {
+        curBtn.style.background = '#b45309';
+        curBtn.style.color = '#fff';
+        curBtn.style.borderColor = '#b45309';
+      }
+      renderRaporView(tab);
+    };
+
+    function calculateCreativityGrade(accuracy, fluency, flexibility) {
+      if (accuracy >= 85) {
+        return {
+          title: "🌟 Sangat Kreatif (High Creative Thinker)",
+          color: "#15803d",
+          badgeBg: "#dcfce7",
+          desc: "Siswa menunjukkan kelancaran dan orisinalitas tinggi dalam memecahkan soal matematika kelas 5. Mampu menyelesaikan kuis mandiri dengan cepat tanpa bergantung pada bantuan teropong."
+        };
+      } else if (accuracy >= 70) {
+        return {
+          title: "⭐ Kreatif & Solutif (Creative Problem Solver)",
+          color: "#0369a1",
+          badgeBg: "#e0f2fe",
+          desc: "Siswa menunjukkan keluwesan berpikir yang baik, mampu memanfaatkan strategi scaffolding/petunjuk ketika menemukan kesulitan pada materi pecahan dan bangun ruang."
+        };
+      } else if (accuracy >= 50) {
+        return {
+          title: "💡 Cukup Kreatif (Developing Creativity)",
+          color: "#b45309",
+          badgeBg: "#fef3c7",
+          desc: "Siswa mulai mengembangkan kemampuan berpikir analitis, memerlukan latihan terarah pada elaborasi rumus volume bangun ruang dan penjumlahan pecahan beda penyebut."
+        };
+      } else {
+        return {
+          title: "📚 Perlu Pendampingan (Guided Explorer)",
+          color: "#b91c1c",
+          badgeBg: "#fee2e2",
+          desc: "Siswa memerlukan bimbingan guru dan pendampingan konkrit melalui alat peraga fisik sebelum melangkah ke pemecahan masalah bertingkat."
+        };
+      }
+    }
+
+    function renderRaporView(tab) {
+      const container = document.getElementById('rapor-dynamic-content');
+      if (!container) return;
+
+      const dateStr = new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+
+      if (tab === 'all') {
+        // REKAP KELOMPOK
+        const totalSoal = learningReport.collective.total || 0;
+        const totalBenar = (learningReport.collective.correctDirect || 0) + (learningReport.collective.correctWithHint || 0);
+        const acc = totalSoal > 0 ? Math.round((totalBenar / totalSoal) * 100) : 0;
+        const grade = calculateCreativityGrade(acc);
+
+        container.innerHTML = `
+          <!-- KOP RAPOR PENELITIAN -->
+          <div style="border-bottom:2px solid #e2e8f0; padding-bottom:12px; margin-bottom:14px; text-align:center;">
+            <div style="font-size:11px; font-weight:800; color:#b45309; letter-spacing:1px; text-transform:uppercase;">
+              LEMBAR OBSERVASI & ASESMEN KREATIFITAS BELAJAR SISWA
+            </div>
+            <div style="font-size:15px; font-weight:800; color:#1e293b; margin:2px 0;">
+              Permainan Papan Digital 3D "Petualangan Harta Karun" Berbasis QR Code
+            </div>
+            <div style="font-size:11px; color:#64748b;">
+              Mata Pelajaran: Matematika Kelas V SD • Fase C Kurikulum Merdeka • Waktu: ${dateStr}
+            </div>
+            <div style="margin-top:6px; display:inline-flex; gap:12px; background:#f8fafc; border:1px solid #cbd5e1; padding:4px 12px; border-radius:6px; font-size:11px; font-weight:700; color:#334155;">
+              <span>🏫 ${studentIdentities.sekolah || 'SD Negeri Cerdas Ceria'}</span>
+              <span>👥 ${studentIdentities.kelompok}</span>
+              <span>📚 ${studentIdentities.kelas}</span>
+            </div>
+          </div>
+
+          <!-- 3 METRIK KELOMPOK -->
+          <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:10px; margin-bottom:16px;">
+            <div style="background:#f8fafc; border:1.5px solid #e2e8f0; border-radius:10px; padding:12px; text-align:center;">
+              <div style="font-size:11px; font-weight:700; color:#64748b;">TOTAL SOAL DIJAWAB</div>
+              <div style="font-size:24px; font-weight:800; color:#1e293b;">${totalSoal} Soal</div>
+              <div style="font-size:10px; color:#059669; font-weight:600;">${totalBenar} Benar • ${learningReport.collective.wrong || 0} Belum Tepat</div>
+            </div>
+            <div style="background:#f0fdf4; border:1.5px solid #86efac; border-radius:10px; padding:12px; text-align:center;">
+              <div style="font-size:11px; font-weight:700; color:#15803d;">RATA-RATA AKURASI KELOMPOK</div>
+              <div style="font-size:24px; font-weight:800; color:#16a34a;">${acc}%</div>
+              <div style="font-size:10px; color:#15803d; font-weight:600;">Taraf Penguasaan Materi</div>
+            </div>
+            <div style="background:#fffbeb; border:1.5px solid #fde68a; border-radius:10px; padding:12px; text-align:center;">
+              <div style="font-size:11px; font-weight:700; color:#b45309;">TOTAL KOIN EKSPEDISI</div>
+              <div style="font-size:24px; font-weight:800; color:#d97706;">🪙 ${players.reduce((sum, p) => sum + p.score, 0)}</div>
+              <div style="font-size:10px; color:#b45309; font-weight:600;">Kolaborasi 3 Pion Bajak Laut</div>
+            </div>
+          </div>
+
+          <!-- TABEL PERBANDINGAN PERFORMA 3 SISWA -->
+          <div style="margin-bottom:16px;">
+            <div style="font-size:12px; font-weight:800; color:#334155; margin-bottom:6px;">📋 TABEL CAPAIAN KREATIFITAS PER ANGGOTA KELOMPOK:</div>
+            <table style="width:100%; border-collapse:collapse; font-size:11px; text-align:left; background:#fff; border:1px solid #cbd5e1; border-radius:8px; overflow:hidden;">
+              <thead>
+                <tr style="background:#f1f5f9; color:#475569; font-weight:700; border-bottom:1.5px solid #cbd5e1;">
+                  <th style="padding:8px 10px;">Pion & Siswa</th>
+                  <th style="padding:8px 6px; text-align:center;">Petak</th>
+                  <th style="padding:8px 6px; text-align:center;">Koin</th>
+                  <th style="padding:8px 6px; text-align:center;">Total Soal</th>
+                  <th style="padding:8px 6px; text-align:center;">Mandiri ⭐</th>
+                  <th style="padding:8px 6px; text-align:center;">Teropong 🔭</th>
+                  <th style="padding:8px 6px; text-align:center;">Akurasi</th>
+                  <th style="padding:8px 10px;">Predikat Kreativitas</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${players.map((p, idx) => {
+                  const rep = learningReport.players[idx] || { total: 0, correctDirect: 0, correctWithHint: 0, wrong: 0, coinsEarned: 0 };
+                  const pTotal = rep.total || 0;
+                  const pBenar = (rep.correctDirect || 0) + (rep.correctWithHint || 0);
+                  const pAcc = pTotal > 0 ? Math.round((pBenar / pTotal) * 100) : 0;
+                  const pG = calculateCreativityGrade(pAcc);
+                  return `
+                    <tr style="border-bottom:1px solid #e2e8f0; cursor:pointer;" onclick="switchRaporTab(${idx})" title="Klik untuk lihat detail siswa ini">
+                      <td style="padding:8px 10px;">
+                        <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:${p.hex}; margin-right:6px;"></span>
+                        <b>${p.name}</b><br/>
+                        <span style="color:#64748b; font-size:10px;">👦 ${p.alias} (Absen ${p.absen})</span>
+                      </td>
+                      <td style="padding:8px 6px; text-align:center; font-weight:700;">${p.tileIndex === 0 ? 'START' : (p.tileIndex === totalTiles - 1 ? 'FINISH' : '#' + p.tileIndex)}</td>
+                      <td style="padding:8px 6px; text-align:center; color:#d97706; font-weight:700;">🪙 ${p.score}</td>
+                      <td style="padding:8px 6px; text-align:center; font-weight:700;">${pTotal}</td>
+                      <td style="padding:8px 6px; text-align:center; color:#15803d; font-weight:700;">${rep.correctDirect || 0}</td>
+                      <td style="padding:8px 6px; text-align:center; color:#0369a1; font-weight:700;">${rep.correctWithHint || 0}</td>
+                      <td style="padding:8px 6px; text-align:center;">
+                        <b style="color:${pAcc >= 70 ? '#15803d' : '#b45309'};">${pAcc}%</b>
+                      </td>
+                      <td style="padding:8px 10px;">
+                        <span style="background:${pG.badgeBg}; color:${pG.color}; padding:2px 6px; border-radius:4px; font-weight:700; font-size:10px;">
+                          ${pG.title.split(' ')[1] || 'Kreatif'}
+                        </span>
+                      </td>
+                    </tr>
+                  `;
+                }).join('')}
+              </tbody>
+            </table>
+          </div>
+
+          <!-- INDIKATOR KREATIVITAS BELAJAR SISWA (PROPOSAL INSTRUMENT) -->
+          <div style="background:#f8fafc; border:1.5px solid #cbd5e1; border-radius:10px; padding:12px; margin-bottom:14px;">
+            <div style="font-size:12px; font-weight:800; color:#1e293b; margin-bottom:6px;">🎯 INDIKATOR KREATIFITAS BELAJAR MATEMATIKA (GUILFORD / TORRANCE):</div>
+            <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:8px; font-size:11px;">
+              <div style="background:#fff; border:1px solid #e2e8f0; border-radius:6px; padding:8px;">
+                <b style="color:#0284c7;">1. Kelancaran (Fluency)</b>
+                <p style="margin:4px 0 0; color:#475569; font-size:10px;">Kemampuan merespons dan menjawab kuis matematika pecahan & volume secara cepat, mandiri, dan akurat.</p>
+              </div>
+              <div style="background:#fff; border:1px solid #e2e8f0; border-radius:6px; padding:8px;">
+                <b style="color:#16a34a;">2. Keluwesan (Flexibility)</b>
+                <p style="margin:4px 0 0; color:#475569; font-size:10px;">Kemampuan memecahkan masalah dari berbagai sudut pandang dengan bantuan teropong petunjuk (scaffolding visual).</p>
+              </div>
+              <div style="background:#fff; border:1px solid #e2e8f0; border-radius:6px; padding:8px;">
+                <b style="color:#d97706;">3. Elaborasi (Elaboration)</b>
+                <p style="margin:4px 0 0; color:#475569; font-size:10px;">Kemampuan memperinci langkah penyelesaian soal cerita dan memahami pembahasan konsep secara mendalam.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- REKOMENDASI GURU -->
+          <div style="background:#fffbeb; border:1.5px solid #fde68a; border-radius:10px; padding:12px;">
+            <b style="color:#b45309; font-size:12px;">📝 Refleksi & Rekomendasi Guru Peneliti:</b>
+            <p style="margin:4px 0 0; font-size:11px; color:#78350f; line-height:1.4;">
+              ${grade.desc} Disarankan mengintegrasikan media papan 3D dan kartu QR Code untuk meningkatkan antusiasme dan daya cipta matematika siswa pada siklus pembelajaran berikutnya.
+            </p>
+          </div>
+        `;
+      } else {
+        // DETAIL INDIVIDUAL SISWA (0, 1, atau 2)
+        const idx = parseInt(tab);
+        const p = players[idx];
+        const rep = learningReport.players[idx] || { total: 0, correctDirect: 0, correctWithHint: 0, wrong: 0, coinsEarned: 0, fluencyScore: 0, flexibilityScore: 0, elaborationScore: 0, history: [] };
+        const pTotal = rep.total || 0;
+        const pBenar = (rep.correctDirect || 0) + (rep.correctWithHint || 0);
+        const acc = pTotal > 0 ? Math.round((pBenar / pTotal) * 100) : 0;
+        const grade = calculateCreativityGrade(acc);
+
+        // Skor Indikator Kreativitas
+        const fluencyVal = Math.min(100, Math.round(((rep.correctDirect || 0) * 20) + (acc * 0.4)));
+        const flexibilityVal = Math.min(100, Math.round(((rep.correctWithHint || 0) * 25) + (acc * 0.3)));
+        const elaborationVal = Math.min(100, Math.round((pTotal * 15) + (acc * 0.3)));
+
+        container.innerHTML = `
+          <!-- KARTU IDENTITAS SISWA -->
+          <div style="background:#f8fafc; border:2px solid ${p.hex}; border-radius:10px; padding:12px; margin-bottom:14px; display:flex; justify-content:space-between; align-items:center;">
+            <div>
+              <div style="display:flex; align-items:center; gap:6px;">
+                <span style="display:inline-block; width:12px; height:12px; border-radius:50%; background:${p.hex};"></span>
+                <span style="font-size:11px; font-weight:800; color:${p.hex}; text-transform:uppercase;">${p.name}</span>
+                <span style="font-size:10px; background:#e2e8f0; color:#334155; padding:2px 6px; border-radius:4px; font-weight:700;">No. Absen: ${p.absen}</span>
+              </div>
+              <div style="font-size:17px; font-weight:800; color:#1e293b; margin:3px 0 1px;">
+                👦 ${p.alias}
+              </div>
+              <div style="font-size:11px; color:#64748b;">
+                ${studentIdentities.kelas} • ${studentIdentities.sekolah || 'SD Negeri Cerdas Ceria'}
+              </div>
+            </div>
+            <div style="text-align:right;">
+              <div style="font-size:11px; color:#64748b;">Posisi Saat Ini:</div>
+              <div style="font-size:15px; font-weight:800; color:#1e293b;">
+                📍 ${p.tileIndex === 0 ? 'START' : (p.tileIndex === totalTiles - 1 ? '🏆 FINISH' : 'Petak #' + p.tileIndex)}
+              </div>
+              <div style="font-size:12px; color:#d97706; font-weight:800;">🪙 ${p.score} Koin Emas</div>
+            </div>
+          </div>
+
+          <!-- 4 KARTU STATISTIK MATEMATIKA -->
+          <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:8px; margin-bottom:14px;">
+            <div style="background:#f0fdf4; border:1.5px solid #86efac; border-radius:8px; padding:10px; text-align:center;">
+              <div style="font-size:10px; font-weight:700; color:#15803d;">AKURASI BELAJAR</div>
+              <div style="font-size:22px; font-weight:800; color:#16a34a;">${acc}%</div>
+              <div style="font-size:9px; color:#15803d;">${pBenar} dari ${pTotal} Soal</div>
+            </div>
+            <div style="background:#eff6ff; border:1.5px solid #93c5fd; border-radius:8px; padding:10px; text-align:center;">
+              <div style="font-size:10px; font-weight:700; color:#1d4ed8;">BENAR MANDIRI ⭐</div>
+              <div style="font-size:22px; font-weight:800; color:#2563eb;">${rep.correctDirect || 0}</div>
+              <div style="font-size:9px; color:#1e40af;">Refleks & Kelancaran</div>
+            </div>
+            <div style="background:#fffbeb; border:1.5px solid #fde68a; border-radius:8px; padding:10px; text-align:center;">
+              <div style="font-size:10px; font-weight:700; color:#b45309;">DIBANTU TEROPONG 🔭</div>
+              <div style="font-size:22px; font-weight:800; color:#d97706;">${rep.correctWithHint || 0}</div>
+              <div style="font-size:9px; color:#b45309;">Keluwesan & Scaffolding</div>
+            </div>
+            <div style="background:#fef2f2; border:1.5px solid #fca5a5; border-radius:8px; padding:10px; text-align:center;">
+              <div style="font-size:10px; font-weight:700; color:#b91c1c;">BELUM TEPAT ❌</div>
+              <div style="font-size:22px; font-weight:800; color:#dc2626;">${rep.wrong || 0}</div>
+              <div style="font-size:9px; color:#b91c1c;">Miskonsepsi Siswa</div>
+            </div>
+          </div>
+
+          <!-- ASESMEN KREATIFITAS BELAJAR SISWA (3 INDIKATOR) -->
+          <div style="background:#fff; border:1.5px solid #cbd5e1; border-radius:10px; padding:12px; margin-bottom:14px;">
+            <div style="font-size:12px; font-weight:800; color:#1e293b; margin-bottom:8px;">
+              📊 PENGUKURAN INDIKATOR KREATIFITAS MATEMATIKA:
+            </div>
+            <!-- Kelancaran -->
+            <div style="margin-bottom:8px;">
+              <div style="display:flex; justify-content:space-between; font-size:11px; margin-bottom:2px;">
+                <span><b>1. Kelancaran Berpikir (Fluency):</b> Kecepatan & kemandirian solusi</span>
+                <span style="font-weight:bold; color:#0284c7;">${fluencyVal}/100</span>
+              </div>
+              <div style="width:100%; height:7px; background:#e2e8f0; border-radius:4px; overflow:hidden;">
+                <div style="width:${fluencyVal}%; height:100%; background:#0284c7; border-radius:4px;"></div>
+              </div>
+            </div>
+            <!-- Keluwesan -->
+            <div style="margin-bottom:8px;">
+              <div style="display:flex; justify-content:space-between; font-size:11px; margin-bottom:2px;">
+                <span><b>2. Keluwesan Berpikir (Flexibility):</b> Eksplorasi strategi alternatif</span>
+                <span style="font-weight:bold; color:#16a34a;">${flexibilityVal}/100</span>
+              </div>
+              <div style="width:100%; height:7px; background:#e2e8f0; border-radius:4px; overflow:hidden;">
+                <div style="width:${flexibilityVal}%; height:100%; background:#16a34a; border-radius:4px;"></div>
+              </div>
+            </div>
+            <!-- Elaborasi -->
+            <div>
+              <div style="display:flex; justify-content:space-between; font-size:11px; margin-bottom:2px;">
+                <span><b>3. Elaborasi & Daya Tahan (Elaboration):</b> Rincian dan ketelitian</span>
+                <span style="font-weight:bold; color:#d97706;">${elaborationVal}/100</span>
+              </div>
+              <div style="width:100%; height:7px; background:#e2e8f0; border-radius:4px; overflow:hidden;">
+                <div style="width:${elaborationVal}%; height:100%; background:#d97706; border-radius:4px;"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- PREDIKAT & CATATAN GURU -->
+          <div style="background:${grade.badgeBg}; border:1.5px solid ${grade.color}; border-radius:10px; padding:12px; margin-bottom:14px;">
+            <div style="font-size:12px; font-weight:800; color:${grade.color}; margin-bottom:4px;">
+              Predikat Kreatifitas: ${grade.title}
+            </div>
+            <p style="font-size:11px; color:#334155; margin:0; line-height:1.4;">
+              ${grade.desc}
+            </p>
+          </div>
+
+          <!-- RIWAYAT SOAL TERBARU -->
+          <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:10px;">
+            <div style="font-size:11px; font-weight:700; color:#475569; margin-bottom:6px;">LOG PENGERJAAN SOAL TERAKHIR:</div>
+            ${(rep.history && rep.history.length > 0) ? `
+              <div style="display:flex; flex-direction:column; gap:6px;">
+                ${rep.history.slice(0, 5).map(h => `
+                  <div style="display:flex; justify-content:space-between; align-items:center; background:#fff; border:1px solid #cbd5e1; border-radius:6px; padding:6px 8px; font-size:10px;">
+                    <div>
+                      <span style="font-weight:700; color:${h.isCorrect ? '#16a34a' : '#dc2626'};">${h.isCorrect ? '✅ BENAR' : '❌ SALAH'}</span>
+                      <span style="color:#64748b; margin-left:4px;">[${h.cardType.toUpperCase()}]</span>
+                      <span style="color:#334155; margin-left:4px;">${h.question}</span>
+                    </div>
+                    <div style="font-weight:600; color:#94a3b8; font-size:9px;">
+                      ${h.usedHint ? '🔭 Teropong' : '⭐ Mandiri'} • ${h.time}
+                    </div>
+                  </div>
+                `).join('')}
+              </div>
+            ` : `
+              <div style="font-size:11px; color:#94a3b8; text-align:center; padding:10px;">Belum ada riwayat soal yang dijawab pada sesi ini.</div>
+            `}
+          </div>
+        `;
+      }
     }
 
     function openRaporKaptenModal() {
       const modal = document.getElementById('rapor-kapten-modal');
       if (!modal) return;
-      document.getElementById('stat-total-soal').textContent = learningReport.total;
-      const acc = learningReport.total > 0 ? Math.round(((learningReport.correctDirect + learningReport.correctWithHint) / learningReport.total) * 100) : 0;
-      document.getElementById('stat-akurasi').textContent = acc + '%';
-      document.getElementById('stat-benar-first').textContent = learningReport.correctDirect;
-      document.getElementById('stat-benar-hint').textContent = learningReport.correctWithHint;
-      document.getElementById('stat-salah').textContent = learningReport.wrong;
-      document.getElementById('stat-koin').textContent = '🪙 ' + (players[activePlayerIndex]?.score || 0);
+      switchRaporTab('all');
       modal.style.display = 'flex';
     }
 
@@ -3524,30 +4114,117 @@
     }
 
     function resetLearningReport() {
-      if (!confirm('Reset seluruh statistik laporan belajar?')) return;
-      learningReport = { total: 0, correctDirect: 0, correctWithHint: 0, wrong: 0, coinsEarned: 0 };
+      if (!confirm('Apakah Bapak/Ibu Guru ingin mereset seluruh data sesi belajar ini untuk pengujian berikutnya?')) return;
+      learningReport = {
+        collective: { total: 0, correctDirect: 0, correctWithHint: 0, wrong: 0, coinsEarned: 0 },
+        players: {
+          0: { total: 0, correctDirect: 0, correctWithHint: 0, wrong: 0, coinsEarned: 0, fluencyScore: 0, flexibilityScore: 0, elaborationScore: 0, history: [] },
+          1: { total: 0, correctDirect: 0, correctWithHint: 0, wrong: 0, coinsEarned: 0, fluencyScore: 0, flexibilityScore: 0, elaborationScore: 0, history: [] },
+          2: { total: 0, correctDirect: 0, correctWithHint: 0, wrong: 0, coinsEarned: 0, fluencyScore: 0, flexibilityScore: 0, elaborationScore: 0, history: [] }
+        }
+      };
       saveLearningReport();
-      openRaporKaptenModal();
+      renderRaporView(activeRaporTab);
+      setStatus("RAPORT", "Data sesi pengamatan berhasil di-reset.");
     }
 
-    let isHintUsedCurrentQuestion = false;
+    window.showQRCodeForCurrentReport = function() {
+      const pIdx = activeRaporTab === 'all' ? 0 : parseInt(activeRaporTab);
+      const p = players[pIdx];
+      const rep = learningReport.players[pIdx] || { total: 0, correctDirect: 0, correctWithHint: 0, wrong: 0 };
+      const pTotal = rep.total || 0;
+      const pBenar = (rep.correctDirect || 0) + (rep.correctWithHint || 0);
+      const acc = pTotal > 0 ? Math.round((pBenar / pTotal) * 100) : 0;
+      const grade = calculateCreativityGrade(acc);
 
-    window.toggleHintView = function() {
-      const hintBox = document.getElementById('quiz-hint-box');
-      const hintBtn = document.getElementById('quiz-hint-toggle-btn');
-      if (!hintBox) return;
-      if (hintBox.style.display === 'none') {
-        hintBox.style.display = 'block';
-        isHintUsedCurrentQuestion = true;
-        if (hintBtn) hintBtn.textContent = '🙈 Tutup Petunjuk';
-      } else {
-        hintBox.style.display = 'none';
-        if (hintBtn) hintBtn.textContent = '🔭 Buka Teropong Petunjuk';
-      }
+      const payload = `RAPOR BELAJAR MATEMATIKA KELAS 5
+Siswa: ${p.alias} (Absen ${p.absen})
+Pion: ${p.name}
+Kelas: ${studentIdentities.kelas}
+Total Soal: ${pTotal}
+Akurasi: ${acc}%
+Predikat: ${grade.title}
+Koin Emas: ${p.score}
+Verifikasi: Media 3D QR Code Harta Karun`;
+
+      alert(`📲 QR CODE RAPOR BELAJAR SISWA
+----------------------------------
+${payload}
+
+(Data ini terenkod dalam QR Code portofolio digital yang siap dipindai oleh guru/orang tua/penilai penelitian).`);
     };
+
+    // ============================================================================
+    // INTEGRASI FITUR QR CODE (PROPOSAL PENELITIAN KELAS V SD)
+    // ============================================================================
+    window.openQRAccessModal = function() {
+      const modal = document.getElementById('qr-access-modal');
+      if (!modal) return;
+      const urlText = document.getElementById('qr-access-url-text');
+      const gameUrl = window.location.href;
+      if (urlText) urlText.textContent = gameUrl;
+
+      const container = document.getElementById('qr-access-code-container');
+      if (container) {
+        container.innerHTML = '';
+        if (typeof QRCode !== 'undefined') {
+          new QRCode(container, {
+            text: gameUrl,
+            width: 160,
+            height: 160,
+            colorDark: '#047857',
+            colorLight: '#ffffff'
+          });
+        } else {
+          container.innerHTML = '<div style="font-size:12px;color:#047857;font-weight:bold;">Tautan Akses: ' + gameUrl + '</div>';
+        }
+      }
+      modal.style.display = 'flex';
+    };
+
+    window.closeQRAccessModal = function() {
+      const modal = document.getElementById('qr-access-modal');
+      if (modal) modal.style.display = 'none';
+    };
+
+    window.copyGameAccessUrl = function() {
+      navigator.clipboard.writeText(window.location.href).then(() => {
+        alert('Tautan akses game berhasil disalin ke clipboard! Bagikan kepada siswa untuk bermain bersama.');
+      }).catch(() => {
+        alert('Tautan game: ' + window.location.href);
+      });
+    };
+
+    window.openQRScannerModal = function() {
+      const modal = document.getElementById('qr-scanner-modal');
+      if (modal) modal.style.display = 'flex';
+    };
+
+    window.closeQRScannerModal = function() {
+      const modal = document.getElementById('qr-scanner-modal');
+      if (modal) modal.style.display = 'none';
+    };
+
+    window.submitManualCardCode = function() {
+      const inp = document.getElementById('qr-manual-code-input');
+      if (!inp) return;
+      const code = inp.value.trim().toUpperCase();
+      if (!code) {
+        alert('Masukkan kode kartu kuis (misal: M-01, S-05, T-02, B-01, J-01)');
+        return;
+      }
+      closeQRScannerModal();
+      if (code.startsWith('M')) triggerCardModal('misi', true);
+      else if (code.startsWith('S')) triggerCardModal('soal', true);
+      else if (code.startsWith('T')) triggerCardModal('tantangan', true);
+      else if (code.startsWith('B')) triggerCardModal('bonus', true);
+      else if (code.startsWith('J')) triggerCardModal('jebakan', true);
+      else triggerCardModal('soal', true);
+    };;
 
     function triggerCardModal(cardType, isPreviewOnly) {
       playSfx('card');
+      window.currentCardTypeOpen = cardType;
       const p = players[currentPlayerIdx];
       const modalTitle = document.getElementById('modal-title');
       const modalBody = document.getElementById('modal-body');
@@ -3613,19 +4290,44 @@
       const isCorrect = selectedIdx === correctIdx;
       const p = players[currentPlayerIdx];
 
-      // Update Rapor Belajar
+      // Update Rapor Belajar (Siswa Aktif & Kolektif Kelompok)
       if (!isPreviewOnly) {
-        learningReport.total++;
+        learningReport.collective.total = (learningReport.collective.total || 0) + 1;
+        const curPlayer = players[currentPlayerIdx];
+        const rep = learningReport.players[currentPlayerIdx] || { total: 0, correctDirect: 0, correctWithHint: 0, wrong: 0, coinsEarned: 0, fluencyScore: 0, flexibilityScore: 0, elaborationScore: 0, history: [] };
+        rep.total++;
+
         if (isCorrect) {
           if (isHintUsedCurrentQuestion) {
-            learningReport.correctWithHint++;
+            learningReport.collective.correctWithHint = (learningReport.collective.correctWithHint || 0) + 1;
+            rep.correctWithHint++;
+            rep.flexibilityScore = (rep.flexibilityScore || 0) + 15;
+            rep.elaborationScore = (rep.elaborationScore || 0) + 10;
           } else {
-            learningReport.correctDirect++;
+            learningReport.collective.correctDirect = (learningReport.collective.correctDirect || 0) + 1;
+            rep.correctDirect++;
+            rep.fluencyScore = (rep.fluencyScore || 0) + 15;
+            rep.elaborationScore = (rep.elaborationScore || 0) + 10;
           }
-          learningReport.coinsEarned += 30;
+          learningReport.collective.coinsEarned = (learningReport.collective.coinsEarned || 0) + 30;
+          rep.coinsEarned = (rep.coinsEarned || 0) + 30;
         } else {
-          learningReport.wrong++;
+          learningReport.collective.wrong = (learningReport.collective.wrong || 0) + 1;
+          rep.wrong++;
         }
+
+        // Catat Log Soal
+        rep.history = rep.history || [];
+        rep.history.unshift({
+          time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          cardType: window.currentCardTypeOpen || 'soal',
+          question: (document.getElementById('modal-title')?.textContent || 'Soal').substring(0, 50),
+          isCorrect: isCorrect,
+          usedHint: isHintUsedCurrentQuestion
+        });
+        if (rep.history.length > 20) rep.history.pop();
+
+        learningReport.players[currentPlayerIdx] = rep;
         saveLearningReport();
       }
 
@@ -4056,57 +4758,233 @@
   </div>
 
 
-  <!-- MODAL RAPOR PETUALANG (PARENT / TEACHER LEARNING REPORT) -->
-  <div class="modal-backdrop" id="rapor-kapten-modal" style="display:none;">
-    <div class="modal-box" style="max-width:600px; max-height:85vh; display:flex; flex-direction:column;">
-      <div class="modal-header" style="background:#b45309; border-bottom:3px solid #78350f;">
-        <h2 style="color:#fff; font-size:18px; margin:0;">📊 Rapor Petualang Kapten Cilik</h2>
-        <button class="close-modal" onclick="closeRaporKaptenModal()" style="color:#fff; background:rgba(255,255,255,0.2);">✕</button>
+  
+  <!-- ============================================================== -->
+  <!-- MODAL: ATUR IDENTITAS SISWA & KELOMPOK BELAJAR (RESEARCH ASESMEN) -->
+  <!-- ============================================================== -->
+  <div class="modal-backdrop" id="student-identity-modal" style="display:none;">
+    <div class="modal-box" style="max-width:520px; max-height:88vh; display:flex; flex-direction:column;">
+      <div class="modal-header" style="background:#1e40af; border-bottom:3px solid #1e3a8a;">
+        <h2 style="color:#fff; font-size:17px; margin:0; display:flex; align-items:center; gap:8px;">
+          👥 Identitas Siswa & Kelompok Belajar
+        </h2>
+        <button class="close-modal" onclick="closePlayerIdentityModal()" style="color:#fff; background:rgba(255,255,255,0.2);">✕</button>
       </div>
       <div class="modal-body" style="flex:1; overflow-y:auto; padding:18px;">
-        <div style="background:#fef3c7; border:2px solid #f59e0b; border-radius:12px; padding:12px; margin-bottom:16px; text-align:center;">
-          <div style="font-size:2rem; margin-bottom:4px;">🧭⭐🪙</div>
-          <h3 style="margin:0 0 4px; color:#78350f; font-size:16px; font-family:'Fredoka',sans-serif;">Ringkasan Belajar Matematika SD</h3>
-          <p style="margin:0; font-size:12px; color:#92400e;">Catatan interaktif ketepatan menjawab kuis dan pemahaman materi pecahan & bangun ruang.</p>
-        </div>
+        <p style="font-size:12px; color:#475569; margin:0 0 14px; line-height:1.4;">
+          Masukkan identitas 3 siswa yang memainkan pion ini untuk sinkronisasi otomatis pada <b>Raport Belajar</b> dan lembar observasi penelitian.
+        </p>
 
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px;">
-          <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:12px; text-align:center;">
-            <div style="font-size:11px; color:#64748b; font-weight:bold;">Total Soal Dikerjakan</div>
-            <div id="stat-total-soal" style="font-size:24px; font-weight:900; color:#0f172a; margin-top:4px;">0</div>
-          </div>
-          <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:12px; text-align:center;">
-            <div style="font-size:11px; color:#64748b; font-weight:bold;">Akurasi Jawaban Benar</div>
-            <div id="stat-akurasi" style="font-size:24px; font-weight:900; color:#16a34a; margin-top:4px;">0%</div>
-          </div>
-        </div>
-
-        <div style="background:#fff; border:1px solid #e2e8f0; border-radius:10px; padding:14px; margin-bottom:16px;">
-          <h4 style="margin:0 0 10px; font-size:13px; color:#334155;">Detail Riwayat Sesi:</h4>
-          <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:6px; color:#475569;">
-            <span>Jawaban Benar Tanpa Hint:</span>
-            <span id="stat-benar-first" style="font-weight:bold; color:#16a34a;">0</span>
-          </div>
-          <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:6px; color:#475569;">
-            <span>Jawaban Benar Dibantu Teropong:</span>
-            <span id="stat-benar-hint" style="font-weight:bold; color:#d97706;">0</span>
-          </div>
-          <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:6px; color:#475569;">
-            <span>Jawaban Belum Tepat:</span>
-            <span id="stat-salah" style="font-weight:bold; color:#dc2626;">0</span>
-          </div>
-          <div style="display:flex; justify-content:space-between; font-size:12px; color:#475569;">
-            <span>Koin Emas Dikumpulkan:</span>
-            <span id="stat-koin" style="font-weight:bold; color:#b45309;">🪙 0</span>
+        <!-- Metadata Kelompok & Kelas -->
+        <div style="background:#f8fafc; border:1.5px solid #cbd5e1; border-radius:10px; padding:12px; margin-bottom:14px;">
+          <div style="font-size:11px; font-weight:bold; color:#334155; margin-bottom:6px;">🏫 Informasi Kelas & Kelompok:</div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+            <div>
+              <label style="font-size:10px; color:#64748b; font-weight:700;">KELAS / FASE</label>
+              <input type="text" id="input-kelas" value="Kelas V SD (Fase C)" style="width:100%; padding:6px 8px; border:1.5px solid #cbd5e1; border-radius:6px; font-size:12px;" />
+            </div>
+            <div>
+              <label style="font-size:10px; color:#64748b; font-weight:700;">NAMA KELOMPOK</label>
+              <input type="text" id="input-kelompok" value="Kelompok Bajak Laut Matematika" style="width:100%; padding:6px 8px; border:1.5px solid #cbd5e1; border-radius:6px; font-size:12px;" />
+            </div>
           </div>
         </div>
 
-        <div style="display:flex; gap:10px;">
-          <button onclick="resetLearningReport()" style="flex:1; padding:10px; background:#fee2e2; color:#b91c1c; border:1px solid #f87171; border-radius:8px; font-weight:bold; font-size:12px; cursor:pointer;">
-            🔄 Reset Riwayat Belajar
+        <!-- 3 Siswa Form -->
+        <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:16px;">
+          <!-- Siswa 1 (Merah) -->
+          <div style="border:2px solid #ef4444; background:#fef2f2; border-radius:10px; padding:10px;">
+            <div style="display:flex; align-items:center; gap:6px; font-weight:bold; font-size:12px; color:#b91c1c; margin-bottom:6px;">
+              <span style="display:inline-block; width:12px; height:12px; border-radius:50%; background:#ef4444;"></span>
+              Pemain 1 (Kapten Merah)
+            </div>
+            <div style="display:grid; grid-template-columns:2fr 1fr; gap:8px;">
+              <input type="text" id="input-alias-0" placeholder="Nama Lengkap Siswa 1" value="Ahmad Dahlan" style="padding:6px 8px; border:1.5px solid #fca5a5; border-radius:6px; font-size:12px; font-weight:600;" />
+              <input type="text" id="input-absen-0" placeholder="No. Absen" value="01" style="padding:6px 8px; border:1.5px solid #fca5a5; border-radius:6px; font-size:12px; text-align:center;" />
+            </div>
+          </div>
+
+          <!-- Siswa 2 (Biru) -->
+          <div style="border:2px solid #3b82f6; background:#eff6ff; border-radius:10px; padding:10px;">
+            <div style="display:flex; align-items:center; gap:6px; font-weight:bold; font-size:12px; color:#1d4ed8; margin-bottom:6px;">
+              <span style="display:inline-block; width:12px; height:12px; border-radius:50%; background:#3b82f6;"></span>
+              Pemain 2 (Navigator Biru)
+            </div>
+            <div style="display:grid; grid-template-columns:2fr 1fr; gap:8px;">
+              <input type="text" id="input-alias-1" placeholder="Nama Lengkap Siswa 2" value="Siti Rahma" style="padding:6px 8px; border:1.5px solid #93c5fd; border-radius:6px; font-size:12px; font-weight:600;" />
+              <input type="text" id="input-absen-1" placeholder="No. Absen" value="02" style="padding:6px 8px; border:1.5px solid #93c5fd; border-radius:6px; font-size:12px; text-align:center;" />
+            </div>
+          </div>
+
+          <!-- Siswa 3 (Hijau) -->
+          <div style="border:2px solid #22c55e; background:#f0fdf4; border-radius:10px; padding:10px;">
+            <div style="display:flex; align-items:center; gap:6px; font-weight:bold; font-size:12px; color:#15803d; margin-bottom:6px;">
+              <span style="display:inline-block; width:12px; height:12px; border-radius:50%; background:#22c55e;"></span>
+              Pemain 3 (Meriam Hijau)
+            </div>
+            <div style="display:grid; grid-template-columns:2fr 1fr; gap:8px;">
+              <input type="text" id="input-alias-2" placeholder="Nama Lengkap Siswa 3" value="Budi Pratama" style="padding:6px 8px; border:1.5px solid #86efac; border-radius:6px; font-size:12px; font-weight:600;" />
+              <input type="text" id="input-absen-2" placeholder="No. Absen" value="03" style="padding:6px 8px; border:1.5px solid #86efac; border-radius:6px; font-size:12px; text-align:center;" />
+            </div>
+          </div>
+        </div>
+
+        <button onclick="savePlayerIdentities()" style="width:100%; padding:10px; background:#16a34a; color:white; border:none; border-radius:8px; font-weight:bold; font-size:13px; cursor:pointer;">
+          💾 Simpan & Terapkan Identitas Siswa
+        </button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ============================================================== -->
+  <!-- MODAL: QR CODE AKSES GAME (WEB & MOBILE MULTIPLAYER COOPERATION) -->
+  <!-- ============================================================== -->
+  <div class="modal-backdrop" id="qr-access-modal" style="display:none;">
+    <div class="modal-box" style="max-width:460px; max-height:85vh; text-align:center;">
+      <div class="modal-header" style="background:#059669; border-bottom:3px solid #047857;">
+        <h2 style="color:#fff; font-size:17px; margin:0;">📱 QR Code Akses Game 3D</h2>
+        <button class="close-modal" onclick="closeQRAccessModal()" style="color:#fff; background:rgba(255,255,255,0.2);">✕</button>
+      </div>
+      <div class="modal-body" style="padding:20px 16px;">
+        <div style="background:#ecfdf5; border:1.5px dashed #10b981; border-radius:12px; padding:16px; margin-bottom:16px;">
+          <div id="qr-access-code-container" style="display:flex; justify-content:center; align-items:center; margin-bottom:12px; min-height:160px;"></div>
+          <p style="font-size:13px; font-weight:700; color:#065f46; margin:0 0 6px;">
+            Arahkan Kamera HP / Tablet Siswa ke QR Code di atas
+          </p>
+          <p style="font-size:11px; color:#047857; margin:0;">
+            Media ini terintegrasi langsung untuk pembelajaran kolaboratif di kelas maupun belajar mandiri di rumah.
+          </p>
+        </div>
+        <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:10px; margin-bottom:14px; word-break:break-all; font-size:12px;">
+          <span style="color:#64748b; font-weight:600;">Tautan Akses:</span><br/>
+          <code id="qr-access-url-text" style="color:#2563eb; font-weight:bold;"></code>
+        </div>
+        <div style="display:flex; gap:8px;">
+          <button onclick="copyGameAccessUrl()" style="flex:1; padding:9px; background:#0284c7; color:white; border:none; border-radius:8px; font-weight:bold; font-size:12px; cursor:pointer;">
+            📋 Salin Link Game
           </button>
-          <button onclick="window.print()" style="flex:1; padding:10px; background:#0284c7; color:white; border:none; border-radius:8px; font-weight:bold; font-size:12px; cursor:pointer;">
-            🖨️ Cetak / Simpan PDF
+          <button onclick="closeQRAccessModal()" style="flex:1; padding:9px; background:#e2e8f0; color:#334155; border:none; border-radius:8px; font-weight:bold; font-size:12px; cursor:pointer;">
+            Tutup
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ============================================================== -->
+  <!-- MODAL: PINDAI QR SOAL / INPUT KODE KARTU FISIK (PROPOSAL SKRIPSI) -->
+  <!-- ============================================================== -->
+  <div class="modal-backdrop" id="qr-scanner-modal" style="display:none;">
+    <div class="modal-box" style="max-width:540px; max-height:88vh; display:flex; flex-direction:column;">
+      <div class="modal-header" style="background:#7c3aed; border-bottom:3px solid #6d28d9;">
+        <h2 style="color:#fff; font-size:17px; margin:0; display:flex; align-items:center; gap:8px;">
+          📷 Pindai QR Code Soal & Tantangan Kreatif
+        </h2>
+        <button class="close-modal" onclick="closeQRScannerModal()" style="color:#fff; background:rgba(255,255,255,0.2);">✕</button>
+      </div>
+      <div class="modal-body" style="flex:1; overflow-y:auto; padding:18px;">
+        <div style="background:#f5f3ff; border:1.5px solid #c4b5fd; border-radius:10px; padding:12px; margin-bottom:14px;">
+          <div style="font-weight:700; color:#5b21b6; font-size:13px; margin-bottom:4px;">🎯 Fitur Integrasi QR Media Fisik - Digital</div>
+          <p style="font-size:12px; color:#6d28d9; margin:0; line-height:1.4;">
+            Sesuai proposal penelitian pembelajaran matematika, siswa yang memegang kartu fisik atau kartu papan cetak dapat memindai barcode QR atau mengetik kode kartu di bawah ini untuk membuka soal di layar 3D!
+          </p>
+        </div>
+
+        <!-- Input Kode Cepat -->
+        <div style="background:#fff; border:1.5px solid #e2e8f0; border-radius:10px; padding:12px; margin-bottom:14px;">
+          <label style="font-size:11px; font-weight:700; color:#334155; display:block; margin-bottom:6px;">MASUKKAN KODE KARTU (Misal: M-01, S-05, T-02):</label>
+          <div style="display:flex; gap:8px;">
+            <input type="text" id="qr-manual-code-input" placeholder="Contoh: M-01 atau S-02" style="flex:1; padding:8px 10px; border:2px solid #7c3aed; border-radius:8px; font-size:13px; font-weight:700; text-transform:uppercase;" />
+            <button onclick="submitManualCardCode()" style="padding:8px 16px; background:#7c3aed; color:white; border:none; border-radius:8px; font-weight:bold; font-size:12px; cursor:pointer;">
+              🚀 Buka Kartu
+            </button>
+          </div>
+        </div>
+
+        <!-- Grid Kartu Cepat Populer -->
+        <div style="font-size:11px; font-weight:700; color:#475569; margin-bottom:6px;">PILIH CEPAT KARTU KREATIF MATEMATIKA:</div>
+        <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:8px;">
+          <button onclick="triggerCardModal('misi', true); closeQRScannerModal();" style="padding:10px 8px; background:#fef3c7; border:1.5px solid #f59e0b; border-radius:8px; font-size:11px; font-weight:bold; color:#92400e; cursor:pointer; text-align:left;">
+            🔍 Kartu Misi<br/><span style="font-size:9px; color:#b45309;">Problem Solving (M-01)</span>
+          </button>
+          <button onclick="triggerCardModal('soal', true); closeQRScannerModal();" style="padding:10px 8px; background:#e0f2fe; border:1.5px solid #38bdf8; border-radius:8px; font-size:11px; font-weight:bold; color:#0369a1; cursor:pointer; text-align:left;">
+            📘 Kartu Soal<br/><span style="font-size:9px; color:#0284c7;">Pecahan & Ruang (S-01)</span>
+          </button>
+          <button onclick="triggerCardModal('tantangan', true); closeQRScannerModal();" style="padding:10px 8px; background:#ffedd5; border:1.5px solid #fb923c; border-radius:8px; font-size:11px; font-weight:bold; color:#c2410c; cursor:pointer; text-align:left;">
+            ⚡ Tantangan Kilat<br/><span style="font-size:9px; color:#ea580c;">Hitung Cepat (T-01)</span>
+          </button>
+          <button onclick="triggerCardModal('bonus', true); closeQRScannerModal();" style="padding:10px 8px; background:#fef9c3; border:1.5px solid #eab308; border-radius:8px; font-size:11px; font-weight:bold; color:#854d0e; cursor:pointer; text-align:left;">
+            ⭐ Kartu Bonus<br/><span style="font-size:9px; color:#ca8a04;">Langkah Ekstra (B-01)</span>
+          </button>
+          <button onclick="triggerCardModal('jebakan', true); closeQRScannerModal();" style="padding:10px 8px; background:#fee2e2; border:1.5px solid #f87171; border-radius:8px; font-size:11px; font-weight:bold; color:#991b1b; cursor:pointer; text-align:left;">
+            ⚠️ Kartu Jebakan<br/><span style="font-size:9px; color:#dc2626;">Tantangan Reduksi (J-01)</span>
+          </button>
+          <button onclick="openInfoModal('materi'); closeQRScannerModal();" style="padding:10px 8px; background:#dcfce7; border:1.5px solid #4ade80; border-radius:8px; font-size:11px; font-weight:bold; color:#166534; cursor:pointer; text-align:left;">
+            📖 Konsep Materi<br/><span style="font-size:9px; color:#15803d;">Pecahan & Geometri</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ============================================================== -->
+  <!-- MODAL: RAPORT BELAJAR SISWA LENGKAP (PENELITIAN KREATIVITAS SD) -->
+  <!-- ============================================================== -->
+  <div class="modal-backdrop" id="rapor-kapten-modal" style="display:none;">
+    <div class="modal-box" style="max-width:760px; max-height:90vh; display:flex; flex-direction:column;">
+      <!-- Header Rapor -->
+      <div class="modal-header" style="background:#b45309; border-bottom:3px solid #78350f; display:flex; justify-content:space-between; align-items:center;">
+        <div>
+          <h2 style="color:#fff; font-size:17px; margin:0; display:flex; align-items:center; gap:8px;">
+            📊 Raport Hasil Belajar & Kreativitas Matematika Siswa
+          </h2>
+          <div style="font-size:11px; color:#fef3c7; margin-top:2px;">
+            Media Permainan Papan Interaktif 3D Terintegrasi QR Code - Kelas V SD
+          </div>
+        </div>
+        <button class="close-modal no-print" onclick="closeRaporKaptenModal()" style="color:#fff; background:rgba(255,255,255,0.2);">✕</button>
+      </div>
+
+      <!-- Tab Switcher Navigasi: Rekap Kelompok | Siswa 1 | Siswa 2 | Siswa 3 -->
+      <div class="no-print" style="background:#fef3c7; border-bottom:2px solid #fde68a; padding:8px 16px; display:flex; gap:6px; overflow-x:auto;">
+        <button class="rapor-tab-btn active" id="tab-rapor-all" onclick="switchRaporTab('all')" style="padding:6px 12px; border-radius:8px; border:1.5px solid #b45309; background:#b45309; color:#fff; font-weight:bold; font-size:11px; cursor:pointer;">
+          👥 Rekap Kelompok (Semua Siswa)
+        </button>
+        <button class="rapor-tab-btn" id="tab-rapor-0" onclick="switchRaporTab(0)" style="padding:6px 12px; border-radius:8px; border:1.5px solid #cbd5e1; background:#fff; color:#334155; font-weight:bold; font-size:11px; cursor:pointer;">
+          🔴 Siswa 1: <span class="tab-alias-0">Kapten Merah</span>
+        </button>
+        <button class="rapor-tab-btn" id="tab-rapor-1" onclick="switchRaporTab(1)" style="padding:6px 12px; border-radius:8px; border:1.5px solid #cbd5e1; background:#fff; color:#334155; font-weight:bold; font-size:11px; cursor:pointer;">
+          🔵 Siswa 2: <span class="tab-alias-1">Navigator Biru</span>
+        </button>
+        <button class="rapor-tab-btn" id="tab-rapor-2" onclick="switchRaporTab(2)" style="padding:6px 12px; border-radius:8px; border:1.5px solid #cbd5e1; background:#fff; color:#334155; font-weight:bold; font-size:11px; cursor:pointer;">
+          🟢 Siswa 3: <span class="tab-alias-2">Meriam Hijau</span>
+        </button>
+      </div>
+
+      <!-- Body Rapor Container -->
+      <div class="modal-body" id="rapor-dynamic-content" style="flex:1; overflow-y:auto; padding:18px;">
+        <!-- Akan diisi secara dinamis oleh renderRaporView() -->
+      </div>
+
+      <!-- Action Tools Footer -->
+      <div class="no-print" style="background:#f8fafc; border-top:1.5px solid #e2e8f0; padding:12px 18px; display:flex; flex-wrap:wrap; gap:8px; justify-content:space-between; align-items:center;">
+        <div style="display:flex; gap:8px;">
+          <button onclick="openPlayerIdentityModal()" style="padding:8px 12px; background:#eff6ff; color:#1d4ed8; border:1.5px solid #3b82f6; border-radius:8px; font-weight:bold; font-size:11px; cursor:pointer;">
+            ✏️ Atur Identitas Siswa
+          </button>
+          <button onclick="resetLearningReport()" style="padding:8px 12px; background:#fee2e2; color:#b91c1c; border:1.5px solid #f87171; border-radius:8px; font-weight:bold; font-size:11px; cursor:pointer;">
+            🔄 Reset Data Sesi
+          </button>
+        </div>
+        <div style="display:flex; gap:8px;">
+          <button onclick="showQRCodeForCurrentReport()" style="padding:8px 12px; background:#ecfdf5; color:#065f46; border:1.5px solid #10b981; border-radius:8px; font-weight:bold; font-size:11px; cursor:pointer;">
+            📲 Buat QR Rapor Siswa
+          </button>
+          <button onclick="window.print()" class="print-allow" style="padding:8px 16px; background:#0284c7; color:white; border:none; border-radius:8px; font-weight:bold; font-size:12px; cursor:pointer;">
+            🖨️ Cetak / Unduh Lembar Raport (PDF)
           </button>
         </div>
       </div>
