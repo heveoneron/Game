@@ -448,9 +448,14 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 func main() {
 	rand.Seed(time.Now().UnixNano())
 
-	// Static File Server
+	// Static File Server with No-Cache headers to prevent mobile browsers from serving stale cache
 	fs := http.FileServer(http.Dir("./public"))
-	http.Handle("/", fs)
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
+		w.Header().Set("Pragma", "no-cache")
+		w.Header().Set("Expires", "0")
+		fs.ServeHTTP(w, r)
+	})
 
 	// WebSocket Sync Endpoint (multi-room via ?room=CODE)
 	http.HandleFunc("/ws", wsHandler)
