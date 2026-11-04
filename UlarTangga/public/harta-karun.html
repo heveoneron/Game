@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>3D Board Game: Petualangan Mencari Harta Karun - Matematika Kelas 5 SD</title>
+  <title>Board Game "Berburu Harta Karun" Berbasis QR-Code | Materi Luas Bangun Datar Kelas V SDN Gang Aut</title>
   <!-- Google Fonts bergaya tulisan tangan rapi & komik edukatif -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -379,21 +379,24 @@
       border: 1.5px solid var(--ink);
     }
 
-    /* ================= MODAL POPUP (QR CODE & MATH CARDS) ================= */
+    /* ================= MODAL POPUP (QR CODE & MATH CARDS & RAPORT) ================= */
     .modal-backdrop {
-      position: fixed;
-      inset: 0;
-      background: rgba(25, 19, 12, 0.65);
-      backdrop-filter: blur(4px);
-      z-index: 100;
+      position: fixed !important;
+      inset: 0 !important;
+      background: rgba(18, 14, 10, 0.72) !important;
+      backdrop-filter: blur(5px) !important;
+      z-index: 999999 !important;
       display: none;
-      align-items: center;
-      justify-content: center;
-      padding: 16px;
+      align-items: flex-start !important;
+      justify-content: center !important;
+      padding: 18px 12px !important;
+      overflow-y: auto !important;
+      box-sizing: border-box !important;
+      -webkit-overflow-scrolling: touch;
     }
 
     .modal-backdrop.open {
-      display: flex;
+      display: flex !important;
     }
 
     .modal-box {
@@ -403,11 +406,72 @@
       max-width: 560px;
       width: 100%;
       padding: 22px 24px;
+      margin: 18px auto !important;
       box-shadow: 0 10px 0 var(--ink), 0 20px 40px rgba(0,0,0,0.35);
       position: relative;
       animation: popIn 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
-      max-height: 88vh;
+      max-height: calc(100vh - 36px) !important;
       overflow-y: auto;
+      box-sizing: border-box;
+    }
+
+    /* Khusus Modal Raport Kapten (Asesmen Riset SD SDN Gang Aut) */
+    #rapor-kapten-modal .modal-box {
+      background: #ffffff !important;
+      border: 3px solid #78350f !important;
+      border-radius: 16px !important;
+      max-width: 820px !important;
+      width: 100% !important;
+      margin: 18px auto !important;
+      box-shadow: 0 16px 40px rgba(0,0,0,0.45) !important;
+      position: relative !important;
+      animation: popIn 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+      max-height: calc(100vh - 36px) !important;
+      display: flex !important;
+      flex-direction: column !important;
+      padding: 0 !important;
+      overflow: hidden !important;
+      box-sizing: border-box !important;
+    }
+    #rapor-kapten-modal .modal-header {
+      background: #b45309 !important;
+      border-bottom: 3px solid #78350f !important;
+      display: flex !important;
+      justify-content: space-between !important;
+      align-items: center !important;
+      padding: 12px 18px !important;
+      margin: 0 !important;
+      border-top-left-radius: 13px !important;
+      border-top-right-radius: 13px !important;
+      flex-shrink: 0 !important;
+    }
+    #rapor-kapten-modal .modal-header h2 {
+      color: #ffffff !important;
+      font-size: 16.5px !important;
+      margin: 0 !important;
+      display: flex !important;
+      align-items: center !important;
+      gap: 8px !important;
+    }
+    #rapor-kapten-modal .modal-body {
+      flex: 1 1 auto !important;
+      overflow-y: auto !important;
+      padding: 16px 18px !important;
+      background: #fff !important;
+      box-sizing: border-box !important;
+    }
+    #rapor-kapten-modal .modal-footer {
+      background: #f8fafc !important;
+      border-top: 1.5px solid #e2e8f0 !important;
+      padding: 10px 18px !important;
+      display: flex !important;
+      flex-wrap: wrap !important;
+      gap: 8px !important;
+      justify-content: space-between !important;
+      align-items: center !important;
+      flex-shrink: 0 !important;
+      border-bottom-left-radius: 13px !important;
+      border-bottom-right-radius: 13px !important;
     }
 
     @keyframes popIn {
@@ -1284,15 +1348,15 @@
   <header class="top-hud">
     <!-- Desktop Title Banner -->
     <div class="title-banner desktop-only">
-      <h1>🏴‍☠️ PETUALANGAN MENCARI HARTA KARUN 🏴‍☠️</h1>
-      <p>Ayo Selesaikan Setiap Misinya! — Media Ular Tangga Matematika SD Kelas 5</p>
+      <h1>🏴‍☠️ BOARD GAME "BERBURU HARTA KARUN" 🏴‍☠️</h1>
+      <p>Media Pembelajaran Berbasis QR-Code Materi Luas Bangun Datar — Kelas V SDN Gang Aut</p>
     </div>
 
     <!-- Mobile Top Navigation Bar -->
     <div class="mobile-only mobile-header-bar">
       <div class="mobile-logo">
         <span>🏴‍☠️</span>
-        <span>Harta Karun SD</span>
+        <span>Berburu Harta Karun (SDN Gang Aut)</span>
       </div>
       <div class="mobile-header-actions">
         <button class="mobile-hdr-btn highlight" onclick="openInfoModal('petunjuk')" title="Petunjuk Cara Main">
@@ -1568,6 +1632,332 @@
     </div>
   </div>
 
+  <!-- MODAL DECK MANAGER INTERAKTIF -->
+  <div class="modal-backdrop" id="deck-manager-modal" style="display:none;">
+    <div class="modal-box" style="max-width:760px; max-height:88vh; display:flex; flex-direction:column;">
+      <div class="modal-header" style="background:#4338ca; border-bottom:3px solid #312e81;">
+        <h2 style="color:#fff; font-size:18px; margin:0;">🃏 Manajemen Dek Kartu & Soal Matematika SD</h2>
+        <button class="close-modal" onclick="closeDeckManagerModal()" style="color:#fff; background:rgba(255,255,255,0.2);">✕</button>
+      </div>
+      <div class="modal-body" style="flex:1; overflow-y:auto; padding:16px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:12px; background:#f8fafc; padding:10px; border-radius:8px; border:1px solid #e2e8f0;">
+          <div style="font-size:13px; font-weight:bold; color:#1e293b;">
+            Filter Tipe:
+            <select id="deck-filter-type" onchange="renderDeckCardList()" style="padding:4px 8px; border-radius:6px; border:1px solid #cbd5e1; margin-left:6px;">
+              <option value="all">Semua Kategori</option>
+              <option value="soal">📘 Kuis Soal Matematika</option>
+              <option value="misi">🔍 Misi Pemecahan Masalah</option>
+              <option value="tantangan">⚡ Tantangan Kilat</option>
+              <option value="bonus">⭐ Kartu Bonus Langkah</option>
+              <option value="jebakan">⚠️ Kartu Jebakan</option>
+            </select>
+          </div>
+          <div style="display:flex; gap:6px;">
+            <button onclick="exportDeckJSON()" style="padding:6px 10px; font-size:12px; font-weight:bold; background:#059669; color:white; border:none; border-radius:6px; cursor:pointer;">📥 Unduh JSON</button>
+            <label style="padding:6px 10px; font-size:12px; font-weight:bold; background:#0284c7; color:white; border-radius:6px; cursor:pointer; margin:0;">
+              📤 Unggah JSON
+              <input type="file" id="deck-import-file" accept=".json" onchange="importDeckJSON(event)" style="display:none;">
+            </label>
+            <button onclick="resetDeckToDefault()" style="padding:6px 10px; font-size:12px; font-weight:bold; background:#e11d48; color:white; border:none; border-radius:6px; cursor:pointer;">🔄 Reset Awal</button>
+          </div>
+        </div>
+
+        <!-- FORM TAMBAH / EDIT KARTU -->
+        <details id="card-form-details" style="background:#f1f5f9; padding:12px; border-radius:8px; margin-bottom:16px; border:1px solid #cbd5e1;">
+          <summary style="font-weight:bold; cursor:pointer; color:#334155; font-size:14px;">➕ Tambah Kartu / Soal Baru (Klik di sini)</summary>
+          <div style="display:flex; flex-direction:column; gap:10px; margin-top:12px;">
+            <div style="display:flex; gap:10px;">
+              <div style="flex:1;">
+                <label style="display:block; font-size:12px; font-weight:bold; color:#475569;">Kategori Kartu:</label>
+                <select id="new-card-type" style="width:100%; padding:6px; border-radius:6px; border:1px solid #cbd5e1;">
+                  <option value="soal">📘 Soal Kuis Matematika</option>
+                  <option value="misi">🔍 Misi Matematika</option>
+                  <option value="tantangan">⚡ Tantangan Kilat</option>
+                  <option value="bonus">⭐ Bonus Langkah</option>
+                  <option value="jebakan">⚠️ Jebakan</option>
+                </select>
+              </div>
+              <div style="width:110px;">
+                <label style="display:block; font-size:12px; font-weight:bold; color:#475569;">Efek Langkah:</label>
+                <input type="number" id="new-card-steps" value="2" style="width:100%; padding:6px; border-radius:6px; border:1px solid #cbd5e1;">
+              </div>
+            </div>
+
+            <div>
+              <label style="display:block; font-size:12px; font-weight:bold; color:#475569;">Pertanyaan / Perintah Kartu:</label>
+              <textarea id="new-card-q" rows="2" placeholder="Contoh: Berapakah hasil dari 3/4 + 1/2?" style="width:100%; padding:8px; border-radius:6px; border:1px solid #cbd5e1; font-family:inherit;"></textarea>
+            </div>
+
+            <div>
+              <label style="display:block; font-size:12px; font-weight:bold; color:#475569;">4 Pilihan Jawaban (Pisahkan dengan baris baru):</label>
+              <textarea id="new-card-opts" rows="4" placeholder="A. 1 1/4&#10;B. 1 1/2&#10;C. 2&#10;D. 1" style="width:100%; padding:8px; border-radius:6px; border:1px solid #cbd5e1; font-family:inherit;"></textarea>
+            </div>
+
+            <div style="display:flex; gap:10px;">
+              <div style="flex:1;">
+                <label style="display:block; font-size:12px; font-weight:bold; color:#475569;">Kunci Jawaban Yang Benar:</label>
+                <select id="new-card-ans" style="width:100%; padding:6px; border-radius:6px; border:1px solid #cbd5e1;">
+                  <option value="0">Pilihan 1 (A)</option>
+                  <option value="1">Pilihan 2 (B)</option>
+                  <option value="2">Pilihan 3 (C)</option>
+                  <option value="3">Pilihan 4 (D)</option>
+                </select>
+              </div>
+              <div style="flex:2;">
+                <label style="display:block; font-size:12px; font-weight:bold; color:#475569;">Pembahasan / Catatan Solusi:</label>
+                <input type="text" id="new-card-exp" placeholder="Contoh: Samakan penyebut 3/4 + 2/4 = 5/4 = 1 1/4" style="width:100%; padding:6px; border-radius:6px; border:1px solid #cbd5e1;">
+              </div>
+            </div>
+
+            <button onclick="saveNewDeckCard()" style="margin-top:6px; padding:8px 16px; background:#4f46e5; color:white; border:none; border-radius:6px; font-weight:bold; cursor:pointer;">💾 Simpan Kartu ke Dek</button>
+          </div>
+        </details>
+
+        <!-- DAFTAR KARTU -->
+        <h4 style="margin:0 0 8px 0; color:#1e293b; font-size:14px; display:flex; justify-content:space-between;">
+          <span>Daftar Kartu Aktif</span>
+          <span id="deck-total-count-badge" style="background:#e2e8f0; padding:2px 8px; border-radius:12px; font-size:12px;">0 Kartu</span>
+        </h4>
+        <div id="deck-card-list-container" style="display:flex; flex-direction:column; gap:8px;"></div>
+      </div>
+    </div>
+  </div>
+
+
+  
+  <!-- ============================================================== -->
+  <!-- MODAL: ATUR IDENTITAS SISWA & KELOMPOK BELAJAR (RESEARCH ASESMEN) -->
+  <!-- ============================================================== -->
+  <div class="modal-backdrop" id="student-identity-modal" style="display:none;">
+    <div class="modal-box" style="max-width:520px; max-height:88vh; display:flex; flex-direction:column;">
+      <div class="modal-header" style="background:#1e40af; border-bottom:3px solid #1e3a8a;">
+        <h2 style="color:#fff; font-size:17px; margin:0; display:flex; align-items:center; gap:8px;">
+          👥 Identitas Siswa & Kelompok Belajar
+        </h2>
+        <button class="close-modal" onclick="closePlayerIdentityModal()" style="color:#fff; background:rgba(255,255,255,0.2);">✕</button>
+      </div>
+      <div class="modal-body" style="flex:1; overflow-y:auto; padding:18px;">
+        <p style="font-size:12px; color:#475569; margin:0 0 14px; line-height:1.4;">
+          Masukkan identitas 3 siswa yang memainkan pion ini untuk sinkronisasi otomatis pada <b>Raport Belajar</b> dan lembar observasi penelitian.
+        </p>
+
+        <!-- Metadata Kelompok & Kelas -->
+        <div style="background:#f8fafc; border:1.5px solid #cbd5e1; border-radius:10px; padding:12px; margin-bottom:14px;">
+          <div style="font-size:11px; font-weight:bold; color:#334155; margin-bottom:6px;">🏫 Informasi Kelas & Kelompok:</div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+            <div>
+              <label style="font-size:10px; color:#64748b; font-weight:700;">KELAS / FASE</label>
+              <input type="text" id="input-kelas" value="Kelas V SD (Fase C)" style="width:100%; padding:6px 8px; border:1.5px solid #cbd5e1; border-radius:6px; font-size:12px;" />
+            </div>
+            <div>
+              <label style="font-size:10px; color:#64748b; font-weight:700;">NAMA KELOMPOK</label>
+              <input type="text" id="input-kelompok" value="Kelompok Bajak Laut Matematika" style="width:100%; padding:6px 8px; border:1.5px solid #cbd5e1; border-radius:6px; font-size:12px;" />
+            </div>
+          </div>
+        </div>
+
+        <!-- 3 Siswa Form -->
+        <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:16px;">
+          <!-- Siswa 1 (Merah) -->
+          <div style="border:2px solid #ef4444; background:#fef2f2; border-radius:10px; padding:10px;">
+            <div style="display:flex; align-items:center; gap:6px; font-weight:bold; font-size:12px; color:#b91c1c; margin-bottom:6px;">
+              <span style="display:inline-block; width:12px; height:12px; border-radius:50%; background:#ef4444;"></span>
+              Pemain 1 (Kapten Merah)
+            </div>
+            <div style="display:grid; grid-template-columns:2fr 1fr; gap:8px;">
+              <input type="text" id="input-alias-0" placeholder="Nama Lengkap Siswa 1" value="Ahmad Dahlan" style="padding:6px 8px; border:1.5px solid #fca5a5; border-radius:6px; font-size:12px; font-weight:600;" />
+              <input type="text" id="input-absen-0" placeholder="No. Absen" value="01" style="padding:6px 8px; border:1.5px solid #fca5a5; border-radius:6px; font-size:12px; text-align:center;" />
+            </div>
+          </div>
+
+          <!-- Siswa 2 (Biru) -->
+          <div style="border:2px solid #3b82f6; background:#eff6ff; border-radius:10px; padding:10px;">
+            <div style="display:flex; align-items:center; gap:6px; font-weight:bold; font-size:12px; color:#1d4ed8; margin-bottom:6px;">
+              <span style="display:inline-block; width:12px; height:12px; border-radius:50%; background:#3b82f6;"></span>
+              Pemain 2 (Navigator Biru)
+            </div>
+            <div style="display:grid; grid-template-columns:2fr 1fr; gap:8px;">
+              <input type="text" id="input-alias-1" placeholder="Nama Lengkap Siswa 2" value="Siti Rahma" style="padding:6px 8px; border:1.5px solid #93c5fd; border-radius:6px; font-size:12px; font-weight:600;" />
+              <input type="text" id="input-absen-1" placeholder="No. Absen" value="02" style="padding:6px 8px; border:1.5px solid #93c5fd; border-radius:6px; font-size:12px; text-align:center;" />
+            </div>
+          </div>
+
+          <!-- Siswa 3 (Hijau) -->
+          <div style="border:2px solid #22c55e; background:#f0fdf4; border-radius:10px; padding:10px;">
+            <div style="display:flex; align-items:center; gap:6px; font-weight:bold; font-size:12px; color:#15803d; margin-bottom:6px;">
+              <span style="display:inline-block; width:12px; height:12px; border-radius:50%; background:#22c55e;"></span>
+              Pemain 3 (Meriam Hijau)
+            </div>
+            <div style="display:grid; grid-template-columns:2fr 1fr; gap:8px;">
+              <input type="text" id="input-alias-2" placeholder="Nama Lengkap Siswa 3" value="Budi Pratama" style="padding:6px 8px; border:1.5px solid #86efac; border-radius:6px; font-size:12px; font-weight:600;" />
+              <input type="text" id="input-absen-2" placeholder="No. Absen" value="03" style="padding:6px 8px; border:1.5px solid #86efac; border-radius:6px; font-size:12px; text-align:center;" />
+            </div>
+          </div>
+        </div>
+
+        <button onclick="savePlayerIdentities()" style="width:100%; padding:10px; background:#16a34a; color:white; border:none; border-radius:8px; font-weight:bold; font-size:13px; cursor:pointer;">
+          💾 Simpan & Terapkan Identitas Siswa
+        </button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ============================================================== -->
+  <!-- MODAL: QR CODE AKSES GAME (WEB & MOBILE MULTIPLAYER COOPERATION) -->
+  <!-- ============================================================== -->
+  <div class="modal-backdrop" id="qr-access-modal" style="display:none;">
+    <div class="modal-box" style="max-width:460px; max-height:85vh; text-align:center;">
+      <div class="modal-header" style="background:#059669; border-bottom:3px solid #047857;">
+        <h2 style="color:#fff; font-size:17px; margin:0;">📱 QR Code Akses Game 3D</h2>
+        <button class="close-modal" onclick="closeQRAccessModal()" style="color:#fff; background:rgba(255,255,255,0.2);">✕</button>
+      </div>
+      <div class="modal-body" style="padding:20px 16px;">
+        <div style="background:#ecfdf5; border:1.5px dashed #10b981; border-radius:12px; padding:16px; margin-bottom:16px;">
+          <div id="qr-access-code-container" style="display:flex; justify-content:center; align-items:center; margin-bottom:12px; min-height:160px;"></div>
+          <p style="font-size:13px; font-weight:700; color:#065f46; margin:0 0 6px;">
+            Arahkan Kamera HP / Tablet Siswa ke QR Code di atas
+          </p>
+          <p style="font-size:11px; color:#047857; margin:0;">
+            Media ini terintegrasi langsung untuk pembelajaran kolaboratif di kelas maupun belajar mandiri di rumah.
+          </p>
+        </div>
+        <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:10px; margin-bottom:14px; word-break:break-all; font-size:12px;">
+          <span style="color:#64748b; font-weight:600;">Tautan Akses:</span><br/>
+          <code id="qr-access-url-text" style="color:#2563eb; font-weight:bold;"></code>
+        </div>
+        <div style="display:flex; gap:8px;">
+          <button onclick="copyGameAccessUrl()" style="flex:1; padding:9px; background:#0284c7; color:white; border:none; border-radius:8px; font-weight:bold; font-size:12px; cursor:pointer;">
+            📋 Salin Link Game
+          </button>
+          <button onclick="closeQRAccessModal()" style="flex:1; padding:9px; background:#e2e8f0; color:#334155; border:none; border-radius:8px; font-weight:bold; font-size:12px; cursor:pointer;">
+            Tutup
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ============================================================== -->
+  <!-- MODAL: PINDAI QR SOAL / INPUT KODE KARTU FISIK (PROPOSAL SKRIPSI) -->
+  <!-- ============================================================== -->
+  <div class="modal-backdrop" id="qr-scanner-modal" style="display:none;">
+    <div class="modal-box" style="max-width:540px; max-height:88vh; display:flex; flex-direction:column;">
+      <div class="modal-header" style="background:#7c3aed; border-bottom:3px solid #6d28d9;">
+        <h2 style="color:#fff; font-size:17px; margin:0; display:flex; align-items:center; gap:8px;">
+          📷 Pindai QR Code Soal & Tantangan Kreatif
+        </h2>
+        <button class="close-modal" onclick="closeQRScannerModal()" style="color:#fff; background:rgba(255,255,255,0.2);">✕</button>
+      </div>
+      <div class="modal-body" style="flex:1; overflow-y:auto; padding:18px;">
+        <div style="background:#f5f3ff; border:1.5px solid #c4b5fd; border-radius:10px; padding:12px; margin-bottom:14px;">
+          <div style="font-weight:700; color:#5b21b6; font-size:13px; margin-bottom:4px;">🎯 Fitur Integrasi QR Media Fisik - Digital</div>
+          <p style="font-size:12px; color:#6d28d9; margin:0; line-height:1.4;">
+            Sesuai proposal penelitian pembelajaran matematika, siswa yang memegang kartu fisik atau kartu papan cetak dapat memindai barcode QR atau mengetik kode kartu di bawah ini untuk membuka soal di layar 3D!
+          </p>
+        </div>
+
+        <!-- Input Kode Cepat -->
+        <div style="background:#fff; border:1.5px solid #e2e8f0; border-radius:10px; padding:12px; margin-bottom:14px;">
+          <label style="font-size:11px; font-weight:700; color:#334155; display:block; margin-bottom:6px;">MASUKKAN KODE KARTU (Misal: M-01, S-05, T-02):</label>
+          <div style="display:flex; gap:8px;">
+            <input type="text" id="qr-manual-code-input" placeholder="Contoh: M-01 atau S-02" style="flex:1; padding:8px 10px; border:2px solid #7c3aed; border-radius:8px; font-size:13px; font-weight:700; text-transform:uppercase;" />
+            <button onclick="submitManualCardCode()" style="padding:8px 16px; background:#7c3aed; color:white; border:none; border-radius:8px; font-weight:bold; font-size:12px; cursor:pointer;">
+              🚀 Buka Kartu
+            </button>
+          </div>
+        </div>
+
+        <!-- Grid Kartu Cepat Populer -->
+        <div style="font-size:11px; font-weight:700; color:#475569; margin-bottom:6px;">PILIH CEPAT KARTU KREATIF MATEMATIKA:</div>
+        <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:8px;">
+          <button onclick="triggerCardModal('misi', true); closeQRScannerModal();" style="padding:10px 8px; background:#fef3c7; border:1.5px solid #f59e0b; border-radius:8px; font-size:11px; font-weight:bold; color:#92400e; cursor:pointer; text-align:left;">
+            🔍 Kartu Misi<br/><span style="font-size:9px; color:#b45309;">Problem Solving (M-01)</span>
+          </button>
+          <button onclick="triggerCardModal('soal', true); closeQRScannerModal();" style="padding:10px 8px; background:#e0f2fe; border:1.5px solid #38bdf8; border-radius:8px; font-size:11px; font-weight:bold; color:#0369a1; cursor:pointer; text-align:left;">
+            📘 Kartu Soal<br/><span style="font-size:9px; color:#0284c7;">Pecahan & Ruang (S-01)</span>
+          </button>
+          <button onclick="triggerCardModal('tantangan', true); closeQRScannerModal();" style="padding:10px 8px; background:#ffedd5; border:1.5px solid #fb923c; border-radius:8px; font-size:11px; font-weight:bold; color:#c2410c; cursor:pointer; text-align:left;">
+            ⚡ Tantangan Kilat<br/><span style="font-size:9px; color:#ea580c;">Hitung Cepat (T-01)</span>
+          </button>
+          <button onclick="triggerCardModal('bonus', true); closeQRScannerModal();" style="padding:10px 8px; background:#fef9c3; border:1.5px solid #eab308; border-radius:8px; font-size:11px; font-weight:bold; color:#854d0e; cursor:pointer; text-align:left;">
+            ⭐ Kartu Bonus<br/><span style="font-size:9px; color:#ca8a04;">Langkah Ekstra (B-01)</span>
+          </button>
+          <button onclick="triggerCardModal('jebakan', true); closeQRScannerModal();" style="padding:10px 8px; background:#fee2e2; border:1.5px solid #f87171; border-radius:8px; font-size:11px; font-weight:bold; color:#991b1b; cursor:pointer; text-align:left;">
+            ⚠️ Kartu Jebakan<br/><span style="font-size:9px; color:#dc2626;">Tantangan Reduksi (J-01)</span>
+          </button>
+          <button onclick="openInfoModal('materi'); closeQRScannerModal();" style="padding:10px 8px; background:#dcfce7; border:1.5px solid #4ade80; border-radius:8px; font-size:11px; font-weight:bold; color:#166534; cursor:pointer; text-align:left;">
+            📖 Konsep Materi<br/><span style="font-size:9px; color:#15803d;">Pecahan & Geometri</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ============================================================== -->
+  <!-- MODAL: RAPORT BELAJAR SISWA LENGKAP (PENELITIAN KEAKTIFAN SD) -->
+  <!-- ============================================================== -->
+  <div class="modal-backdrop" id="rapor-kapten-modal" style="display:none;">
+    <div class="modal-box" style="max-width:820px;">
+      <!-- Header Rapor -->
+      <div class="modal-header">
+        <div>
+          <h2>
+            📊 Raport Hasil Belajar & Keaktifan Siswa
+          </h2>
+          <div style="font-size:11px; color:#fef3c7; margin-top:2px; font-weight:600;">
+            Board Game "Berburu Harta Karun" Berbasis QR-Code • Luas Bangun Datar Kelas V SDN Gang Aut
+          </div>
+        </div>
+        <button class="close-modal no-print" onclick="closeRaporKaptenModal()" style="color:#fff; background:rgba(255,255,255,0.2); border:1.5px solid rgba(255,255,255,0.4); width:32px; height:32px; border-radius:50%; font-weight:bold; cursor:pointer; display:flex; align-items:center; justify-content:center;">✕</button>
+      </div>
+
+      <!-- Tab Switcher Navigasi: Rekap Kelompok | Siswa 1 | Siswa 2 | Siswa 3 -->
+      <div class="rapor-nav-tabs no-print">
+        <button class="rapor-tab-btn active" id="tab-rapor-all" onclick="switchRaporTab('all')" style="border:1.5px solid #b45309; background:#b45309; color:#fff;">
+          👥 Rekap Kelompok (Semua Siswa)
+        </button>
+        <button class="rapor-tab-btn" id="tab-rapor-0" onclick="switchRaporTab(0)" style="border:1.5px solid #cbd5e1; background:#fff; color:#334155;">
+          🔴 Siswa 1: <span class="tab-alias-0">Ahmad Dahlan</span>
+        </button>
+        <button class="rapor-tab-btn" id="tab-rapor-1" onclick="switchRaporTab(1)" style="border:1.5px solid #cbd5e1; background:#fff; color:#334155;">
+          🔵 Siswa 2: <span class="tab-alias-1">Siti Rahmah</span>
+        </button>
+        <button class="rapor-tab-btn" id="tab-rapor-2" onclick="switchRaporTab(2)" style="border:1.5px solid #cbd5e1; background:#fff; color:#334155;">
+          🟢 Siswa 3: <span class="tab-alias-2">Budi Pratama</span>
+        </button>
+      </div>
+
+      <!-- Body Rapor Container -->
+      <div class="modal-body" id="rapor-dynamic-content">
+        <!-- Akan diisi secara dinamis oleh renderRaporView() -->
+      </div>
+
+      <!-- Action Tools Footer -->
+      <div class="modal-footer no-print">
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          <button onclick="openPlayerIdentityModal()" style="padding:8px 12px; background:#eff6ff; color:#1d4ed8; border:1.5px solid #3b82f6; border-radius:8px; font-weight:bold; font-size:11px; cursor:pointer;">
+            ✏️ Atur Identitas Siswa
+          </button>
+          <button onclick="resetLearningReport()" style="padding:8px 12px; background:#fee2e2; color:#b91c1c; border:1.5px solid #f87171; border-radius:8px; font-weight:bold; font-size:11px; cursor:pointer;">
+            🔄 Reset Data Sesi
+          </button>
+        </div>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          <button onclick="showQRCodeForCurrentReport()" style="padding:8px 12px; background:#ecfdf5; color:#065f46; border:1.5px solid #10b981; border-radius:8px; font-weight:bold; font-size:11px; cursor:pointer;">
+            📲 Buat QR Rapor Siswa
+          </button>
+          <button onclick="window.print()" class="print-allow" style="padding:8px 16px; background:#0284c7; color:white; border:none; border-radius:8px; font-weight:bold; font-size:12px; cursor:pointer;">
+            🖨️ Cetak / Unduh Lembar Raport (PDF)
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</html>
   <script>
 
     // ============================================================================
@@ -1693,67 +2083,96 @@
     // ============================================================================
     // 1. DATA KURIKULUM, QR CODE & BANK SOAL MATEMATIKA SD KELAS 5
     // ============================================================================
-    const INFO_CONTENT = {
+        const INFO_CONTENT = {
       tp: {
-        title: "🎯 Tujuan Pembelajaran (Matematika Kelas V)",
+        title: "🎯 Tujuan Pembelajaran (Luas Bangun Datar - Kelas V)",
         qrColor: "#dc2626",
-        codeUrl: "https://pgsd-media.id/qr/tujuan-pembelajaran-kelas5",
+        codeUrl: "https://acronym-juvenile-ladylike.ngrok-free.dev/harta-karun.html#tp",
         html: `
-          <p>Melalui media permainan papan <b>"Petualangan Mencari Harta Karun"</b> terintegrasi QR Code, peserta didik Kelas V SD diharapkan mampu:</p>
-          <ol style="margin:10px 0 10px 20px; display:flex; flex-direction:column; gap:6px;">
-            <li>Menyelesaikan operasi hitung <b>penjumlahan dan pengurangan pecahan</b> berbeda penyebut dengan tepat.</li>
-            <li>Mengonversi dan mengoperasikan <b>bilangan desimal serta persen</b> dalam masalah sehari-hari.</li>
-            <li>Menghitung <b>volume bangun ruang sederhana (kubus dan balok)</b> serta luas bangun datar.</li>
-            <li>Meningkatkan kemampuan pemecahan masalah (<i>problem solving</i>), bernalar kritis, dan gotong royong melalui misi kelompok.</li>
+          <div style="background:#fef2f2; border:1.5px solid #fecaca; border-radius:10px; padding:12px; margin-bottom:12px;">
+            <b style="color:#991b1b; font-size:14px;">Media Board Game "Berburu Harta Karun" Berbasis QR-Code</b><br/>
+            <span style="font-size:12px; color:#7f1d1d;">Sasaran: Siswa Kelas V SDN Gang Aut • Materi Pokok: Luas Bangun Datar</span>
+          </div>
+          <p>Melalui board game interaktif <b>"Berburu Harta Karun"</b> terintegrasi QR-Code, peserta didik diharapkan mampu:</p>
+          <ol style="margin:10px 0 10px 20px; display:flex; flex-direction:column; gap:8px; font-size:12px; line-height:1.5;">
+            <li><b>Menemukan & Menghitung Luas Bangun Datar Segiempat:</b> Mampu menghitung luas persegi (<code>s × s</code>), persegi panjang (<code>p × l</code>), dan jajar genjang (<code>a × t</code>) secara tepat.</li>
+            <li><b>Menghitung Luas Segitiga, Trapesium, & Layang-layang:</b> Mampu menganalisis dan menerapkan rumus luas segitiga (<code>½ × a × t</code>), trapesium (<code>½ × [a+b] × t</code>), serta belah ketupat/layang-layang (<code>½ × d₁ × d₂</code>).</li>
+            <li><b>Memecahkan Masalah Luas Bangun Gabungan:</b> Mampu menyelesaikan soal cerita pemecahan masalah (<i>problem solving</i>) kontekstual luas peta, layar kapal, dan petak pulau harta karun.</li>
+            <li><b>Meningkatkan Keaktifan Belajar:</b> Meningkatkan keaktifan visual, motorik, lisan, mental, dan antusiasme belajar siswa melalui pemanfaatan QR-Code dan dinamika permainan kelompok.</li>
           </ol>
         `
       },
       cp: {
         title: "🏆 Capaian Pembelajaran (Kurikulum Merdeka Fase C)",
         qrColor: "#d97706",
-        codeUrl: "https://pgsd-media.id/qr/capaian-pembelajaran-fase-c",
+        codeUrl: "https://acronym-juvenile-ladylike.ngrok-free.dev/harta-karun.html#cp",
         html: `
-          <p><b>Fase C (Kelas V dan VI Sekolah Dasar):</b></p>
-          <ul style="margin:10px 0 10px 20px; display:flex; flex-direction:column; gap:6px;">
-            <li><b>Elemen Bilangan:</b> Peserta didik dapat melakukan operasi penjumlahan, pengurangan, perkalian, dan pembagian pecahan serta desimal.</li>
-            <li><b>Elemen Pengukuran & Geometri:</b> Peserta didik dapat menentukan keliling, luas berbagai bentuk bangun datar, serta menghitung durasi waktu, kecepatan, dan volume bangun ruang (kubus & balok).</li>
-            <li><b>Profil Pelajar Pancasila:</b> Bernalar Kritis, Mandiri, dan Gotong Royong.</li>
+          <div style="background:#fffbeb; border:1.5px solid #fde68a; border-radius:10px; padding:12px; margin-bottom:12px;">
+            <b style="color:#92400e; font-size:14px;">Elemen Pengukuran & Geometri — Fase C (Kelas V SD)</b>
+          </div>
+          <ul style="margin:10px 0 10px 20px; display:flex; flex-direction:column; gap:8px; font-size:12px; line-height:1.5;">
+            <li><b>Capaian Pengukuran Luas:</b> Pada akhir Fase C, peserta didik dapat menentukan keliling dan luas berbagai bentuk bangun datar (segitiga, segiempat, dan bangun datar gabungan) serta menggunakannya untuk menyelesaikan masalah kehidupan sehari-hari.</li>
+            <li><b>Indikator Keaktifan Belajar Siswa:</b>
+              <br/>• <i>Keaktifan Visual:</i> Mengamati bentuk bangun datar, mencermati peta pulau 3D, dan memindai QR-Code petunjuk.
+              <br/>• <i>Keaktifan Motorik:</i> Memutar spinner jarum 3D, memindahkan pion, dan memindai kartu QR.
+              <br/>• <i>Keaktifan Mental:</i> Menghitung luas bangun datar dan menganalisis strategi langkah bajak laut.
+              <br/>• <i>Keaktifan Kolaboratif:</i> Berdiskusi dan bekerjasama dalam tim memecahkan teka-teki harta karun.
+            </li>
+            <li><b>Profil Pelajar Pancasila:</b> Mandiri, Bernalar Kritis, dan Bergotong Royong.</li>
           </ul>
         `
       },
       materi: {
-        title: "📖 Ringkasan Materi Matematika Kelas 5 SD",
+        title: "📖 Rangkuman Rumus Luas Bangun Datar (Kelas V)",
         qrColor: "#16a34a",
-        codeUrl: "https://pgsd-media.id/qr/materi-matematika-kelas5",
+        codeUrl: "https://acronym-juvenile-ladylike.ngrok-free.dev/harta-karun.html#materi",
         html: `
-          <div style="display:flex;flex-direction:column;gap:10px;">
-            <div style="background:#fff;padding:10px;border-radius:10px;border:2px solid #2b2118;">
-              <b>1. Operasi Hitung Pecahan:</b><br/>
-              Samakan penyebut menggunakan KPK sebelum menjumlahkan atau mengurangkan.<br/>
-              Contoh: <code>1/2 + 1/3 = 3/6 + 2/6 = 5/6</code>
+          <div style="display:grid; grid-template-columns:repeat(2, 1fr); gap:10px; font-size:12px;">
+            <div style="background:#f8fafc; padding:10px; border-radius:8px; border:1.5px solid #cbd5e1;">
+              <b style="color:#0284c7;">1. Persegi:</b><br/>
+              Luas = <code>s × s</code> (atau <code>s²</code>)<br/>
+              <i>Contoh: s = 8 cm &rarr; Luas = 64 cm²</i>
             </div>
-            <div style="background:#fff;padding:10px;border-radius:10px;border:2px solid #2b2118;">
-              <b>2. Volume Kubus & Balok:</b><br/>
-              • Volume Kubus = <code>s × s × s = s³</code><br/>
-              • Volume Balok = <code>p × l × t</code>
+            <div style="background:#f8fafc; padding:10px; border-radius:8px; border:1.5px solid #cbd5e1;">
+              <b style="color:#059669;">2. Persegi Panjang:</b><br/>
+              Luas = <code>panjang × lebar = p × l</code><br/>
+              <i>Contoh: p = 10, l = 6 &rarr; Luas = 60 cm²</i>
             </div>
-            <div style="background:#fff;padding:10px;border-radius:10px;border:2px solid #2b2118;">
-              <b>3. Kecepatan, Jarak, dan Waktu:</b><br/>
-              • Jarak (J) = Kecepatan (K) × Waktu (W)<br/>
-              • Kecepatan (K) = Jarak (J) ÷ Waktu (W)
+            <div style="background:#f8fafc; padding:10px; border-radius:8px; border:1.5px solid #cbd5e1;">
+              <b style="color:#d97706;">3. Segitiga (Semua Jenis):</b><br/>
+              Luas = <code>½ × alas × tinggi = ½ × a × t</code><br/>
+              <i>Contoh: a = 12, t = 8 &rarr; Luas = 48 cm²</i>
             </div>
+            <div style="background:#f8fafc; padding:10px; border-radius:8px; border:1.5px solid #cbd5e1;">
+              <b style="color:#7c3aed;">4. Jajar Genjang:</b><br/>
+              Luas = <code>alas × tinggi = a × t</code><br/>
+              <i>Contoh: a = 14, t = 7 &rarr; Luas = 98 cm²</i>
+            </div>
+            <div style="background:#f8fafc; padding:10px; border-radius:8px; border:1.5px solid #cbd5e1;">
+              <b style="color:#dc2626;">5. Trapesium:</b><br/>
+              Luas = <code>½ × (a + b) × tinggi</code><br/>
+              <i>Contoh: sisi sejajar 6 & 10, t = 5 &rarr; Luas = 40 cm²</i>
+            </div>
+            <div style="background:#f8fafc; padding:10px; border-radius:8px; border:1.5px solid #cbd5e1;">
+              <b style="color:#ea580c;">6. Layang-layang & Belah Ketupat:</b><br/>
+              Luas = <code>½ × d₁ × d₂</code><br/>
+              <i>Contoh: d₁ = 12, d₂ = 16 &rarr; Luas = 96 cm²</i>
+            </div>
+          </div>
+          <div style="margin-top:10px; background:#eff6ff; border:1.5px solid #bfdbfe; border-radius:8px; padding:10px; font-size:12px; color:#1e40af;">
+            <b>💡 Luas Bangun Datar Gabungan:</b> Hitung masing-masing luas bangun pembentuknya, lalu jumlahkan (atau kurangkan untuk daerah berlubang).
           </div>
         `
       },
       petunjuk: {
-        title: "📜 Petunjuk Permainan 'Petualangan Mencari Harta Karun'",
+        title: "📜 Petunjuk Bermain Board Game 'Berburu Harta Karun'",
         qrColor: "#2563eb",
-        codeUrl: "https://pgsd-media.id/qr/petunjuk-permainan",
+        codeUrl: "https://acronym-juvenile-ladylike.ngrok-free.dev/harta-karun.html#petunjuk",
         html: `
           <div style="background:#fef3c7; border:2px solid #f59e0b; border-radius:12px; padding:10px 12px; margin-bottom:12px;">
-            <h4 style="margin:0 0 4px 0; color:#92400e; font-size:1rem;">🏴‍☠️ Cara Bermain Singkat & Mudah:</h4>
+            <h4 style="margin:0 0 4px 0; color:#92400e; font-size:1rem;">🏴‍☠️ Aturan Main Berburu Harta Karun (SDN Gang Aut):</h4>
             <p style="margin:0; font-size:0.85rem; color:#78350f;">
-              Capai <b>Peti Harta Karun (FINISH)</b> terlebih dahulu sambil mengumpulkan koin emas dan menjawab tantangan matematika kelas 5!
+              Berlombalah mencapai <b>Peti Harta Karun Emas (Petak 30 / FINISH)</b> dengan aktif menjawab tantangan luas bangun datar dan memanfaatkan integrasi QR-Code!
             </p>
           </div>
 
@@ -1761,25 +2180,25 @@
             <div style="display:flex; gap:10px; align-items:flex-start;">
               <span style="background:#22c55e; color:white; font-weight:800; border-radius:50%; width:24px; height:24px; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:0.8rem;">1</span>
               <div style="font-size:0.85rem;">
-                <b>Lihat Giliran:</b> Perhatikan nama bajak laut yang aktif di panel (Kapten Merah, Navigator Biru, atau Meriam Hijau).
+                <b>Identitas Siswa:</b> Pastikan 3 pion bajak laut telah diberi alias nama siswa Kelas V SDN Gang Aut via tombol <b>👥 Identitas Siswa</b>.
               </div>
             </div>
             <div style="display:flex; gap:10px; align-items:flex-start;">
               <span style="background:#3b82f6; color:white; font-weight:800; border-radius:50%; width:24px; height:24px; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:0.8rem;">2</span>
               <div style="font-size:0.85rem;">
-                <b>Tekan Tombol PUTAR SPINNER:</b> Jarum 3D akan berputar dan menentukan langkahmu (1, 2, atau 3 petak). Pion otomatis melompat.
+                <b>Putar Spinner Jarum 3D:</b> Tekan tombol <b>PUTAR SPINNER (1-3)</b> pada giliranmu. Pion melompat sesuai angka spinner.
               </div>
             </div>
             <div style="display:flex; gap:10px; align-items:flex-start;">
               <span style="background:#f59e0b; color:white; font-weight:800; border-radius:50%; width:24px; height:24px; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:0.8rem;">3</span>
               <div style="font-size:0.85rem;">
-                <b>Tantangan Petak:</b> Jika mendarat di petak Soal/Misi/Tantangan, jawab soal matematika untuk bonus koin & langkah!
+                <b>Tantangan Luas Bangun Datar:</b> Selesaikan soal luas persegi, persegipanjang, segitiga, atau jajar genjang untuk menambah koin & langkah bonus!
               </div>
             </div>
             <div style="display:flex; gap:10px; align-items:flex-start;">
-              <span style="background:#ef4444; color:white; font-weight:800; border-radius:50%; width:24px; height:24px; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:0.8rem;">4</span>
+              <span style="background:#8b5cf6; color:white; font-weight:800; border-radius:50%; width:24px; height:24px; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:0.8rem;">4</span>
               <div style="font-size:0.85rem;">
-                <b>Kamera 3D:</b> Gunakan tombol <b>🗺️ Papan</b>, <b>🏴‍☠️ Pion</b>, atau <b>🎡 Spinner</b> di atas untuk mengubah sudut pandang.
+                <b>QR-Code Rumus & Bantuan:</b> Gunakan tombol QR di kartu soal untuk memunculkan kode QR rumus yang dapat dipindai langsung dengan HP/tablet siswa!
               </div>
             </div>
           </div>
@@ -1787,488 +2206,227 @@
       }
     };
 
-        const DEFAULT_CARD_BANK = {
+            const DEFAULT_CARD_BANK = {
       soal: [
         {
-          q: "Kapten Bajak Laut memiliki tali tambang sepanjang 3/4 meter, lalu disambung lagi dengan 1/2 meter. Berapa meter total panjang tali tambang sekarang?",
-          opts: ["A. 4/6 meter", "B. 5/4 meter (1 ¼ meter)", "C. 2/4 meter", "D. 7/4 meter"],
+          q: "Peta rahasia pulau harta karun berbentuk persegi panjang dengan panjang 14 cm dan lebar 9 cm. Berapakah luas peta harta karun tersebut?",
+          opts: ["A. 116 cm²", "B. 126 cm²", "C. 136 cm²", "D. 144 cm²"],
           ans: 1,
-          exp: "Samakan penyebut ke 4: 3/4 + 2/4 = 5/4 meter atau 1 ¼ meter.",
+          exp: "Rumus Luas Persegi Panjang = p × l = 14 cm × 9 cm = 126 cm².",
+          shape: "Persegi Panjang",
           rewardSteps: 1
         },
         {
-          q: "Sebuah peti harta karun berbentuk balok memiliki panjang 10 dm, lebar 5 dm, dan tinggi 4 dm. Berapakah volume peti harta karun tersebut?",
-          opts: ["A. 190 dm³", "B. 200 dm³", "C. 250 dm³", "D. 90 dm³"],
-          ans: 1,
-          exp: "Rumus Volume Balok = p × l × t = 10 × 5 × 4 = 200 dm³.",
-          rewardSteps: 1
-        },
-        {
-          q: "Bentuk pecahan desimal dari 3/5 adalah...",
-          opts: ["A. 0,3", "B. 0,5", "C. 0,6", "D. 0,75"],
-          ans: 2,
-          exp: "3/5 = 6/10 = 0,6.",
-          rewardSteps: 1
-        },
-        {
-          q: "Hasil dari 2 ½ kg bubuk mesiu meriam terpakai ¾ kg saat latihan menembak. Sisa bubuk mesiu adalah...",
-          opts: ["A. 1 ½ kg", "B. 1 ¾ kg", "C. 2 kg", "D. 1 ¼ kg"],
-          ans: 1,
-          exp: "2 ½ = 5/2 = 10/4. Maka 10/4 - 3/4 = 7/4 = 1 ¾ kg.",
-          rewardSteps: 1
-        },
-        {
-          q: "Botol ramuan kesehatan terisi ¾ bagian. Jika diminum ⅔ dari isi botol tersebut, berapa bagian ramuan yang diminum?",
-          opts: ["A. ½ bagian", "B. 5/12 bagian", "C. 6/7 bagian", "D. 1/3 bagian"],
+          q: "Layar utama kapal bajak laut berbentuk segitiga dengan panjang alas 10 meter dan tinggi 8 meter. Berapakah luas kain layar kapal tersebut?",
+          opts: ["A. 40 m²", "B. 80 m²", "C. 60 m²", "D. 50 m²"],
           ans: 0,
-          exp: "Perkalian pecahan: ¾ × ⅔ = 6/12 = ½ bagian.",
+          exp: "Rumus Luas Segitiga = ½ × alas × tinggi = ½ × 10 m × 8 m = 40 m².",
+          shape: "Segitiga",
           rewardSteps: 1
         },
         {
-          q: "Sebuah peti perhiasan berbentuk kubus memiliki panjang rusuk 8 cm. Berapakah volume peti kubus tersebut?",
-          opts: ["A. 64 cm³", "B. 256 cm³", "C. 512 cm³", "D. 1.024 cm³"],
+          q: "Tutup peti harta karun emas berbentuk persegi dengan panjang sisi 12 dm. Berapakah luas tutup peti tersebut?",
+          opts: ["A. 48 dm²", "B. 120 dm²", "C. 144 dm²", "D. 160 dm²"],
           ans: 2,
-          exp: "Volume Kubus = s × s × s = 8 × 8 × 8 = 512 cm³.",
+          exp: "Rumus Luas Persegi = sisi × sisi = 12 dm × 12 dm = 144 dm².",
+          shape: "Persegi",
           rewardSteps: 1
         },
         {
-          q: "Sebanyak 4 liter minyak zaitun dituangkan ke dalam botol-botol kecil berukuran ½ liter. Berapa banyak botol yang terisi penuh?",
-          opts: ["A. 2 botol", "B. 6 botol", "C. 8 botol", "D. 16 botol"],
+          q: "Sebidang tanah di dermaga bajak laut berbentuk jajar genjang dengan panjang alas 15 meter dan tinggi 8 meter. Berapakah luas bidang tanah tersebut?",
+          opts: ["A. 60 m²", "B. 110 m²", "C. 120 m²", "D. 150 m²"],
           ans: 2,
-          exp: "Pembagian pecahan: 4 ÷ ½ = 4 × 2/1 = 8 botol.",
+          exp: "Rumus Luas Jajar Genjang = alas × tinggi = 15 m × 8 m = 120 m².",
+          shape: "Jajar Genjang",
           rewardSteps: 1
         },
         {
-          q: "Bentuk pecahan biasa paling sederhana dari 75% adalah...",
-          opts: ["A. 7/10", "B. ¾", "C. 3/5", "D. 4/5"],
-          ans: 1,
-          exp: "75% = 75/100 = (75 ÷ 25) / (100 ÷ 25) = ¾.",
-          rewardSteps: 1
-        },
-        {
-          q: "Layar kapal sobek 4/5 bagian. Jika dinyatakan dalam bentuk persen, bagian yang sobek adalah...",
-          opts: ["A. 70%", "B. 75%", "C. 80%", "D. 85%"],
-          ans: 2,
-          exp: "4/5 × 100% = 400% / 5 = 80%.",
-          rewardSteps: 1
-        },
-        {
-          q: "Peti kubus kayu jati berukuran rusuk 5 dm. Berapakah luas permukaan total seluruh sisi peti tersebut?",
-          opts: ["A. 125 dm²", "B. 150 dm²", "C. 100 dm²", "D. 175 dm²"],
-          ans: 1,
-          exp: "Luas permukaan kubus = 6 × s² = 6 × (5 × 5) = 6 × 25 = 150 dm².",
-          rewardSteps: 1
-        },
-        {
-          q: "Tenda bivak di pantai berbentuk prisma segitiga dengan alas segitiga (alas = 6 m, tinggi = 4 m) dan panjang tenda 10 m. Volume tenda adalah...",
-          opts: ["A. 120 m³", "B. 240 m³", "C. 80 m³", "D. 160 m³"],
+          q: "Benteng pertahanan pulau berbentuk trapesium dengan sisi sejajar 8 meter dan 14 meter, serta tinggi 6 meter. Berapakah luas dinding benteng tersebut?",
+          opts: ["A. 66 m²", "B. 132 m²", "C. 54 m²", "D. 88 m²"],
           ans: 0,
-          exp: "Volume Prisma = Luas Alas × Panjang = (½ × 6 × 4) × 10 = 12 × 10 = 120 m³.",
+          exp: "Rumus Luas Trapesium = ½ × (a + b) × t = ½ × (8 + 14) × 6 = ½ × 22 × 6 = 66 m².",
+          shape: "Trapesium",
           rewardSteps: 1
         },
         {
-          q: "Kru kapal menimbang dua bongkahan emas murni: 2,75 kg dan 1,45 kg. Berapakah total berat kedua bongkahan tersebut?",
-          opts: ["A. 4,10 kg", "B. 4,15 kg", "C. 4,20 kg", "D. 4,25 kg"],
+          q: "Liontin permata bajak laut berbentuk belah ketupat dengan panjang diagonal 12 cm dan 16 cm. Berapakah luas permukaan liontin tersebut?",
+          opts: ["A. 192 cm²", "B. 96 cm²", "C. 48 cm²", "D. 108 cm²"],
+          ans: 1,
+          exp: "Rumus Luas Belah Ketupat = ½ × d₁ × d₂ = ½ × 12 cm × 16 cm = 96 cm².",
+          shape: "Belah Ketupat",
+          rewardSteps: 1
+        },
+        {
+          q: "Layang-layang pengintai kapal memiliki panjang diagonal horizontal 18 cm dan diagonal vertikal 25 cm. Berapakah luas layang-layang tersebut?",
+          opts: ["A. 450 cm²", "B. 225 cm²", "C. 200 cm²", "D. 180 cm²"],
+          ans: 1,
+          exp: "Rumus Luas Layang-Layang = ½ × d₁ × d₂ = ½ × 18 cm × 25 cm = 225 cm².",
+          shape: "Layang-layang",
+          rewardSteps: 1
+        },
+        {
+          q: "Bendera segitiga bajak laut memiliki alas 16 cm dan tinggi 11 cm. Berapakah luas kain bendera tersebut?",
+          opts: ["A. 176 cm²", "B. 88 cm²", "C. 98 cm²", "D. 76 cm²"],
+          ans: 1,
+          exp: "Rumus Luas Segitiga = ½ × a × t = ½ × 16 cm × 11 cm = 88 cm².",
+          shape: "Segitiga",
+          rewardSteps: 1
+        },
+        {
+          q: "Sebuah ubin lantai ruang kemudi kapal berbentuk persegi dengan panjang sisi 25 cm. Berapakah luas ubin tersebut?",
+          opts: ["A. 100 cm²", "B. 500 cm²", "C. 625 cm²", "D. 650 cm²"],
           ans: 2,
-          exp: "Penjumlahan desimal lurus: 2,75 + 1,45 = 4,20 kg.",
+          exp: "Rumus Luas Persegi = s × s = 25 cm × 25 cm = 625 cm².",
+          shape: "Persegi",
           rewardSteps: 1
         },
         {
-          q: "Gentong air tawar mula-mula berisi 15,5 liter. Setelah diminum para pelaut sebanyak 6,75 liter, sisa air adalah...",
-          opts: ["A. 8,25 liter", "B. 8,75 liter", "C. 9,25 liter", "D. 9,75 liter"],
-          ans: 1,
-          exp: "Pengurangan desimal: 15,50 - 6,75 = 8,75 liter.",
-          rewardSteps: 1
-        },
-        {
-          q: "Perbandingan jumlah koin emas dan koin perak di dalam peti adalah 3 : 5. Jika koin emas ada 15 keping, berapa jumlah koin perak?",
-          opts: ["A. 20 keping", "B. 25 keping", "C. 30 keping", "D. 35 keping"],
-          ans: 1,
-          exp: "Perak = (5/3) × 15 = 25 keping.",
-          rewardSteps: 1
-        },
-        {
-          q: "Sebuah peta harta karun memiliki skala 1 : 200. Jika panjang kapal pada peta adalah 12 cm, berapakah panjang kapal sebenarnya?",
-          opts: ["A. 24 meter", "B. 12 meter", "C. 240 meter", "D. 2,4 meter"],
+          q: "Papan nama 'KAPTEN MERAH' berbentuk persegi panjang dengan panjang 28 cm dan lebar 10 cm. Berapakah luas papan nama tersebut?",
+          opts: ["A. 280 cm²", "B. 140 cm²", "C. 76 cm²", "D. 240 cm²"],
           ans: 0,
-          exp: "Panjang asli = 12 cm × 200 = 2.400 cm = 24 meter.",
+          exp: "Rumus Luas Persegi Panjang = p × l = 28 cm × 10 cm = 280 cm².",
+          shape: "Persegi Panjang",
           rewardSteps: 1
         },
         {
-          q: "Hasil tangkapan ikan pelaut selama 3 hari berturut-turut adalah 12 kg, 15 kg, dan 18 kg. Rata-rata tangkapan per hari adalah...",
-          opts: ["A. 14 kg", "B. 15 kg", "C. 16 kg", "D. 17 kg"],
+          q: "Meja perundingan kapten berbentuk jajar genjang dengan panjang alas 18 dm dan tinggi 10 dm. Berapakah luas permukaan meja tersebut?",
+          opts: ["A. 90 dm²", "B. 180 dm²", "C. 200 dm²", "D. 28 dm²"],
           ans: 1,
-          exp: "Rata-rata = (12 + 15 + 18) / 3 = 45 / 3 = 15 kg.",
+          exp: "Rumus Luas Jajar Genjang = alas × tinggi = 18 dm × 10 dm = 180 dm².",
+          shape: "Jajar Genjang",
           rewardSteps: 1
         },
         {
-          q: "Berapa mililiter (ml) volume air kelapa jika diukur setara dengan 3 liter?",
-          opts: ["A. 30 ml", "B. 300 ml", "C. 3.000 ml", "D. 30.000 ml"],
-          ans: 2,
-          exp: "1 liter = 1.000 ml, maka 3 liter = 3.000 ml.",
-          rewardSteps: 1
-        },
-        {
-          q: "Berapakah jumlah rusuk pada peti harta karun berbentuk balok?",
-          opts: ["A. 8 rusuk", "B. 10 rusuk", "C. 12 rusuk", "D. 14 rusuk"],
-          ans: 2,
-          exp: "Balok memiliki 12 rusuk (4 panjang, 4 lebar, 4 tinggi).",
-          rewardSteps: 1
-        },
-        {
-          q: "Berapakah banyak titik sudut pada bangun ruang kubus?",
-          opts: ["A. 6 titik", "B. 8 titik", "C. 12 titik", "D. 16 titik"],
-          ans: 1,
-          exp: "Kubus memiliki 8 titik sudut (4 di atas, 4 di bawah).",
-          rewardSteps: 1
-        },
-        {
-          q: "Hasil perkalian desimal 0,5 × 0,4 adalah...",
-          opts: ["A. 2,0", "B. 0,20", "C. 0,02", "D. 0,002"],
-          ans: 1,
-          exp: "5 × 4 = 20, dengan 2 angka di belakang koma maka hasilnya 0,20 atau 0,2.",
-          rewardSteps: 1
-        },
-        {
-          q: "Pecahan berikut yang senilai dengan 2/7 adalah...",
-          opts: ["A. 4/12", "B. 6/21", "C. 8/24", "D. 5/14"],
-          ans: 1,
-          exp: "Kalikan pembilang dan penyebut dengan 3: (2 × 3) / (7 × 3) = 6/21.",
-          rewardSteps: 1
-        },
-        {
-          q: "Hasil dari 5/6 liter minyak zaitun tumpah 1/3 liter di geladak. Berapa sisa minyak zaitun sekarang?",
-          opts: ["A. 2/6 liter (1/3 liter)", "B. 3/6 liter (½ liter)", "C. 4/6 liter", "D. 1/6 liter"],
-          ans: 1,
-          exp: "5/6 - 2/6 = 3/6 = ½ liter.",
-          rewardSteps: 1
-        },
-        {
-          q: "Sebuah peti memiliki alas berbentuk persegi dengan panjang sisi 15 cm. Keliling alas peti tersebut adalah...",
-          opts: ["A. 30 cm", "B. 45 cm", "C. 60 cm", "D. 225 cm"],
-          ans: 2,
-          exp: "Keliling persegi = 4 × sisi = 4 × 15 cm = 60 cm.",
-          rewardSteps: 1
-        },
-        {
-          q: "Hasil dari operasi hitung campur ½ + 0,25 - 10% dalam bentuk desimal adalah...",
-          opts: ["A. 0,55", "B. 0,60", "C. 0,65", "D. 0,70"],
-          ans: 2,
-          exp: "½ = 0,50; 10% = 0,10. Maka 0,50 + 0,25 - 0,10 = 0,65.",
-          rewardSteps: 1
-        },
-        {
-          q: "Sebuah drum minyak berbentuk tabung memiliki jari-jari 7 dm dan tinggi 10 dm. Berapa liter volume drum tersebut? (π = 22/7)",
-          opts: ["A. 1.540 liter", "B. 1.450 liter", "C. 770 liter", "D. 2.200 liter"],
+          q: "Atap pondok persembunyian berbentuk trapesium dengan panjang sisi sejajar 10 meter dan 16 meter, serta tinggi 5 meter. Berapakah luas atap tersebut?",
+          opts: ["A. 65 m²", "B. 130 m²", "C. 80 m²", "D. 75 m²"],
           ans: 0,
-          exp: "Volume Tabung = π × r² × t = (22/7) × 7 × 7 × 10 = 1.540 dm³ = 1.540 liter.",
+          exp: "Rumus Luas Trapesium = ½ × (10 + 16) × 5 = ½ × 26 × 5 = 65 m².",
+          shape: "Trapesium",
           rewardSteps: 1
         }
       ],
       misi: [
         {
-          q: "🔍 MISI EKSPLORASI PULAU: Kapal bajak laut berlayar dengan kecepatan rata-rata 40 km/jam selama 2,5 jam menuju Pulau Harta Karun. Berapa km jarak yang ditempuh kapal?",
-          opts: ["A. 80 km", "B. 90 km", "C. 100 km", "D. 120 km"],
+          q: "Misi Gabungan: Peta kuil kuno tersusun dari persegi panjang (panjang 12 cm, lebar 8 cm) ditambah segitiga di atasnya (alas 12 cm, tinggi 5 cm). Berapakah luas total peta kuil kuno tersebut?",
+          opts: ["A. 96 cm²", "B. 126 cm²", "C. 156 cm²", "D. 116 cm²"],
+          ans: 1,
+          exp: "Luas Persegi Panjang = 12 × 8 = 96 cm². Luas Segitiga = ½ × 12 × 5 = 30 cm². Total = 96 + 30 = 126 cm².",
+          shape: "Bangun Gabungan",
+          rewardSteps: 2
+        },
+        {
+          q: "Misi Taktis: Gudang peluru meriam berbentuk persegi dengan keliling 48 meter. Berapakah luas lantai gudang peluru tersebut?",
+          opts: ["A. 144 m²", "B. 196 m²", "C. 120 m²", "D. 96 m²"],
+          ans: 0,
+          exp: "Keliling Persegi = 4 × sisi &rarr; Sisi = 48 ÷ 4 = 12 meter. Luas = sisi × sisi = 12 × 12 = 144 m².",
+          shape: "Persegi",
+          rewardSteps: 2
+        },
+        {
+          q: "Misi Pulau Karang: Sebuah layar kapal cadangan berbentuk segitiga siku-siku dengan panjang sisi siku-siku 9 meter dan 12 meter. Berapakah luas kain layar tersebut?",
+          opts: ["A. 108 m²", "B. 54 m²", "C. 45 m²", "D. 72 m²"],
+          ans: 1,
+          exp: "Pada segitiga siku-siku, sisi siku-siku bertindak sebagai alas dan tinggi: Luas = ½ × 9 × 12 = 54 m².",
+          shape: "Segitiga Siku-siku",
+          rewardSteps: 2
+        },
+        {
+          q: "Misi Sandi Rahasia: Lembaran emas berukuran 30 cm × 20 cm dipotong berbentuk belah ketupat dengan diagonal 16 cm dan 20 cm. Berapakah luas sisa lembaran emas yang tidak terpakai?",
+          opts: ["A. 600 cm²", "B. 160 cm²", "C. 440 cm²", "D. 320 cm²"],
           ans: 2,
-          exp: "Jarak = Kecepatan × Waktu = 40 km/jam × 2,5 jam = 100 km.",
+          exp: "Luas Awal = 30 × 20 = 600 cm². Luas Belah Ketupat = ½ × 16 × 20 = 160 cm². Sisa = 600 - 160 = 440 cm².",
+          shape: "Belah Ketupat",
           rewardSteps: 2
         },
         {
-          q: "🔍 MISI PETA KUNO: Pada peta berskala 1 : 100.000, jarak dermaga ke Gua Tengkorak adalah 6 cm. Berapa km jarak sebenarnya?",
-          opts: ["A. 0,6 km", "B. 6 km", "C. 60 km", "D. 600 km"],
-          ans: 1,
-          exp: "Jarak sebenarnya = 6 × 100.000 cm = 600.000 cm = 6 km.",
-          rewardSteps: 2
-        },
-        {
-          q: "🔍 MISI POMPA AIR PALKA: Pompa penguras kapal mampu mengeluarkan air sebanyak 20 liter per menit. Jika pompa beroperasi selama 15 menit, berapa total air yang terbuang?",
-          opts: ["A. 200 liter", "B. 250 liter", "C. 300 liter", "D. 350 liter"],
-          ans: 2,
-          exp: "Debit = Volume / Waktu -> Volume = Debit × Waktu = 20 × 15 = 300 liter.",
-          rewardSteps: 2
-        },
-        {
-          q: "🔍 MISI WAKTU BERLAYAR: Jarak antara dua pulau karang adalah 150 km. Jika kapal berlayar konstan dengan kecepatan 50 km/jam, berapa lama waktu tempuhnya?",
-          opts: ["A. 2 jam", "B. 2,5 jam", "C. 3 jam", "D. 4 jam"],
-          ans: 2,
-          exp: "Waktu = Jarak / Kecepatan = 150 / 50 = 3 jam.",
-          rewardSteps: 2
-        },
-        {
-          q: "🔍 MISI KECEPATAN ANGIN: Kapal menempuh rute 90 km dalam waktu 1,5 jam berkat dorongan angin kencang. Berapakah kecepatan rata-rata kapal tersebut?",
-          opts: ["A. 50 km/jam", "B. 60 km/jam", "C. 70 km/jam", "D. 80 km/jam"],
-          ans: 1,
-          exp: "Kecepatan = Jarak / Waktu = 90 / 1,5 = 60 km/jam.",
-          rewardSteps: 2
-        },
-        {
-          q: "🔍 MISI PERBANDINGAN UMUR: Perbandingan umur Kapten dan Mualim adalah 4 : 3. Jika umur Kapten adalah 40 tahun, berapakah umur Mualim?",
-          opts: ["A. 25 tahun", "B. 30 tahun", "C. 32 tahun", "D. 35 tahun"],
-          ans: 1,
-          exp: "Umur Mualim = (3/4) × 40 = 30 tahun.",
-          rewardSteps: 2
-        },
-        {
-          q: "🔍 MISI SKALA PULAU KARANG: Jarak sebenarnya antara dua karang laut adalah 8 km (800.000 cm). Jika digambar pada peta dengan skala 1 : 200.000, berapa cm jarak pada peta?",
-          opts: ["A. 2 cm", "B. 4 cm", "C. 8 cm", "D. 16 cm"],
-          ans: 1,
-          exp: "Jarak pada peta = 800.000 / 200.000 = 4 cm.",
-          rewardSteps: 2
-        },
-        {
-          q: "🔍 MISI BAK AIR TAWAR: Bak penampung air di kapal berukuran panjang 5 m, lebar 2 m, dan terisi air setinggi 1,5 m. Berapakah volume air tawar tersebut dalam liter?",
-          opts: ["A. 10.000 liter", "B. 12.500 liter", "C. 15.000 liter", "D. 20.000 liter"],
-          ans: 2,
-          exp: "Volume = 5 × 2 × 1,5 = 15 m³ = 15.000 dm³ = 15.000 liter.",
-          rewardSteps: 2
-        },
-        {
-          q: "🔍 MISI TANGGA TIANG UTAMA: Tiang layar utama setinggi 12 meter (1.200 cm). Tiap anak tangga berjarak 40 cm. Berapa banyak anak tangga tali yang harus dipanjat pelaut?",
-          opts: ["A. 25 anak tangga", "B. 30 anak tangga", "C. 35 anak tangga", "D. 40 anak tangga"],
-          ans: 1,
-          exp: "Banyak anak tangga = 1.200 cm / 40 cm = 30 anak tangga.",
-          rewardSteps: 2
-        },
-        {
-          q: "🔍 MISI LOGISTIK BERAS: Sekarung beras 50 kg dikonsumsi kru kapal sebanyak 2,5 kg setiap hari. Beras tersebut akan habis dalam berapa hari?",
-          opts: ["A. 15 hari", "B. 20 hari", "C. 25 hari", "D. 30 hari"],
-          ans: 1,
-          exp: "Hari = 50 ÷ 2,5 = 20 hari.",
-          rewardSteps: 2
-        },
-        {
-          q: "🔍 MISI NAVIGASI KOMPAS: Jarum kompas berputar searah jarum jam dari arah Utara menuju arah Timur. Berapakah besar sudut putaran tersebut?",
-          opts: ["A. 45°", "B. 90° (Siku-siku)", "C. 180° (Lurus)", "D. 270°"],
-          ans: 1,
-          exp: "Arah Utara ke Timur membentuk sudut seperempat lingkaran yaitu 90° (sudut siku-siku).",
-          rewardSteps: 2
-        },
-        {
-          q: "🔍 MISI BAHAN BAKAR: Kapal motor patroli membutuhkan 5 liter solar untuk menempuh jarak 20 km. Berapa liter solar yang dibutuhkan untuk menempuh 100 km?",
-          opts: ["A. 15 liter", "B. 20 liter", "C. 25 liter", "D. 30 liter"],
-          ans: 2,
-          exp: "Solar = (100 / 20) × 5 = 5 × 5 = 25 liter.",
-          rewardSteps: 2
-        },
-        {
-          q: "🔍 MISI WAKTU TIBA DI DERMAGA: Kapal berlayar dari pelabuhan pukul 06.30 pagi dan membutuhkan waktu 2 jam 45 menit. Pukul berapa kapal tiba?",
-          opts: ["A. 08.45", "B. 09.00", "C. 09.15", "D. 09.30"],
-          ans: 2,
-          exp: "06.30 + 2 jam 45 menit = 08.75 = 09.15.",
-          rewardSteps: 2
-        },
-        {
-          q: "🔍 MISI DRUM AIR CADANGAN: Drum air mula-mula terisi 7/8 bagian. Kru mengambil 3/8 bagian untuk memasak sop laut. Sisa air di dalam drum adalah...",
-          opts: ["A. 2/8 bagian", "B. 4/8 bagian (½ drum)", "C. 5/8 bagian", "D. 1/8 bagian"],
-          ans: 1,
-          exp: "7/8 - 3/8 = 4/8 = ½ drum.",
-          rewardSteps: 2
-        },
-        {
-          q: "🔍 MISI PEMBAGIAN KELAPA: Kapten mengumpulkan 60 butir kelapa muda. 1/3 bagian dibagikan ke regu dayung dan 2/5 bagian ke regu layar. Berapa butir kelapa yang tersisa untuk kapten?",
-          opts: ["A. 14 butir", "B. 16 butir", "C. 18 butir", "D. 20 butir"],
-          ans: 1,
-          exp: "Regu dayung = 60 × 1/3 = 20. Regu layar = 60 × 2/5 = 24. Sisa = 60 - (20 + 24) = 16 butir.",
+          q: "Misi Navigasi: Rambu peringatan karang berbentuk jajar genjang memiliki luas 168 cm² dan panjang alas 14 cm. Berapakah tinggi rambu tersebut?",
+          opts: ["A. 12 cm", "B. 14 cm", "C. 16 cm", "D. 24 cm"],
+          ans: 0,
+          exp: "Luas = alas × tinggi &rarr; Tinggi = Luas ÷ alas = 168 ÷ 14 = 12 cm.",
+          shape: "Jajar Genjang",
           rewardSteps: 2
         }
       ],
       tantangan: [
         {
-          q: "⚡ TANTANGAN KILAT: Sebuah dadu emas berbentuk kubus memiliki panjang rusuk 6 cm. Berapakah volume kubus tersebut?",
-          opts: ["A. 36 cm³", "B. 108 cm³", "C. 216 cm³", "D. 324 cm³"],
+          q: "Hitung Cepat Luas Persegi: Berapakah luas persegi dengan panjang sisi 9 cm?",
+          opts: ["A. 36 cm²", "B. 72 cm²", "C. 81 cm²", "D. 90 cm²"],
           ans: 2,
-          exp: "Volume Kubus = s × s × s = 6 × 6 × 6 = 216 cm³.",
-          rewardSteps: 2
+          exp: "Luas Persegi = 9 × 9 = 81 cm².",
+          shape: "Persegi",
+          rewardSteps: 1
         },
         {
-          q: "⚡ TANTANGAN KILAT: Hasil dari 25% + 0,45 dalam bentuk desimal adalah...",
-          opts: ["A. 0,60", "B. 0,70", "C. 0,75", "D. 0,80"],
+          q: "Hitung Cepat Luas Segitiga: Segitiga memiliki alas 10 cm dan tinggi 6 cm. Luasnya adalah...",
+          opts: ["A. 60 cm²", "B. 30 cm²", "C. 15 cm²", "D. 45 cm²"],
           ans: 1,
-          exp: "25% = 0,25. Maka 0,25 + 0,45 = 0,70.",
-          rewardSteps: 2
+          exp: "Luas Segitiga = ½ × 10 × 6 = 30 cm².",
+          shape: "Segitiga",
+          rewardSteps: 1
         },
         {
-          q: "⚡ TANTANGAN KILAT: Hasil dari 12² + 5² adalah...",
-          opts: ["A. 144", "B. 169", "C. 196", "D. 225"],
-          ans: 1,
-          exp: "12² = 144, 5² = 25. 144 + 25 = 169.",
-          rewardSteps: 2
-        },
-        {
-          q: "⚡ TANTANGAN KILAT: Berapakah akar pangkat tiga dari 1.000 (∛1.000)?",
-          opts: ["A. 10", "B. 100", "C. 20", "D. 50"],
-          ans: 0,
-          exp: "10 × 10 × 10 = 1.000, maka ∛1.000 = 10.",
-          rewardSteps: 2
-        },
-        {
-          q: "⚡ TANTANGAN KILAT: Berapakah akar pangkat tiga dari 216 (∛216)?",
-          opts: ["A. 4", "B. 5", "C. 6", "D. 8"],
+          q: "Hitung Cepat Luas Persegi Panjang: Panjang 12 cm dan lebar 5 cm. Luasnya adalah...",
+          opts: ["A. 17 cm²", "B. 34 cm²", "C. 60 cm²", "D. 120 cm²"],
           ans: 2,
-          exp: "6 × 6 × 6 = 216, maka ∛216 = 6.",
-          rewardSteps: 2
+          exp: "Luas Persegi Panjang = 12 × 5 = 60 cm².",
+          shape: "Persegi Panjang",
+          rewardSteps: 1
         },
         {
-          q: "⚡ TANTANGAN KILAT: Bentuk persen dari 3/8 adalah...",
-          opts: ["A. 35%", "B. 37,5%", "C. 40%", "D. 42,5%"],
+          q: "Hitung Cepat Luas Jajar Genjang: Alas 8 cm dan tinggi 5 cm. Luasnya adalah...",
+          opts: ["A. 20 cm²", "B. 40 cm²", "C. 80 cm²", "D. 26 cm²"],
           ans: 1,
-          exp: "3/8 × 100% = 300% / 8 = 37,5%.",
-          rewardSteps: 2
+          exp: "Luas Jajar Genjang = 8 × 5 = 40 cm².",
+          shape: "Jajar Genjang",
+          rewardSteps: 1
         },
         {
-          q: "⚡ TANTANGAN KILAT: Hasil dari 1,25 × 4 adalah...",
-          opts: ["A. 4,5", "B. 5,0", "C. 5,5", "D. 6,0"],
+          q: "Hitung Cepat Luas Belah Ketupat: Diagonal 10 cm dan diagonal 8 cm. Luasnya adalah...",
+          opts: ["A. 80 cm²", "B. 40 cm²", "C. 20 cm²", "D. 50 cm²"],
           ans: 1,
-          exp: "1,25 × 4 = 5,0.",
-          rewardSteps: 2
-        },
-        {
-          q: "⚡ TANTANGAN KILAT: Rumus untuk menghitung volume bangun balok adalah...",
-          opts: ["A. s × s × s", "B. p × l × t", "C. ½ × a × t", "D. 2 × (p + l)"],
-          ans: 1,
-          exp: "Rumus volume balok adalah panjang × lebar × tinggi (p × l × t).",
-          rewardSteps: 2
-        },
-        {
-          q: "⚡ TANTANGAN KILAT: Sebuah kubus memiliki volume 343 cm³. Panjang rusuk kubus tersebut adalah...",
-          opts: ["A. 6 cm", "B. 7 cm", "C. 8 cm", "D. 9 cm"],
-          ans: 1,
-          exp: "∛343 = 7 karena 7 × 7 × 7 = 343 cm³.",
-          rewardSteps: 2
-        },
-        {
-          q: "⚡ TANTANGAN KILAT: Balok bervolume 120 cm³ memiliki panjang 6 cm dan lebar 4 cm. Berapakah tinggi balok tersebut?",
-          opts: ["A. 4 cm", "B. 5 cm", "C. 6 cm", "D. 8 cm"],
-          ans: 1,
-          exp: "t = Volume / (p × l) = 120 / (6 × 4) = 120 / 24 = 5 cm.",
-          rewardSteps: 2
-        },
-        {
-          q: "⚡ TANTANGAN KILAT: Bentuk pecahan campuran dari 17/5 adalah...",
-          opts: ["A. 2 ⅗", "B. 3 ⅖", "C. 3 ⅗", "D. 4 ⅕"],
-          ans: 1,
-          exp: "17 ÷ 5 = 3 sisa 2, maka menjadi 3 ⅖.",
-          rewardSteps: 2
-        },
-        {
-          q: "⚡ TANTANGAN KILAT: Hasil dari 4,8 ÷ 0,6 adalah...",
-          opts: ["A. 6", "B. 7", "C. 8", "D. 9"],
-          ans: 2,
-          exp: "48 ÷ 6 = 8.",
-          rewardSteps: 2
-        },
-        {
-          q: "⚡ TANTANGAN KILAT: Berapakah 3/4 dari 400 keping koin emas?",
-          opts: ["A. 250 koin", "B. 300 koin", "C. 320 koin", "D. 350 koin"],
-          ans: 1,
-          exp: "¾ × 400 = 3 × 100 = 300 keping koin.",
-          rewardSteps: 2
-        },
-        {
-          q: "⚡ TANTANGAN KILAT: Berapakah 15% dari 200 kg bubuk mesiu?",
-          opts: ["A. 25 kg", "B. 30 kg", "C. 35 kg", "D. 40 kg"],
-          ans: 1,
-          exp: "15/100 × 200 = 15 × 2 = 30 kg.",
-          rewardSteps: 2
-        },
-        {
-          q: "⚡ TANTANGAN KILAT: Hasil operasi hitung 2/3 + 1/6 dalam bentuk paling sederhana adalah...",
-          opts: ["A. 3/9", "B. 4/6", "C. 5/6", "D. 1"],
-          ans: 2,
-          exp: "Samakan penyebut ke 6: 4/6 + 1/6 = 5/6.",
-          rewardSteps: 2
+          exp: "Luas Belah Ketupat = ½ × 10 × 8 = 40 cm².",
+          shape: "Belah Ketupat",
+          rewardSteps: 1
         }
       ],
       bonus: [
         {
-          title: "⭐ KARTU BONUS KEBERUNTUNGAN!",
-          desc: "Angin laut berhembus kencang mendorong layar kapalmu! Kamu mendapatkan kompas emas dan langsung <b>Maju 2 Langkah</b> serta tambahan +50 Koin Emas!",
+          title: "⭐ ANGIN BURITAN PENOLONG (BONUS)",
+          desc: "Hembusan angin menguntungkan meniup layar kapal bajak laut! Maju 2 petak tanpa rintangan dan peroleh +20 Koin Emas!",
           steps: 2,
-          coins: 50
+          coins: 20
         },
         {
-          title: "⭐ KARTU BONUS PETA PINTAS!",
-          desc: "Kamu menemukan terowongan rahasia di dekat pohon kelapa! Pionmu berhak <b>Maju 1 Langkah</b> ekstra serta +30 Koin!",
-          steps: 1,
-          coins: 30
-        },
-        {
-          title: "⭐ KARTU BONUS KOMPAS EMAS!",
-          desc: "Mendapat petunjuk navigasi dari formasi bintang laut selatan! Kapalmu meluncur mulus <b>Maju 2 Langkah</b> dan dapat +40 Koin!",
-          steps: 2,
+          title: "🪙 PETI EMAS TERAPUNG (BONUS)",
+          desc: "Kapal menemukan peti emas kecil terapung di dekat karang! Dapatkan bonus +40 Koin Emas untuk bekal ekspedisi!",
+          steps: 0,
           coins: 40
         },
         {
-          title: "⭐ KARTU BONUS LUMBA-LUMBA PENOLONG!",
-          desc: "Kawanan lumba-lumba ramah mendorong rakit petualangmu melompati ombak! <b>Maju 3 Langkah</b> & +60 Koin!",
-          steps: 3,
-          coins: 60
-        },
-        {
-          title: "⭐ KARTU BONUS KOTAK RAHASIA KARANG!",
-          desc: "Menemukan peti kecil berlapis mutiara di balik gundukan pasir karang! Mendapatkan kejutan <b>+100 Koin Emas</b> murni!",
-          steps: 0,
-          coins: 100
-        },
-        {
-          title: "⭐ KARTU BONUS ANGIN BURITAN!",
-          desc: "Layar kapal terkembang sempurna ditiup angin muson barat! <b>Maju 1 Langkah</b> dan dapat tambahan perbekalan +25 Koin!",
+          title: "🗺️ TEROPONG EMAS KAPTEN (BONUS)",
+          desc: "Melihat mercusuar dari kejauhan! Maju 1 petak dan peroleh bonus +15 Koin Emas!",
           steps: 1,
-          coins: 25
-        },
-        {
-          title: "⭐ KARTU BONUS TEROPONG KAPTEN!",
-          desc: "Melalui lensa teropong ajaib, kamu melihat jalur aman tanpa rintangan! <b>Maju 2 Langkah</b> & +35 Koin!",
-          steps: 2,
-          coins: 35
-        },
-        {
-          title: "⭐ KARTU BONUS DAYUNG KILAT!",
-          desc: "Kru pendayung penuh semangat setelah makan kelapa manis! Pion melaju cepat <b>Maju 1 Langkah</b> & +45 Koin!",
-          steps: 1,
-          coins: 45
+          coins: 15
         }
       ],
       jebakan: [
         {
-          title: "⚠️ KARTU JEBAKAN: OMBANG-AMBING MONSTER LAUT!",
-          desc: "Seekor naga laut muncul di dekat jalurmu! Untuk menghindari pusaran air, kapalmu harus <b>Mundur 1 Langkah</b>. Tetap semangat!",
-          steps: -1
+          title: "⚠️ JEBAKAN KARANG TAJAM (PENALTI)",
+          desc: "Lambung kapal tersangkut karang terumbu! Mundur 1 petak untuk membebaskan haluan kapal.",
+          steps: -1,
+          coins: 0
         },
         {
-          title: "⚠️ KARTU JEBAKAN: KABUT TEBAL PULAU TENGKORAK!",
-          desc: "Pandangan tertutup kabut tebal! Kamu harus memeriksa ulang kompas navigasi dan <b>Mundur 1 Langkah</b>.",
-          steps: -1
+          title: "🌀 PUSARAN AIR LAUT (PENALTI)",
+          desc: "Arus laut yang deras memutar kapal bajak laut! Mundur 2 petak menjauhi pusaran air berbahaya.",
+          steps: -2,
+          coins: -10
         },
         {
-          title: "⚠️ KARTU JEBAKAN: JANGKAR TERSANGKUT KARANG!",
-          desc: "Rantai jangkar terlilit terumbu karang tajam saat ombak pasang! Kru harus mundur sejenak, <b>Mundur 2 Langkah</b>!",
-          steps: -2
-        },
-        {
-          title: "⚠️ KARTU JEBAKAN: PASIR HISAP PANTAI!",
-          desc: "Kaki pion terperosok ke dalam pasir hisap basah di tepi pulau! Harus melangkah hati-hati, <b>Mundur 1 Langkah</b>.",
-          steps: -1
-        },
-        {
-          title: "⚠️ KARTU JEBAKAN: MERIAM AIR MACET!",
-          desc: "Percikan ombak membasahi sumbu mesiu meriam! Kapal harus berputar haluan dan <b>Mundur 1 Langkah</b>.",
-          steps: -1
-        },
-        {
-          title: "⚠️ KARTU JEBAKAN: ANGIN PUTING BELIUNG MINI!",
-          desc: "Pusaran angin mini meniup kapal berputar arah ke belakang! <b>Mundur 2 Langkah</b>!",
-          steps: -2
-        },
-        {
-          title: "⚠️ KARTU JEBAKAN: TENTAKEL GURITA RAKSASA!",
-          desc: "Seekor gurita raksasa menyemburkan tinta hitam pekat menghadang haluan kapal! <b>Mundur 1 Langkah</b>.",
-          steps: -1
-        },
-        {
-          title: "⚠️ KARTU JEBAKAN: KARANG DANGKAL TERSEMBUNYI!",
-          desc: "Lambung kapal menggesek karang dangkal! Harus berhati-hati mundur sedikit, <b>Mundur 1 Langkah</b>.",
-          steps: -1
+          title: "🌫️ KABUT MISTERIUS (PENALTI)",
+          desc: "Jarak pandang terhalang kabut tebal pulau harta karun! Kehilangan 15 koin perbekalan.",
+          steps: 0,
+          coins: -15
         }
       ]
     };
@@ -3303,14 +3461,14 @@
     // ============================================================================
     // SISTEM IDENTITAS SISWA (RESEARCH INSTRUMENT KELAS V SD)
     // ============================================================================
-    const DEFAULT_STUDENT_IDENTITIES = {
-      kelas: "Kelas V SD (Fase C)",
-      kelompok: "Kelompok Bajak Laut Matematika",
-      sekolah: "SD Negeri Cerdas Ceria",
+        const DEFAULT_STUDENT_IDENTITIES = {
+      kelas: "Kelas V SDN Gang Aut",
+      kelompok: "Kelompok Berburu Harta Karun 01",
+      sekolah: "SDN Gang Aut",
       players: [
-        { id: 0, alias: "Ahmad Dahlan", absen: "01" },
-        { id: 1, alias: "Siti Rahma", absen: "02" },
-        { id: 2, alias: "Budi Pratama", absen: "03" }
+        { id: 0, name: "Kapten Merah", alias: "Ahmad Dahlan", absen: "01", nisn: "0123456781" },
+        { id: 1, name: "Navigator Biru", alias: "Siti Rahmah", absen: "02", nisn: "0123456782" },
+        { id: 2, name: "Meriam Hijau", alias: "Budi Pratama", absen: "03", nisn: "0123456783" }
       ]
     };
 
@@ -3807,31 +3965,35 @@
     function calculateCreativityGrade(accuracy, fluency, flexibility) {
       if (accuracy >= 85) {
         return {
-          title: "🌟 Sangat Kreatif (High Creative Thinker)",
+          title: "🌟 Sangat Aktif & Mahir (High Active Learner)",
+          shortBadge: "🌟 Sangat Aktif",
           color: "#15803d",
           badgeBg: "#dcfce7",
-          desc: "Siswa menunjukkan kelancaran dan orisinalitas tinggi dalam memecahkan soal matematika kelas 5. Mampu menyelesaikan kuis mandiri dengan cepat tanpa bergantung pada bantuan teropong."
+          desc: "Siswa sangat aktif berinisiatif, cepat tanggap dalam menghitung luas bangun datar (persegi, segitiga, jajar genjang, dll.) secara mandiri tanpa bergantung pada bantuan petunjuk."
         };
       } else if (accuracy >= 70) {
         return {
-          title: "⭐ Kreatif & Solutif (Creative Problem Solver)",
+          title: "⭐ Aktif & Mandiri (Active Problem Solver)",
+          shortBadge: "⭐ Aktif Mandiri",
           color: "#0369a1",
           badgeBg: "#e0f2fe",
-          desc: "Siswa menunjukkan keluwesan berpikir yang baik, mampu memanfaatkan strategi scaffolding/petunjuk ketika menemukan kesulitan pada materi pecahan dan bangun ruang."
+          desc: "Siswa aktif berdiskusi dan antusias menyelesaikan tantangan luas bangun datar, mampu memanfaatkan strategi scaffolding/petunjuk dengan tepat saat menemukan kesulitan."
         };
       } else if (accuracy >= 50) {
         return {
-          title: "💡 Cukup Kreatif (Developing Creativity)",
+          title: "💡 Cukup Aktif (Developing Engagement)",
+          shortBadge: "💡 Cukup Aktif",
           color: "#b45309",
           badgeBg: "#fef3c7",
-          desc: "Siswa mulai mengembangkan kemampuan berpikir analitis, memerlukan latihan terarah pada elaborasi rumus volume bangun ruang dan penjumlahan pecahan beda penyebut."
+          desc: "Siswa mulai menunjukkan keaktifan dalam diskusi kelompok, namun memerlukan latihan terarah pada penerapan rumus bangun datar majemuk (trapesium, belah ketupat, layang-layang)."
         };
       } else {
         return {
-          title: "📚 Perlu Pendampingan (Guided Explorer)",
+          title: "📚 Perlu Bimbingan (Guided Explorer)",
+          shortBadge: "📚 Perlu Bimbingan",
           color: "#b91c1c",
           badgeBg: "#fee2e2",
-          desc: "Siswa memerlukan bimbingan guru dan pendampingan konkrit melalui alat peraga fisik sebelum melangkah ke pemecahan masalah bertingkat."
+          desc: "Siswa memerlukan stimulasi keaktifan belajar melalui alat peraga konkrit berburu harta karun dan bimbingan guru sebelum melangkah ke pemecahan masalah bertingkat."
         };
       }
     }
@@ -3853,16 +4015,16 @@
           <!-- KOP RAPOR PENELITIAN -->
           <div style="border-bottom:2px solid #e2e8f0; padding-bottom:12px; margin-bottom:14px; text-align:center;">
             <div style="font-size:11px; font-weight:800; color:#b45309; letter-spacing:1px; text-transform:uppercase;">
-              LEMBAR OBSERVASI & ASESMEN KREATIFITAS BELAJAR SISWA
+              LEMBAR ASESMEN & OBSERVASI KEAKTIFAN BELAJAR SISWA
             </div>
             <div style="font-size:15px; font-weight:800; color:#1e293b; margin:2px 0;">
-              Permainan Papan Digital 3D "Petualangan Harta Karun" Berbasis QR Code
+              Media Board Game "Berburu Harta Karun" Berbasis QR-Code
             </div>
             <div style="font-size:11px; color:#64748b;">
-              Mata Pelajaran: Matematika Kelas V SD • Fase C Kurikulum Merdeka • Waktu: ${dateStr}
+              Materi: Luas Bangun Datar • Kelas V SDN Gang Aut • Kurikulum Merdeka Fase C • Waktu: ${dateStr}
             </div>
             <div style="margin-top:6px; display:inline-flex; gap:12px; background:#f8fafc; border:1px solid #cbd5e1; padding:4px 12px; border-radius:6px; font-size:11px; font-weight:700; color:#334155;">
-              <span>🏫 ${studentIdentities.sekolah || 'SD Negeri Cerdas Ceria'}</span>
+              <span>🏫 ${studentIdentities.sekolah || 'SDN Gang Aut'}</span>
               <span>👥 ${studentIdentities.kelompok}</span>
               <span>📚 ${studentIdentities.kelas}</span>
             </div>
@@ -3889,7 +4051,7 @@
 
           <!-- TABEL PERBANDINGAN PERFORMA 3 SISWA -->
           <div style="margin-bottom:16px;">
-            <div style="font-size:12px; font-weight:800; color:#334155; margin-bottom:6px;">📋 TABEL CAPAIAN KREATIFITAS PER ANGGOTA KELOMPOK:</div>
+            <div style="font-size:12px; font-weight:800; color:#334155; margin-bottom:6px;">📋 TABEL CAPAIAN KEAKTIFAN & PEMAHAMAN MATERI (LUAS BANGUN DATAR):</div>
             <table style="width:100%; border-collapse:collapse; font-size:11px; text-align:left; background:#fff; border:1px solid #cbd5e1; border-radius:8px; overflow:hidden;">
               <thead>
                 <tr style="background:#f1f5f9; color:#475569; font-weight:700; border-bottom:1.5px solid #cbd5e1;">
@@ -3900,7 +4062,7 @@
                   <th style="padding:8px 6px; text-align:center;">Mandiri ⭐</th>
                   <th style="padding:8px 6px; text-align:center;">Teropong 🔭</th>
                   <th style="padding:8px 6px; text-align:center;">Akurasi</th>
-                  <th style="padding:8px 10px;">Predikat Kreativitas</th>
+                  <th style="padding:8px 10px;">Predikat Keaktifan</th>
                 </tr>
               </thead>
               <tbody>
@@ -3926,8 +4088,8 @@
                         <b style="color:${pAcc >= 70 ? '#15803d' : '#b45309'};">${pAcc}%</b>
                       </td>
                       <td style="padding:8px 10px;">
-                        <span style="background:${pG.badgeBg}; color:${pG.color}; padding:2px 6px; border-radius:4px; font-weight:700; font-size:10px;">
-                          ${pG.title.split(' ')[1] || 'Kreatif'}
+                        <span style="background:${pG.badgeBg}; color:${pG.color}; padding:3px 8px; border-radius:6px; font-weight:700; font-size:10.5px; white-space:nowrap; display:inline-block;">
+                          ${pG.shortBadge || pG.title}
                         </span>
                       </td>
                     </tr>
@@ -3937,21 +4099,25 @@
             </table>
           </div>
 
-          <!-- INDIKATOR KREATIVITAS BELAJAR SISWA (PROPOSAL INSTRUMENT) -->
+          <!-- INDIKATOR KEAKTIFAN BELAJAR SISWA (PAUL D. DIERICH / SARDIMAN) -->
           <div style="background:#f8fafc; border:1.5px solid #cbd5e1; border-radius:10px; padding:12px; margin-bottom:14px;">
-            <div style="font-size:12px; font-weight:800; color:#1e293b; margin-bottom:6px;">🎯 INDIKATOR KREATIFITAS BELAJAR MATEMATIKA (GUILFORD / TORRANCE):</div>
-            <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:8px; font-size:11px;">
+            <div style="font-size:12px; font-weight:800; color:#1e293b; margin-bottom:6px;">🎯 INDIKATOR KEAKTIFAN BELAJAR SISWA (PROPOSAL PENELITIAN SDN GANG AUT):</div>
+            <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:8px; font-size:11px;">
               <div style="background:#fff; border:1px solid #e2e8f0; border-radius:6px; padding:8px;">
-                <b style="color:#0284c7;">1. Kelancaran (Fluency)</b>
-                <p style="margin:4px 0 0; color:#475569; font-size:10px;">Kemampuan merespons dan menjawab kuis matematika pecahan & volume secara cepat, mandiri, dan akurat.</p>
+                <b style="color:#0284c7;">1. Keaktifan Visual</b>
+                <p style="margin:4px 0 0; color:#475569; font-size:10px;">Mengamati bentuk bangun datar pada petak pulau 3D dan memindai QR-Code soal/petunjuk menggunakan gawai.</p>
               </div>
               <div style="background:#fff; border:1px solid #e2e8f0; border-radius:6px; padding:8px;">
-                <b style="color:#16a34a;">2. Keluwesan (Flexibility)</b>
-                <p style="margin:4px 0 0; color:#475569; font-size:10px;">Kemampuan memecahkan masalah dari berbagai sudut pandang dengan bantuan teropong petunjuk (scaffolding visual).</p>
+                <b style="color:#16a34a;">2. Keaktifan Motorik</b>
+                <p style="margin:4px 0 0; color:#475569; font-size:10px;">Mengoperasikan spinner jarum 3D, memindahkan pion bajak laut, dan memegang kartu tantangan secara aktif.</p>
               </div>
               <div style="background:#fff; border:1px solid #e2e8f0; border-radius:6px; padding:8px;">
-                <b style="color:#d97706;">3. Elaborasi (Elaboration)</b>
-                <p style="margin:4px 0 0; color:#475569; font-size:10px;">Kemampuan memperinci langkah penyelesaian soal cerita dan memahami pembahasan konsep secara mendalam.</p>
+                <b style="color:#d97706;">3. Keaktifan Mental</b>
+                <p style="margin:4px 0 0; color:#475569; font-size:10px;">Menganalisis rumus luas bangun datar (persegi, segitiga, jajar genjang, trapesium) serta memecahkan soal cerita.</p>
+              </div>
+              <div style="background:#fff; border:1px solid #e2e8f0; border-radius:6px; padding:8px;">
+                <b style="color:#7c3aed;">4. Keaktifan Kolaboratif</b>
+                <p style="margin:4px 0 0; color:#475569; font-size:10px;">Berdiskusi menentukan langkah terbaik, saling menyemangati teman, dan berpartisipasi penuh dalam kelompok.</p>
               </div>
             </div>
           </div>
@@ -3992,7 +4158,7 @@
                 👦 ${p.alias}
               </div>
               <div style="font-size:11px; color:#64748b;">
-                ${studentIdentities.kelas} • ${studentIdentities.sekolah || 'SD Negeri Cerdas Ceria'}
+                ${studentIdentities.kelas} • ${studentIdentities.sekolah || 'SDN Gang Aut'}
               </div>
             </div>
             <div style="text-align:right;">
@@ -4028,35 +4194,35 @@
             </div>
           </div>
 
-          <!-- ASESMEN KREATIFITAS BELAJAR SISWA (3 INDIKATOR) -->
+          <!-- ASESMEN KEAKTIFAN BELAJAR SISWA (3 INDIKATOR OBSERVASI) -->
           <div style="background:#fff; border:1.5px solid #cbd5e1; border-radius:10px; padding:12px; margin-bottom:14px;">
             <div style="font-size:12px; font-weight:800; color:#1e293b; margin-bottom:8px;">
-              📊 PENGUKURAN INDIKATOR KREATIFITAS MATEMATIKA:
+              📊 PENGUKURAN INDIKATOR KEAKTIFAN BELAJAR SISWA (SDN GANG AUT):
             </div>
-            <!-- Kelancaran -->
+            <!-- Indikator 1 -->
             <div style="margin-bottom:8px;">
               <div style="display:flex; justify-content:space-between; font-size:11px; margin-bottom:2px;">
-                <span><b>1. Kelancaran Berpikir (Fluency):</b> Kecepatan & kemandirian solusi</span>
+                <span><b>1. Keaktifan Visual & Respons (Pindai QR / Soal):</b> Antusiasme menyelesaikan kuis</span>
                 <span style="font-weight:bold; color:#0284c7;">${fluencyVal}/100</span>
               </div>
               <div style="width:100%; height:7px; background:#e2e8f0; border-radius:4px; overflow:hidden;">
                 <div style="width:${fluencyVal}%; height:100%; background:#0284c7; border-radius:4px;"></div>
               </div>
             </div>
-            <!-- Keluwesan -->
+            <!-- Indikator 2 -->
             <div style="margin-bottom:8px;">
               <div style="display:flex; justify-content:space-between; font-size:11px; margin-bottom:2px;">
-                <span><b>2. Keluwesan Berpikir (Flexibility):</b> Eksplorasi strategi alternatif</span>
+                <span><b>2. Keaktifan Kolaborasi & Pemecahan Masalah:</b> Diskusi dan strategi luas bangun datar</span>
                 <span style="font-weight:bold; color:#16a34a;">${flexibilityVal}/100</span>
               </div>
               <div style="width:100%; height:7px; background:#e2e8f0; border-radius:4px; overflow:hidden;">
                 <div style="width:${flexibilityVal}%; height:100%; background:#16a34a; border-radius:4px;"></div>
               </div>
             </div>
-            <!-- Elaborasi -->
+            <!-- Indikator 3 -->
             <div>
               <div style="display:flex; justify-content:space-between; font-size:11px; margin-bottom:2px;">
-                <span><b>3. Elaborasi & Daya Tahan (Elaboration):</b> Rincian dan ketelitian</span>
+                <span><b>3. Kemandirian & Ketelitian Hitung:</b> Ketepatan rumus luas bangun datar</span>
                 <span style="font-weight:bold; color:#d97706;">${elaborationVal}/100</span>
               </div>
               <div style="width:100%; height:7px; background:#e2e8f0; border-radius:4px; overflow:hidden;">
@@ -4068,7 +4234,7 @@
           <!-- PREDIKAT & CATATAN GURU -->
           <div style="background:${grade.badgeBg}; border:1.5px solid ${grade.color}; border-radius:10px; padding:12px; margin-bottom:14px;">
             <div style="font-size:12px; font-weight:800; color:${grade.color}; margin-bottom:4px;">
-              Predikat Kreatifitas: ${grade.title}
+              Predikat Keaktifan Belajar: ${grade.title}
             </div>
             <p style="font-size:11px; color:#334155; margin:0; line-height:1.4;">
               ${grade.desc}
@@ -4256,10 +4422,18 @@ ${payload}
         <div style="background:#fff;border:2px solid #2b2118;padding:12px;border-radius:12px;font-weight:600;font-size:1.05rem;line-height:1.4;">
           ${quiz.q}
         </div>
-        <div style="margin:10px 0 6px;display:flex;justify-content:flex-end;">
+        <div style="margin:10px 0 6px;display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;">
+          <button id="quiz-qr-btn" onclick="toggleQuizQR('${quiz.shape || 'Luas Bangun Datar'}', '${(quiz.exp || '').replace(/'/g, "\\'")}')" style="background:#f3e8ff;border:2px solid #a855f7;color:#6b21a8;padding:6px 12px;border-radius:8px;font-weight:bold;font-size:12px;cursor:pointer;">
+            📷 Pindai QR Rumus Bangun Datar
+          </button>
           <button id="quiz-hint-toggle-btn" onclick="toggleHintView()" style="background:#fef3c7;border:2px solid #f59e0b;color:#92400e;padding:6px 12px;border-radius:8px;font-weight:bold;font-size:12px;cursor:pointer;">
             🔭 Buka Teropong Petunjuk (Hint)
           </button>
+        </div>
+        <div id="quiz-qr-box" style="display:none;background:#faf5ff;border:1.5px solid #d8b4fe;border-radius:10px;padding:12px;margin-bottom:10px;text-align:center;">
+          <div style="font-weight:800;color:#6b21a8;font-size:12px;margin-bottom:6px;">📱 QR-CODE RUMUS: ${quiz.shape || 'Luas Bangun Datar'}</div>
+          <div id="quiz-qr-target" style="display:flex;justify-content:center;margin:8px 0;"></div>
+          <div style="font-size:11px;color:#581c87;font-weight:600;" id="quiz-qr-caption"></div>
         </div>
         <div id="quiz-hint-box" style="display:none;background:#fffbeb;border:1px dashed #f59e0b;border-radius:8px;padding:10px;margin-bottom:10px;font-size:12px;color:#78350f;">
           <b>💡 Petunjuk Menghitung:</b> ${quiz.exp || 'Perhatikan kembali pertanyaan dan rumus matematika dengan cermat!'}
@@ -4665,331 +4839,6 @@ ${payload}
     window.addEventListener('resize', updateCameraForViewport);
     updateCameraForViewport();
   </script>
-
-  <!-- MODAL DECK MANAGER INTERAKTIF -->
-  <div class="modal-backdrop" id="deck-manager-modal" style="display:none;">
-    <div class="modal-box" style="max-width:760px; max-height:88vh; display:flex; flex-direction:column;">
-      <div class="modal-header" style="background:#4338ca; border-bottom:3px solid #312e81;">
-        <h2 style="color:#fff; font-size:18px; margin:0;">🃏 Manajemen Dek Kartu & Soal Matematika SD</h2>
-        <button class="close-modal" onclick="closeDeckManagerModal()" style="color:#fff; background:rgba(255,255,255,0.2);">✕</button>
-      </div>
-      <div class="modal-body" style="flex:1; overflow-y:auto; padding:16px;">
-        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:12px; background:#f8fafc; padding:10px; border-radius:8px; border:1px solid #e2e8f0;">
-          <div style="font-size:13px; font-weight:bold; color:#1e293b;">
-            Filter Tipe:
-            <select id="deck-filter-type" onchange="renderDeckCardList()" style="padding:4px 8px; border-radius:6px; border:1px solid #cbd5e1; margin-left:6px;">
-              <option value="all">Semua Kategori</option>
-              <option value="soal">📘 Kuis Soal Matematika</option>
-              <option value="misi">🔍 Misi Pemecahan Masalah</option>
-              <option value="tantangan">⚡ Tantangan Kilat</option>
-              <option value="bonus">⭐ Kartu Bonus Langkah</option>
-              <option value="jebakan">⚠️ Kartu Jebakan</option>
-            </select>
-          </div>
-          <div style="display:flex; gap:6px;">
-            <button onclick="exportDeckJSON()" style="padding:6px 10px; font-size:12px; font-weight:bold; background:#059669; color:white; border:none; border-radius:6px; cursor:pointer;">📥 Unduh JSON</button>
-            <label style="padding:6px 10px; font-size:12px; font-weight:bold; background:#0284c7; color:white; border-radius:6px; cursor:pointer; margin:0;">
-              📤 Unggah JSON
-              <input type="file" id="deck-import-file" accept=".json" onchange="importDeckJSON(event)" style="display:none;">
-            </label>
-            <button onclick="resetDeckToDefault()" style="padding:6px 10px; font-size:12px; font-weight:bold; background:#e11d48; color:white; border:none; border-radius:6px; cursor:pointer;">🔄 Reset Awal</button>
-          </div>
-        </div>
-
-        <!-- FORM TAMBAH / EDIT KARTU -->
-        <details id="card-form-details" style="background:#f1f5f9; padding:12px; border-radius:8px; margin-bottom:16px; border:1px solid #cbd5e1;">
-          <summary style="font-weight:bold; cursor:pointer; color:#334155; font-size:14px;">➕ Tambah Kartu / Soal Baru (Klik di sini)</summary>
-          <div style="display:flex; flex-direction:column; gap:10px; margin-top:12px;">
-            <div style="display:flex; gap:10px;">
-              <div style="flex:1;">
-                <label style="display:block; font-size:12px; font-weight:bold; color:#475569;">Kategori Kartu:</label>
-                <select id="new-card-type" style="width:100%; padding:6px; border-radius:6px; border:1px solid #cbd5e1;">
-                  <option value="soal">📘 Soal Kuis Matematika</option>
-                  <option value="misi">🔍 Misi Matematika</option>
-                  <option value="tantangan">⚡ Tantangan Kilat</option>
-                  <option value="bonus">⭐ Bonus Langkah</option>
-                  <option value="jebakan">⚠️ Jebakan</option>
-                </select>
-              </div>
-              <div style="width:110px;">
-                <label style="display:block; font-size:12px; font-weight:bold; color:#475569;">Efek Langkah:</label>
-                <input type="number" id="new-card-steps" value="2" style="width:100%; padding:6px; border-radius:6px; border:1px solid #cbd5e1;">
-              </div>
-            </div>
-
-            <div>
-              <label style="display:block; font-size:12px; font-weight:bold; color:#475569;">Pertanyaan / Perintah Kartu:</label>
-              <textarea id="new-card-q" rows="2" placeholder="Contoh: Berapakah hasil dari 3/4 + 1/2?" style="width:100%; padding:8px; border-radius:6px; border:1px solid #cbd5e1; font-family:inherit;"></textarea>
-            </div>
-
-            <div>
-              <label style="display:block; font-size:12px; font-weight:bold; color:#475569;">4 Pilihan Jawaban (Pisahkan dengan baris baru):</label>
-              <textarea id="new-card-opts" rows="4" placeholder="A. 1 1/4&#10;B. 1 1/2&#10;C. 2&#10;D. 1" style="width:100%; padding:8px; border-radius:6px; border:1px solid #cbd5e1; font-family:inherit;"></textarea>
-            </div>
-
-            <div style="display:flex; gap:10px;">
-              <div style="flex:1;">
-                <label style="display:block; font-size:12px; font-weight:bold; color:#475569;">Kunci Jawaban Yang Benar:</label>
-                <select id="new-card-ans" style="width:100%; padding:6px; border-radius:6px; border:1px solid #cbd5e1;">
-                  <option value="0">Pilihan 1 (A)</option>
-                  <option value="1">Pilihan 2 (B)</option>
-                  <option value="2">Pilihan 3 (C)</option>
-                  <option value="3">Pilihan 4 (D)</option>
-                </select>
-              </div>
-              <div style="flex:2;">
-                <label style="display:block; font-size:12px; font-weight:bold; color:#475569;">Pembahasan / Catatan Solusi:</label>
-                <input type="text" id="new-card-exp" placeholder="Contoh: Samakan penyebut 3/4 + 2/4 = 5/4 = 1 1/4" style="width:100%; padding:6px; border-radius:6px; border:1px solid #cbd5e1;">
-              </div>
-            </div>
-
-            <button onclick="saveNewDeckCard()" style="margin-top:6px; padding:8px 16px; background:#4f46e5; color:white; border:none; border-radius:6px; font-weight:bold; cursor:pointer;">💾 Simpan Kartu ke Dek</button>
-          </div>
-        </details>
-
-        <!-- DAFTAR KARTU -->
-        <h4 style="margin:0 0 8px 0; color:#1e293b; font-size:14px; display:flex; justify-content:space-between;">
-          <span>Daftar Kartu Aktif</span>
-          <span id="deck-total-count-badge" style="background:#e2e8f0; padding:2px 8px; border-radius:12px; font-size:12px;">0 Kartu</span>
-        </h4>
-        <div id="deck-card-list-container" style="display:flex; flex-direction:column; gap:8px;"></div>
-      </div>
-    </div>
-  </div>
-
-
-  
-  <!-- ============================================================== -->
-  <!-- MODAL: ATUR IDENTITAS SISWA & KELOMPOK BELAJAR (RESEARCH ASESMEN) -->
-  <!-- ============================================================== -->
-  <div class="modal-backdrop" id="student-identity-modal" style="display:none;">
-    <div class="modal-box" style="max-width:520px; max-height:88vh; display:flex; flex-direction:column;">
-      <div class="modal-header" style="background:#1e40af; border-bottom:3px solid #1e3a8a;">
-        <h2 style="color:#fff; font-size:17px; margin:0; display:flex; align-items:center; gap:8px;">
-          👥 Identitas Siswa & Kelompok Belajar
-        </h2>
-        <button class="close-modal" onclick="closePlayerIdentityModal()" style="color:#fff; background:rgba(255,255,255,0.2);">✕</button>
-      </div>
-      <div class="modal-body" style="flex:1; overflow-y:auto; padding:18px;">
-        <p style="font-size:12px; color:#475569; margin:0 0 14px; line-height:1.4;">
-          Masukkan identitas 3 siswa yang memainkan pion ini untuk sinkronisasi otomatis pada <b>Raport Belajar</b> dan lembar observasi penelitian.
-        </p>
-
-        <!-- Metadata Kelompok & Kelas -->
-        <div style="background:#f8fafc; border:1.5px solid #cbd5e1; border-radius:10px; padding:12px; margin-bottom:14px;">
-          <div style="font-size:11px; font-weight:bold; color:#334155; margin-bottom:6px;">🏫 Informasi Kelas & Kelompok:</div>
-          <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
-            <div>
-              <label style="font-size:10px; color:#64748b; font-weight:700;">KELAS / FASE</label>
-              <input type="text" id="input-kelas" value="Kelas V SD (Fase C)" style="width:100%; padding:6px 8px; border:1.5px solid #cbd5e1; border-radius:6px; font-size:12px;" />
-            </div>
-            <div>
-              <label style="font-size:10px; color:#64748b; font-weight:700;">NAMA KELOMPOK</label>
-              <input type="text" id="input-kelompok" value="Kelompok Bajak Laut Matematika" style="width:100%; padding:6px 8px; border:1.5px solid #cbd5e1; border-radius:6px; font-size:12px;" />
-            </div>
-          </div>
-        </div>
-
-        <!-- 3 Siswa Form -->
-        <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:16px;">
-          <!-- Siswa 1 (Merah) -->
-          <div style="border:2px solid #ef4444; background:#fef2f2; border-radius:10px; padding:10px;">
-            <div style="display:flex; align-items:center; gap:6px; font-weight:bold; font-size:12px; color:#b91c1c; margin-bottom:6px;">
-              <span style="display:inline-block; width:12px; height:12px; border-radius:50%; background:#ef4444;"></span>
-              Pemain 1 (Kapten Merah)
-            </div>
-            <div style="display:grid; grid-template-columns:2fr 1fr; gap:8px;">
-              <input type="text" id="input-alias-0" placeholder="Nama Lengkap Siswa 1" value="Ahmad Dahlan" style="padding:6px 8px; border:1.5px solid #fca5a5; border-radius:6px; font-size:12px; font-weight:600;" />
-              <input type="text" id="input-absen-0" placeholder="No. Absen" value="01" style="padding:6px 8px; border:1.5px solid #fca5a5; border-radius:6px; font-size:12px; text-align:center;" />
-            </div>
-          </div>
-
-          <!-- Siswa 2 (Biru) -->
-          <div style="border:2px solid #3b82f6; background:#eff6ff; border-radius:10px; padding:10px;">
-            <div style="display:flex; align-items:center; gap:6px; font-weight:bold; font-size:12px; color:#1d4ed8; margin-bottom:6px;">
-              <span style="display:inline-block; width:12px; height:12px; border-radius:50%; background:#3b82f6;"></span>
-              Pemain 2 (Navigator Biru)
-            </div>
-            <div style="display:grid; grid-template-columns:2fr 1fr; gap:8px;">
-              <input type="text" id="input-alias-1" placeholder="Nama Lengkap Siswa 2" value="Siti Rahma" style="padding:6px 8px; border:1.5px solid #93c5fd; border-radius:6px; font-size:12px; font-weight:600;" />
-              <input type="text" id="input-absen-1" placeholder="No. Absen" value="02" style="padding:6px 8px; border:1.5px solid #93c5fd; border-radius:6px; font-size:12px; text-align:center;" />
-            </div>
-          </div>
-
-          <!-- Siswa 3 (Hijau) -->
-          <div style="border:2px solid #22c55e; background:#f0fdf4; border-radius:10px; padding:10px;">
-            <div style="display:flex; align-items:center; gap:6px; font-weight:bold; font-size:12px; color:#15803d; margin-bottom:6px;">
-              <span style="display:inline-block; width:12px; height:12px; border-radius:50%; background:#22c55e;"></span>
-              Pemain 3 (Meriam Hijau)
-            </div>
-            <div style="display:grid; grid-template-columns:2fr 1fr; gap:8px;">
-              <input type="text" id="input-alias-2" placeholder="Nama Lengkap Siswa 3" value="Budi Pratama" style="padding:6px 8px; border:1.5px solid #86efac; border-radius:6px; font-size:12px; font-weight:600;" />
-              <input type="text" id="input-absen-2" placeholder="No. Absen" value="03" style="padding:6px 8px; border:1.5px solid #86efac; border-radius:6px; font-size:12px; text-align:center;" />
-            </div>
-          </div>
-        </div>
-
-        <button onclick="savePlayerIdentities()" style="width:100%; padding:10px; background:#16a34a; color:white; border:none; border-radius:8px; font-weight:bold; font-size:13px; cursor:pointer;">
-          💾 Simpan & Terapkan Identitas Siswa
-        </button>
-      </div>
-    </div>
-  </div>
-
-
-  <!-- ============================================================== -->
-  <!-- MODAL: QR CODE AKSES GAME (WEB & MOBILE MULTIPLAYER COOPERATION) -->
-  <!-- ============================================================== -->
-  <div class="modal-backdrop" id="qr-access-modal" style="display:none;">
-    <div class="modal-box" style="max-width:460px; max-height:85vh; text-align:center;">
-      <div class="modal-header" style="background:#059669; border-bottom:3px solid #047857;">
-        <h2 style="color:#fff; font-size:17px; margin:0;">📱 QR Code Akses Game 3D</h2>
-        <button class="close-modal" onclick="closeQRAccessModal()" style="color:#fff; background:rgba(255,255,255,0.2);">✕</button>
-      </div>
-      <div class="modal-body" style="padding:20px 16px;">
-        <div style="background:#ecfdf5; border:1.5px dashed #10b981; border-radius:12px; padding:16px; margin-bottom:16px;">
-          <div id="qr-access-code-container" style="display:flex; justify-content:center; align-items:center; margin-bottom:12px; min-height:160px;"></div>
-          <p style="font-size:13px; font-weight:700; color:#065f46; margin:0 0 6px;">
-            Arahkan Kamera HP / Tablet Siswa ke QR Code di atas
-          </p>
-          <p style="font-size:11px; color:#047857; margin:0;">
-            Media ini terintegrasi langsung untuk pembelajaran kolaboratif di kelas maupun belajar mandiri di rumah.
-          </p>
-        </div>
-        <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:10px; margin-bottom:14px; word-break:break-all; font-size:12px;">
-          <span style="color:#64748b; font-weight:600;">Tautan Akses:</span><br/>
-          <code id="qr-access-url-text" style="color:#2563eb; font-weight:bold;"></code>
-        </div>
-        <div style="display:flex; gap:8px;">
-          <button onclick="copyGameAccessUrl()" style="flex:1; padding:9px; background:#0284c7; color:white; border:none; border-radius:8px; font-weight:bold; font-size:12px; cursor:pointer;">
-            📋 Salin Link Game
-          </button>
-          <button onclick="closeQRAccessModal()" style="flex:1; padding:9px; background:#e2e8f0; color:#334155; border:none; border-radius:8px; font-weight:bold; font-size:12px; cursor:pointer;">
-            Tutup
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-
-  <!-- ============================================================== -->
-  <!-- MODAL: PINDAI QR SOAL / INPUT KODE KARTU FISIK (PROPOSAL SKRIPSI) -->
-  <!-- ============================================================== -->
-  <div class="modal-backdrop" id="qr-scanner-modal" style="display:none;">
-    <div class="modal-box" style="max-width:540px; max-height:88vh; display:flex; flex-direction:column;">
-      <div class="modal-header" style="background:#7c3aed; border-bottom:3px solid #6d28d9;">
-        <h2 style="color:#fff; font-size:17px; margin:0; display:flex; align-items:center; gap:8px;">
-          📷 Pindai QR Code Soal & Tantangan Kreatif
-        </h2>
-        <button class="close-modal" onclick="closeQRScannerModal()" style="color:#fff; background:rgba(255,255,255,0.2);">✕</button>
-      </div>
-      <div class="modal-body" style="flex:1; overflow-y:auto; padding:18px;">
-        <div style="background:#f5f3ff; border:1.5px solid #c4b5fd; border-radius:10px; padding:12px; margin-bottom:14px;">
-          <div style="font-weight:700; color:#5b21b6; font-size:13px; margin-bottom:4px;">🎯 Fitur Integrasi QR Media Fisik - Digital</div>
-          <p style="font-size:12px; color:#6d28d9; margin:0; line-height:1.4;">
-            Sesuai proposal penelitian pembelajaran matematika, siswa yang memegang kartu fisik atau kartu papan cetak dapat memindai barcode QR atau mengetik kode kartu di bawah ini untuk membuka soal di layar 3D!
-          </p>
-        </div>
-
-        <!-- Input Kode Cepat -->
-        <div style="background:#fff; border:1.5px solid #e2e8f0; border-radius:10px; padding:12px; margin-bottom:14px;">
-          <label style="font-size:11px; font-weight:700; color:#334155; display:block; margin-bottom:6px;">MASUKKAN KODE KARTU (Misal: M-01, S-05, T-02):</label>
-          <div style="display:flex; gap:8px;">
-            <input type="text" id="qr-manual-code-input" placeholder="Contoh: M-01 atau S-02" style="flex:1; padding:8px 10px; border:2px solid #7c3aed; border-radius:8px; font-size:13px; font-weight:700; text-transform:uppercase;" />
-            <button onclick="submitManualCardCode()" style="padding:8px 16px; background:#7c3aed; color:white; border:none; border-radius:8px; font-weight:bold; font-size:12px; cursor:pointer;">
-              🚀 Buka Kartu
-            </button>
-          </div>
-        </div>
-
-        <!-- Grid Kartu Cepat Populer -->
-        <div style="font-size:11px; font-weight:700; color:#475569; margin-bottom:6px;">PILIH CEPAT KARTU KREATIF MATEMATIKA:</div>
-        <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:8px;">
-          <button onclick="triggerCardModal('misi', true); closeQRScannerModal();" style="padding:10px 8px; background:#fef3c7; border:1.5px solid #f59e0b; border-radius:8px; font-size:11px; font-weight:bold; color:#92400e; cursor:pointer; text-align:left;">
-            🔍 Kartu Misi<br/><span style="font-size:9px; color:#b45309;">Problem Solving (M-01)</span>
-          </button>
-          <button onclick="triggerCardModal('soal', true); closeQRScannerModal();" style="padding:10px 8px; background:#e0f2fe; border:1.5px solid #38bdf8; border-radius:8px; font-size:11px; font-weight:bold; color:#0369a1; cursor:pointer; text-align:left;">
-            📘 Kartu Soal<br/><span style="font-size:9px; color:#0284c7;">Pecahan & Ruang (S-01)</span>
-          </button>
-          <button onclick="triggerCardModal('tantangan', true); closeQRScannerModal();" style="padding:10px 8px; background:#ffedd5; border:1.5px solid #fb923c; border-radius:8px; font-size:11px; font-weight:bold; color:#c2410c; cursor:pointer; text-align:left;">
-            ⚡ Tantangan Kilat<br/><span style="font-size:9px; color:#ea580c;">Hitung Cepat (T-01)</span>
-          </button>
-          <button onclick="triggerCardModal('bonus', true); closeQRScannerModal();" style="padding:10px 8px; background:#fef9c3; border:1.5px solid #eab308; border-radius:8px; font-size:11px; font-weight:bold; color:#854d0e; cursor:pointer; text-align:left;">
-            ⭐ Kartu Bonus<br/><span style="font-size:9px; color:#ca8a04;">Langkah Ekstra (B-01)</span>
-          </button>
-          <button onclick="triggerCardModal('jebakan', true); closeQRScannerModal();" style="padding:10px 8px; background:#fee2e2; border:1.5px solid #f87171; border-radius:8px; font-size:11px; font-weight:bold; color:#991b1b; cursor:pointer; text-align:left;">
-            ⚠️ Kartu Jebakan<br/><span style="font-size:9px; color:#dc2626;">Tantangan Reduksi (J-01)</span>
-          </button>
-          <button onclick="openInfoModal('materi'); closeQRScannerModal();" style="padding:10px 8px; background:#dcfce7; border:1.5px solid #4ade80; border-radius:8px; font-size:11px; font-weight:bold; color:#166534; cursor:pointer; text-align:left;">
-            📖 Konsep Materi<br/><span style="font-size:9px; color:#15803d;">Pecahan & Geometri</span>
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-
-  <!-- ============================================================== -->
-  <!-- MODAL: RAPORT BELAJAR SISWA LENGKAP (PENELITIAN KREATIVITAS SD) -->
-  <!-- ============================================================== -->
-  <div class="modal-backdrop" id="rapor-kapten-modal" style="display:none;">
-    <div class="modal-box" style="max-width:760px; max-height:90vh; display:flex; flex-direction:column;">
-      <!-- Header Rapor -->
-      <div class="modal-header" style="background:#b45309; border-bottom:3px solid #78350f; display:flex; justify-content:space-between; align-items:center;">
-        <div>
-          <h2 style="color:#fff; font-size:17px; margin:0; display:flex; align-items:center; gap:8px;">
-            📊 Raport Hasil Belajar & Kreativitas Matematika Siswa
-          </h2>
-          <div style="font-size:11px; color:#fef3c7; margin-top:2px;">
-            Media Permainan Papan Interaktif 3D Terintegrasi QR Code - Kelas V SD
-          </div>
-        </div>
-        <button class="close-modal no-print" onclick="closeRaporKaptenModal()" style="color:#fff; background:rgba(255,255,255,0.2);">✕</button>
-      </div>
-
-      <!-- Tab Switcher Navigasi: Rekap Kelompok | Siswa 1 | Siswa 2 | Siswa 3 -->
-      <div class="no-print" style="background:#fef3c7; border-bottom:2px solid #fde68a; padding:8px 16px; display:flex; gap:6px; overflow-x:auto;">
-        <button class="rapor-tab-btn active" id="tab-rapor-all" onclick="switchRaporTab('all')" style="padding:6px 12px; border-radius:8px; border:1.5px solid #b45309; background:#b45309; color:#fff; font-weight:bold; font-size:11px; cursor:pointer;">
-          👥 Rekap Kelompok (Semua Siswa)
-        </button>
-        <button class="rapor-tab-btn" id="tab-rapor-0" onclick="switchRaporTab(0)" style="padding:6px 12px; border-radius:8px; border:1.5px solid #cbd5e1; background:#fff; color:#334155; font-weight:bold; font-size:11px; cursor:pointer;">
-          🔴 Siswa 1: <span class="tab-alias-0">Kapten Merah</span>
-        </button>
-        <button class="rapor-tab-btn" id="tab-rapor-1" onclick="switchRaporTab(1)" style="padding:6px 12px; border-radius:8px; border:1.5px solid #cbd5e1; background:#fff; color:#334155; font-weight:bold; font-size:11px; cursor:pointer;">
-          🔵 Siswa 2: <span class="tab-alias-1">Navigator Biru</span>
-        </button>
-        <button class="rapor-tab-btn" id="tab-rapor-2" onclick="switchRaporTab(2)" style="padding:6px 12px; border-radius:8px; border:1.5px solid #cbd5e1; background:#fff; color:#334155; font-weight:bold; font-size:11px; cursor:pointer;">
-          🟢 Siswa 3: <span class="tab-alias-2">Meriam Hijau</span>
-        </button>
-      </div>
-
-      <!-- Body Rapor Container -->
-      <div class="modal-body" id="rapor-dynamic-content" style="flex:1; overflow-y:auto; padding:18px;">
-        <!-- Akan diisi secara dinamis oleh renderRaporView() -->
-      </div>
-
-      <!-- Action Tools Footer -->
-      <div class="no-print" style="background:#f8fafc; border-top:1.5px solid #e2e8f0; padding:12px 18px; display:flex; flex-wrap:wrap; gap:8px; justify-content:space-between; align-items:center;">
-        <div style="display:flex; gap:8px;">
-          <button onclick="openPlayerIdentityModal()" style="padding:8px 12px; background:#eff6ff; color:#1d4ed8; border:1.5px solid #3b82f6; border-radius:8px; font-weight:bold; font-size:11px; cursor:pointer;">
-            ✏️ Atur Identitas Siswa
-          </button>
-          <button onclick="resetLearningReport()" style="padding:8px 12px; background:#fee2e2; color:#b91c1c; border:1.5px solid #f87171; border-radius:8px; font-weight:bold; font-size:11px; cursor:pointer;">
-            🔄 Reset Data Sesi
-          </button>
-        </div>
-        <div style="display:flex; gap:8px;">
-          <button onclick="showQRCodeForCurrentReport()" style="padding:8px 12px; background:#ecfdf5; color:#065f46; border:1.5px solid #10b981; border-radius:8px; font-weight:bold; font-size:11px; cursor:pointer;">
-            📲 Buat QR Rapor Siswa
-          </button>
-          <button onclick="window.print()" class="print-allow" style="padding:8px 16px; background:#0284c7; color:white; border:none; border-radius:8px; font-weight:bold; font-size:12px; cursor:pointer;">
-            🖨️ Cetak / Unduh Lembar Raport (PDF)
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
 
 </body>
 </html>
